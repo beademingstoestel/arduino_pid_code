@@ -19,9 +19,9 @@ void loop() {
 int getCRC(char* str) {
     char checksum = 0;
     char i;
-    int test = 500;
+    int test = 20;
     
-    sprintf(str, "BPM=%d=", test);
+    sprintf(str, "RR=%d=", test);
     // calculate CRC with bitwise XOR of each character
     for (i = 0; i < strlen(str); i++) {
         checksum ^= str[i];
