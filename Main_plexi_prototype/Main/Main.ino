@@ -14,7 +14,7 @@
 
 
 
-unsigned long controllerTime = 10000; // us
+unsigned long controllerTime = 10000; // us 
 unsigned long Watchdog = 3000; // 3 seconds watchdog
 
 unsigned long lastWatchdogTime = millis();
