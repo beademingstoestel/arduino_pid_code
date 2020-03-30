@@ -21,10 +21,6 @@
 #include <Adafruit_MPL3115A2.h>
 #include <Adafruit_BMP280.h>
 
-#define BME_SPI_SCK 52
-#define BME_SPI_MISO 50
-#define BME_SPI_MOSI 51 
-#define BME_SPI_CS 48
 //-----------------------------------------------------------------------------------------------
 Adafruit_BMP280 bmp1;//(0x76);
 Adafruit_BME280 bmp2;//(0x77); // use I2C interface

@@ -1,8 +1,9 @@
 #include <BTS7960.h>
+#include "PINOUT.h"
 
-const uint8_t EN = 4;     //unsigned int 8 bit 
-const uint8_t L_PWM = 6;
-const uint8_t R_PWM = 7;
+const uint8_t EN = EN_PIN;     
+const uint8_t L_PWM = L_PWM_PIN;
+const uint8_t R_PWM = R_PWM_PIN;
 BTS7960 motorController(EN, L_PWM, R_PWM); //initialiseren van de motorcontroller
 //----------------------------------------------------------------------------------
 void MOTOR_CONTROL_setp()

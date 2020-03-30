@@ -8,9 +8,9 @@
 // define bytes to send
 unsigned int RR = 10; 
 // Number of breaths per minute setting
-unsigned int VT = 700;
+unsigned int VT = 400;
 // Tidal volume= target to deliver
-unsigned int PK = 50;
+unsigned int PK = 20;
 //Peak pressure
 int TS = 0; // TODO
 // Breath Trigger Sensitivity = amount the machine should look for
@@ -106,6 +106,9 @@ void comms_setBPM(unsigned long bpm_time){
 }
 void comms_setVOL(int vol){
   VOL = vol;
+}
+int comms_getVOL(){
+  return VOL;
 }
 void comms_setTRIG(unsigned int trig){
   TRIG = trig;

@@ -69,7 +69,7 @@ int SDPSensor::init()
   }
 
   // THOMASVDD: SET TO CONTINUOUS MEASURE
-  uint8_t cmd2[CMD_LEN] = { 0x36, 0x15 };
+  uint8_t cmd2[CMD_LEN] = { 0x36, 0x03 };
   ret = I2CHelper::i2c_write(mI2CAddress, cmd2, CMD_LEN);
   if (ret != 0) {
     Serial.println("cont meas setup failed");
@@ -95,7 +95,7 @@ int SDPSensor::readcont(){
   int8_t dp_scale  = (int16_t)data[7] << 8 | data[7];
 
   if (dp_raw != 0){
-    mDifferentialPressure = dp_raw / (float)dp_scale;
+    mDifferentialPressure = (float) dp_raw / (float)dp_scale;
     mTemperature = temp_raw / 200.0;
   }
   else{
@@ -130,7 +130,7 @@ int SDPSensor::readSample()
   int8_t dp_scale  = (int16_t)data[7] << 8 | data[7];
 
   if (dp_raw != 0){
-    mDifferentialPressure = dp_raw / (float)dp_scale;
+    mDifferentialPressure = (float) dp_raw / (float)dp_scale;
     mTemperature = temp_raw / 200.0;
   }
   else{
