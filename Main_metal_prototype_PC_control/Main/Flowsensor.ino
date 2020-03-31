@@ -5,6 +5,8 @@ float Volume;
 float totalFlow = 0;
 unsigned long numberoftriggers = 0;
 unsigned long deltaT;
+
+int flowsensordirection = 1;
 //----------------------------------------------------------------------------------------------------------------
 // SDP3x on the default I2C address of 0x21:
 SDP3XSensor sdp;
@@ -72,7 +74,7 @@ bool FLOW_SENSOR_Measure(float* value)
         }
       }
     }
-    *value = y;
+    *value = y*flowsensordirection;
     return true; 
   } 
   return false;
