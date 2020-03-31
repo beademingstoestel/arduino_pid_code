@@ -119,10 +119,10 @@ float BREATHE_CONTROL_Regulate()
 {
     Serial1.print(Flow2Patient);
     Serial1.print(",");
-    //Serial1.print(Volume2Patient*0.1);
+    //Serial1.print(getTotalVolumeInt()*0.1);
     //Serial1.print(",");
-    //Serial1.print(comms_getVOL());
-    //Serial1.print(",");
+    Serial1.print(Volume2Patient*0.1);
+    Serial1.print(",");
     Serial1.print(CurrentPressurePatient);
     Serial1.print(",");
   

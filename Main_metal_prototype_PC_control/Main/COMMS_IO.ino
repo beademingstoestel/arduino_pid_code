@@ -19,19 +19,19 @@ boolean newData1 = false;
 //---------------------------------------------------------------
 
 // define bytes to send
-unsigned int RR = 20;         // Number of breaths per minute setting
+unsigned int RR = 10;         // Number of breaths per minute setting
 unsigned int VT = 400;        // Tidal volume= target to deliver
-unsigned int PK = 35;         // Peak pressure
-float IE = 0.5;               // Inspiration-expiration rate
+unsigned int PK = 50;         // Peak pressure
+float IE = 0.3;               // Inspiration-expiration rate
 unsigned int PP = 15; //TODO         // PEEP Pressure = Max pressure to deliver
-bool Mode = true;            // Mode: true = flow trigger, false = Pressure
+bool Mode = 0;            // Mode: false = flow trigger, true = Pressure
 bool ACTIVE = true;           // active: start or stop
 
-float PS = 30;                // Support pressure
+float PS = 25;                // Support pressure
 float RP = 0.5;               // Ramp time
 float TI = 1;// TODO                 // Inhale time
-float TS = 0;                 // Breath Trigger Sensitivity FLOW
-float TP = 2;                 // Breath Trigger Sensitivity PRES
+float TS = 10;                 // Breath Trigger Sensitivity FLOW
+float TP = 5;                 // Breath Trigger Sensitivity PRES
 
 unsigned int ADPK = 10;
 unsigned int ADVT = 10;
