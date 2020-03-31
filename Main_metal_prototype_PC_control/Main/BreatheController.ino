@@ -5,6 +5,7 @@ float PRESSURE_INHALE_SETPOINT = 0;
 float current_inhale_pressure = 0;
 float offset = 250;
 float exhale_speed = 80;
+float hold_speed = 0;
 float delta_time;
 
 //----------------------------------
@@ -163,7 +164,7 @@ float BREATHE_CONTROL_Regulate()
 float BREATHE_CONTROL_Regulate_With_Volume(){
   float Speed = BREATHE_CONTROL_Regulate();
   if (abs(Volume2Patient) > abs(target_volume)){
-    return -1;
+    return hold_speed;
   }
   else{
     return Speed;
