@@ -190,6 +190,7 @@ void sendInitToPython() {
 // FUNCTIONS FROM PYTHON
 //---------------------------------------------------------------
 
+// Init communication at startup: blocking
 bool initCOMM() {
   Serial1.println("SETUP START");
   while (!getSettings()) {
@@ -198,6 +199,7 @@ bool initCOMM() {
   Serial1.println("SETUP DONE");
 }
 
+// Get settings from python
 bool getSettings() {
   bool allsettingsok = true;
   for (int i=0; i<15; i++){
@@ -222,31 +224,31 @@ bool getSettings() {
   }
 }
 
+// reset python communication
 bool resetComm() {
   for (int i=0; i<15; i++){
     settingarray[i].settingok = false;
   }
 }
 
+// Read incoming data and ack
 void processSerialPort(String input) {
   value0 = getvalue(input, '=', 1);
   value1 = getvalue(input, '=', 2);
-  char value3[50];
-  char value4[50];
-  value0.toCharArray(value3, 50);
-  char value2 = value3[0];
-  value1.toCharArray(value4, 50);
-  char value6 = value4[0];
-  //TODO  clean this mess up
+  char value2[1];
+  char value3[1];
+  value0.toCharArray(value2, 1);
+  value1.toCharArray(value3, 1);
+  char id_ack = value2[0];
+  char id_msg = value3[0];
   
   for (int i=0; i<15; i++){
     if (input.startsWith(settingarray[i].settingname)) {
       settingarray[i].settingvalue = value0.toFloat();
       EEPROM.put(settingarray[i].eepromloc, settingarray[i].settingvalue);
-
       // send ack
       strcpy(message, "");
-      sprintf(message, "ACK=%c=", value6);
+      sprintf(message, "ACK=%c=", id_msg);
       getCRC(message);
       Serial.println(message);       
       settingarray[i].messagetime = millis();
@@ -259,12 +261,11 @@ void processSerialPort(String input) {
   
   if (input.startsWith("ACK")) {
     for (int i=0; i<15; i++){
-      if(settingarray[i].messageid == value2){
+      if(settingarray[i].messageid == id_ack){
         settingarray[i].settingok = true;
       }
     }
   }
-  
 }
 
 //---------------------------------------------------------------
