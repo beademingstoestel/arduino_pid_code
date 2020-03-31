@@ -51,9 +51,24 @@ void setup()
 
   //-- set up motor
   MOTOR_CONTROL_setp();
+  if(digitalRead(ENDSWITCH_PUSH_PIN)){
+    MOTOR_CONTROL_setValue(-50);
+    delay(1000);
+  }
   MOTOR_CONTROL_setValue(50);
   while(!digitalRead(ENDSWITCH_PUSH_PIN)){}
   MOTOR_CONTROL_setValue(0);
+
+  //-- set up hall sensor
+  Serial.println("Setting up HALL sensor: ");
+  if (HALL_SENSOR_INIT()) {
+    HALL_SENSOR_calibrateHall();
+    Serial.println("HALL SENSOR OK");
+  }
+  else {
+    Serial.println("HALL SENSOR Failed");
+    if(HARDWARE)while(1){};
+  }
 
   //--- set up flow sensors here, if init fails, we can continue
   Serial.print("Setting up flow sensor: ");
@@ -73,16 +88,6 @@ void setup()
   }
   else{
     Serial.println("BME Failed");
-    if(HARDWARE)while(1){};
-  }
-
-  //-- set up hall sensor
-  Serial.println("Setting up HALL sensor: ");
-  if (HALL_SENSOR_INIT()) {
-    Serial.println("HALL SENSOR OK");
-  }
-  else {
-    Serial.println("HALL SENSOR Failed");
     if(HARDWARE)while(1){};
   }
 
@@ -113,6 +118,8 @@ void loop()
   // Handle uart receive from display module
   recvWithEndMarkerSer1();
 
+  //Serial.println(Volume2Patient);
+
   delay(20); 
 }
 
@@ -130,8 +137,9 @@ void controller()
   noInterrupts();
   // update values 
   updateVolume(Flow2Patient*0.1);
-  comms_setVOL(Volume2Patient);
   comms_setVOL(getTotalVolumeInt());
+  
+  comms_setVOL(Volume2Patient);
   comms_setPRES(CurrentPressurePatient);
   // read switches
   int END_SWITCH_VALUE_STOP = !digitalRead(ENDSIWTCH_FULL_PIN); //TODO
@@ -150,8 +158,7 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // update motor speed
-//      Speed = BREATHE_CONTROL_Regulate_With_Volume();  // TODO
-      Speed = BREATHE_CONTROL_Regulate();
+      Speed = BREATHE_CONTROL_Regulate_With_Volume();
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
       controller_state = BREATHE_setToEXHALE(END_SWITCH_VALUE_STOP);      
@@ -161,6 +168,7 @@ void controller()
       Speed = BREATHE_CONTROL_Regulate(); 
       MOTOR_CONTROL_setValue(Speed);
       // check if motor has returned
+      inhale_detected = BREATHE_CONTROL_CheckInhale();
       controller_state = BREATHE_setToWAIT(END_SWITCH_VALUE_START);
       // Check alarm ==> setAlarm() in PID!
     }break;

@@ -3,6 +3,7 @@
 //-----------------------------------------------------------------------------------------------------------
 volatile AS5040 hall_encoder(AS_SPI_SCK, AS_SPI_CS, AS_SPI_MISO);
 volatile bool HALL_SENSOR_INITIALIZED = false;
+int startangle = 0;
 //-----------------------------------------------------------------------------------------------------------
 bool HALL_SENSOR_INIT()
 {
@@ -38,8 +39,18 @@ bool HALL_SENSOR_readHall(unsigned int *value)
 
 bool HALL_SENSOR_getVolume(float *value){
   if (HALL_SENSOR_INITIALIZED){
-    unsigned int angle = hall_encoder.read();
-    *value = (float)angle * 12.857 - 3979;
+    int angle = hall_encoder.read();
+    if(angle - startangle > 500){
+      angle = (angle - startangle) - 1023;
+      
+    }
+    else{
+      angle = angle - startangle;
+      //Serial.println(angle);
+    }
+
+    // Convert angle to value with calibration from excel file
+    *value = (float)(angle + 276) * 12.857 - 3979;
     if(*value < 0){
       *value = 0;
     }
@@ -48,4 +59,16 @@ bool HALL_SENSOR_getVolume(float *value){
   else{
     return 0;
   }
+}
+
+bool HALL_SENSOR_calibrateHall() 
+{
+    if (HALL_SENSOR_INITIALIZED){
+      startangle = hall_encoder.read();
+      startangle = startangle;
+      return 1;
+    }
+    else{
+      return 0;
+    }
 }
