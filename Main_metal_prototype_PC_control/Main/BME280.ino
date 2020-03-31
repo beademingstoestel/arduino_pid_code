@@ -34,7 +34,8 @@ bool PRESSURE_SENSOR2_INITIALIZED = false;
 bool PRESSURE_SENSOR3_INITIALIZED = false;
 
 #define PRESSURE_RA_SEQ_LENGTH 5
-float PRESSURE_INIT_VALUE = 0;
+float PRESSURE_INIT_VALUE_BME = 0;
+float PRESSURE_INIT_VALUE_MLP = 0;
 float PRESSURE_RA_SEQ[PRESSURE_RA_SEQ_LENGTH];
 int PRESSURE_RA_SEQ_WR_INDEX = 0;
 float PRESSURE_SUM = 0;
@@ -78,14 +79,19 @@ bool BME280_Setup()
       PRESSURE_RA_SEQ[i]=0;  
     }
     
-    float current_value;
     float sum = 0;
-    
     for(int i=0;i<50;i++)
     {
       sum+= BME280_readpressure_cmH2O();
     }
-    PRESSURE_INIT_VALUE = sum/50;
+    PRESSURE_INIT_VALUE_BME = sum/50;
+
+    sum = 0;
+    for(int i=0;i<50;i++)
+    {
+      sum+= MPL3115A2_readpressure_cmH2O();
+    }
+    PRESSURE_INIT_VALUE_MLP = sum/50;
 
     
     return true;
@@ -116,7 +122,6 @@ bool BME280_readPressurePatient(float *value)
 {
     float sensor1 = BME280_readpressure_cmH2O();
     float sensor2 = MPL3115A2_readpressure_cmH2O();
-    Serial.println(sensor2);
 
     /*bme_pressure_patient2->getEvent(&pressure_event2);
     sensor2 =  pressure_event2.pressure*hPa2cmh2o_scale;
@@ -128,7 +133,8 @@ bool BME280_readPressurePatient(float *value)
     }
     return false;*/
     //*value=sensor1-1044.60;
-    *value=sensor1-PRESSURE_INIT_VALUE;
+    *value=sensor1-PRESSURE_INIT_VALUE_BME;
+    
     return true;
 }
 //-----------------------------------------------------------------------------------------------
