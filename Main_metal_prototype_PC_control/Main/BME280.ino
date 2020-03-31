@@ -27,11 +27,7 @@
 #define BME_SPI_CS 48
 //-----------------------------------------------------------------------------------------------
 Adafruit_BME280 bme1;//(0x76);
-Adafruit_BME280 bmp2;//(0x77); // use I2C interface
-Adafruit_BME280 bme3(BME_SPI_CS); // hardware SPI
 Adafruit_Sensor *bme_pressure_patient1 = bme1.getPressureSensor();
-Adafruit_Sensor *bmp_pressure_patient2 = bmp2.getPressureSensor();
-Adafruit_Sensor *bme_pressure_ref = bme3.getPressureSensor();
 
 bool PRESSURE_SENSOR1_INITIALIZED = false;
 bool PRESSURE_SENSOR2_INITIALIZED = false;
@@ -43,9 +39,10 @@ float PRESSURE_RA_SEQ[PRESSURE_RA_SEQ_LENGTH];
 int PRESSURE_RA_SEQ_WR_INDEX = 0;
 float PRESSURE_SUM = 0;
 
-Adafruit_MPL3115A2 redundant = Adafruit_MPL3115A2();
+Adafruit_MPL3115A2 mpl3115a2 = Adafruit_MPL3115A2();
 
 #define hPa2cmh2o_scale 1.0197442889221
+#define Pa2cmh2o_scale 0.010197442889221
 //-----------------------------------------------------------------------------------------------
 bool BME280_Setup() 
 {
@@ -64,40 +61,18 @@ bool BME280_Setup()
                   Adafruit_BME280::FILTER_OFF,      /* Filtering. */
                   Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
     }
+
+    if (! mpl3115a2.begin()) {
+      Serial.println("Couldnt find sensor");
+      return false;
+    }
+    else{
+      PRESSURE_SENSOR2_INITIALIZED = true;
+    }
+    
     delay(50); // wait here to settle;
-   /* if (!bme2.begin(0x77)) 
-    {    
-        Serial.println("BMP280 sensor 2 not found"); 
-        return false;        
-    }
-    else
-    {
-        PRESSURE_SENSOR2_INITIALIZED = true;
-        bme2.setSampling(Adafruit_BME280::MODE_NORMAL,
-          Adafruit_BME280::SAMPLING_NONE,
-          Adafruit_BME280::SAMPLING_X1,
-          Adafruit_BME280::SAMPLING_NONE,
-          Adafruit_BME280::FILTER_OFF,
-          Adafruit_BME280::STANDBY_MS_0_5);
-}   */
-    delay(50);
-    /*if (!bme3.begin()) 
-    {    
-        Serial.println("BMP280 sensor 3 not found"); 
-        return false;          
-    }
-    else
-    {
-        PRESSURE_SENSOR3_INITIALIZED = true;
-        bme3.setSampling(Adafruit_BME280::MODE_NORMAL,
-          Adafruit_BME280::SAMPLING_NONE,
-          Adafruit_BME280::SAMPLING_X1,
-          Adafruit_BME280::SAMPLING_NONE,
-          Adafruit_BME280::FILTER_OFF,
-          Adafruit_BME280::STANDBY_MS_0_5);
-    }
-    */
-  //init buffer of running average filter
+
+    //init buffer of running average filter
     for (int i=0;i<PRESSURE_RA_SEQ_LENGTH;i++)
     {
       PRESSURE_RA_SEQ[i]=0;  
@@ -105,16 +80,10 @@ bool BME280_Setup()
     
     float current_value;
     float sum = 0;
-    for (int i=0;i<PRESSURE_RA_SEQ_LENGTH;i++)
-    {
-      BME280_readPressurePatient(&current_value);
-    }
     
     for(int i=0;i<50;i++)
     {
-      BME280_readPressurePatient(&current_value);
-      sum+=current_value;
-      //Serial.println (CurrentPressurePatient);
+      sum+= BME280_readpressure_cmH2O();
     }
     PRESSURE_INIT_VALUE = sum/50;
 
@@ -122,7 +91,7 @@ bool BME280_Setup()
     return true;
 }
 //-----------------------------------------------------------------------------------------------
-float BME280_readpressure1_cmH2O()
+float BME280_readpressure_cmH2O()
 {
   if (PRESSURE_SENSOR1_INITIALIZED)
   {
@@ -133,31 +102,21 @@ float BME280_readpressure1_cmH2O()
   return 0;
 }
 //-----------------------------------------------------------------------------------------------
-float BME280_readpressure2_cmH2O()
-{
+
+float MPL3115A2_readpressure_cmH2O(){
   if (PRESSURE_SENSOR2_INITIALIZED)
   {
-    sensors_event_t  pressure_event2;
-    bmp_pressure_patient2->getEvent(&pressure_event2);
-    return  pressure_event2.pressure*hPa2cmh2o_scale;
+    return mpl3115a2.getPressure()*Pa2cmh2o_scale;
   }
   return 0;
 }
-//-----------------------------------------------------------------------------------------------
-float BME280_readpressure_ref_cmH2O()
-{
-  if (PRESSURE_SENSOR3_INITIALIZED)
-  {
-    sensors_event_t  pressure_event;
-    bme_pressure_ref->getEvent(&pressure_event);
-    return pressure_event.pressure*hPa2cmh2o_scale;
-  }
-  return 0;
-}
+
 //-----------------------------------------------------------------------------------------------
 bool BME280_readPressurePatient(float *value) 
 {
-    float sensor1 = BME280_readpressure1_cmH2O();
+    float sensor1 = BME280_readpressure_cmH2O();
+    float sensor2 = MPL3115A2_readpressure_cmH2O();
+    Serial.println(sensor2);
 
     /*bme_pressure_patient2->getEvent(&pressure_event2);
     sensor2 =  pressure_event2.pressure*hPa2cmh2o_scale;

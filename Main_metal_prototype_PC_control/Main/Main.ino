@@ -1,7 +1,7 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
  
 //---------------------------------------------------------------
@@ -40,6 +40,7 @@ void setup()
   Serial.begin(115200);
   Serial1.begin(115200);
 
+  //-- set up communication with screen
   if(PYTHON){
     //initEEPROM();
     initCOMM();
@@ -90,9 +91,6 @@ void setup()
     Serial.println("BME Failed");
     if(HARDWARE)while(1){};
   }
-
-  //-- set up communication with screen
-
 
   //-- set up interrupt
   Timer3.initialize(controllerTime);   // initialize timer3 in us, set 100 ms timing
