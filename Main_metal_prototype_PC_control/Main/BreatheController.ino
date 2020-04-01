@@ -10,7 +10,7 @@ float delta_time;
 
 //----------------------------------
 float Kp = 10;
-float Ki = 0.5;
+float Ki = 0.1;
 float Kd = 0;
 float r = 0.5;  // forgetting factor for D-action
 //-----------------------------------
@@ -34,6 +34,9 @@ void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime)
     PRESSURE_INHALE_SETPOINT = setting * delta_time / risetime;
   } else {
     PRESSURE_INHALE_SETPOINT = setting;
+  }
+  if (controller_state == exhale || controller_state == wait){
+    PRESSURE_INHALE_SETPOINT = 0;
   }
 }
 //------------------------------------------------------------------------------
@@ -128,6 +131,7 @@ float BREATHE_CONTROL_Regulate()
   Serial1.print(",");
   Serial1.print(CurrentPressurePatient);
   Serial1.print(",");
+  Serial1.println(PRESSURE_INHALE_SETPOINT);
 
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
   //Serial.println(diff);
@@ -147,18 +151,15 @@ float BREATHE_CONTROL_Regulate()
     PID_value = PID_value_P + PID_value_I + PID_value_D;
     if (PID_value > 0) PID_value = 0;
 
-    Serial1.println(PRESSURE_INHALE_SETPOINT);
     return PID_value;//PID_value;
   }
   else if (controller_state == exhale)
   {
     PID_value_I = 0;
     PID_value_P = 0;
-    Serial1.println(0);
     return exhale_speed;
   }
   else if (controller_state == wait) {
-    Serial1.println(0);
     return 0;
   }
 }

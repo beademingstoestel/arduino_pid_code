@@ -1,7 +1,7 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
  
 //---------------------------------------------------------------
@@ -132,6 +132,7 @@ void controller()
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
+  comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
   // read switches
   int END_SWITCH_VALUE_STOP = digitalRead(ENDSWITCH_FULL_PIN);
   int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);

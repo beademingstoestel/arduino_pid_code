@@ -30,7 +30,7 @@ SETTING settingarray[15]= {
   {"ADVT", 10, false, 40, 0, 0},
   {"ADPP", 5, false, 44, 0, 0},
   {"MODE", 0, false, 48, 0, 0},
-  {"ACTIVE", 1, false, 52, 0, 0},
+  {"ACTIVE", 0, false, 52, 0, 0},
   {"ALARM", 0, false, 56, 0, 0}
 };
 
@@ -51,6 +51,7 @@ int VOL = 20;               // volume
 unsigned int TRIG = 0;     // trigger
 int PRES = 40;              // pressure
 int FLOW = 50;              // flow
+int TPRES = 60;              // target pressure
 
 //---------------------------------------------------------------
 // EEPROM
@@ -109,7 +110,12 @@ bool comms_getMode() {
   return settingarray[12].settingvalue;
 }
 bool comms_getActive() {
-  return (bool)settingarray[13].settingvalue;
+  if (PYTHON){
+    return (bool)settingarray[13].settingvalue;
+  }
+  else{
+    return true;
+  }  
 }
 unsigned int comms_getADPP() {
   return settingarray[9].settingvalue;
@@ -149,6 +155,9 @@ void comms_setPRES(int pres) {
 void comms_setFLOW(int flow) {
   FLOW = flow;
 }
+void comms_setTPRES(int tpres) {
+  TPRES = tpres;
+}
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
@@ -180,6 +189,11 @@ void sendDataToPython() {
   sprintf(message, "FLOW=%d=1=", FLOW);
   getCRC(message);
   Serial.println(message);  
+
+  strcpy(message, "");
+  sprintf(message, "TPRES=%d=1=", TPRES);
+  getCRC(message);
+  Serial.println(message); 
 }
 
 void sendInitToPython() {
