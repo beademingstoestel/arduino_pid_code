@@ -216,11 +216,12 @@ bool initCOMM() {
 // Get settings from python
 bool getSettings() {
   bool allsettingsok = true;
-  for (int i=0; i<15; i++){
+  for (int i=0; i<14; i++){
     allsettingsok = allsettingsok && settingarray[i].settingok;
   }
+  // check if all settings except alarm are OK
   if (!allsettingsok) {
-    for (int i=0; i<15; i++){
+    for (int i=0; i<14; i++){
       if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
         strcpy(message, "");
         sprintf(message, "%s=%d.%d=%c=", settingarray[i].settingname, int(settingarray[i].settingvalue), int(settingarray[i].settingvalue * 100) - int(settingarray[i].settingvalue) * 100, ++counter);
@@ -233,6 +234,19 @@ bool getSettings() {
     }
     return false;
   }
+  // if all settings are ok, send the alarm setting and wait for it to be OK
+  else if(allsettingsok && settingarray[14].settingok == false){
+    if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
+      strcpy(message, "");
+      sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+      getCRC(message);
+      Serial.println(message);  
+      settingarray[i].messageid = counter;     
+      settingarray[i].messagetime = millis();
+    }
+    recvWithEndMarkerSer0();
+  }
+  // if all settings and alarm are OK, return true
   else {
     return true;
   }
