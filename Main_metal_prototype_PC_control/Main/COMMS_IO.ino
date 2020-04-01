@@ -236,13 +236,13 @@ bool getSettings() {
   }
   // if all settings are ok, send the alarm setting and wait for it to be OK
   else if(allsettingsok && settingarray[14].settingok == false){
-    if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
+    if((!settingarray[14].settingok) && (millis() - settingarray[14].messagetime > 1000)){
       strcpy(message, "");
       sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
       getCRC(message);
       Serial.println(message);  
-      settingarray[i].messageid = counter;     
-      settingarray[i].messagetime = millis();
+      settingarray[14].messageid = counter;     
+      settingarray[14].messagetime = millis();
     }
     recvWithEndMarkerSer0();
   }
