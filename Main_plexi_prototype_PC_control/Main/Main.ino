@@ -129,7 +129,7 @@ void controller()
   bool isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   noInterrupts();
   // update values 
-  updateVolume(Flow2Patient*0.1);
+  updateVolume(Flow2Patient);
   comms_setVOL(Volume2Patient);
   comms_setVOL(getTotalVolumeInt());
   comms_setPRES(CurrentPressurePatient);
@@ -146,6 +146,7 @@ void controller()
       }
     }break;
     case inhale:{ 
+      resetVolume_flowtriggered();
       // Call PID for inhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);

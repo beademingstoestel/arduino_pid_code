@@ -3,8 +3,11 @@
 bool IS_FLOW_SENSOR_INITIALIZED = false;
 float Volume;
 float totalFlow = 0;
-unsigned long numberoftriggers = 0;
 unsigned long deltaT;
+bool resetAllowed = true;
+
+int flowsensordirection = -1;
+float calibration_offset = 0;
 //----------------------------------------------------------------------------------------------------------------
 // SDP3x on the default I2C address of 0x21:
 SDP3XSensor sdp;
@@ -29,7 +32,22 @@ bool FLOW_SENSOR_INIT()
   if (returnCode == 0) 
   {
     IS_FLOW_SENSOR_INITIALIZED=true;
+
+    // calibration
+    delay(3000);
+    float currentVal;
+    float sum = 0;
+    for(int i=0;i<100;i++)
+    {
+      FLOW_SENSOR_Measure(&currentVal);
+      sum+=currentVal;
+      delay(50);
+    }    
+    calibration_offset =sum/100.0;
+    Serial.println(calibration_offset);
+    
     return true; // init successfull;
+    
   } 
   else 
   {
@@ -72,31 +90,38 @@ bool FLOW_SENSOR_Measure(float* value)
         }
       }
     }
-    *value = y;
+    *value = (y*flowsensordirection) - calibration_offset;
     return true; 
   } 
   return false;
 }
 
 void resetVolume(){
-  Volume = 0;
-  totalFlow = 0;
-  numberoftriggers = 0;
+//  Volume = 0;
+//  totalFlow = 0;
+  resetAllowed = true;
+}
+
+void resetVolume_flowtriggered(){
+  if(Flow2Patient > 1 && resetAllowed){
+    resetAllowed = false;
+    Volume = 0;
+    totalFlow = 0;
+  }
 }
 
 void updateVolume(float flow){ //flow = liter/min
   totalFlow += flow;
-  numberoftriggers += 1;
 }
 
-float getTotalVolume(){ // Volume = ml
-  Volume = totalFlow * ((float)deltaT / 6000) * numberoftriggers;
+float getTotalVolume(){ // Volume = l
+  Volume = totalFlow * ((float)deltaT / 60000);
   return Volume;
 }
 
-int getTotalVolumeInt(){
+int getTotalVolumeInt(){ // Volume = ml
   getTotalVolume();
-  int intVolume = (int)Volume;
+  int intVolume = (int)(Volume*1000);
   return intVolume;
 }
 
