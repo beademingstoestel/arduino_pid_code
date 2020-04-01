@@ -21,9 +21,14 @@
 #include <Adafruit_MPL3115A2.h>
 #include <Adafruit_BMP280.h>
 
+#define BME_SPI_SCK 52
+#define BME_SPI_MISO 50
+#define BME_SPI_MOSI 51 
+#define BME_SPI_CS 48
+
 //-----------------------------------------------------------------------------------------------
 Adafruit_BME280 bme1;//(0x77: Tube sensor);
-Adafruit_BME280 bme2;//(0x76: Ambient sensor);
+Adafruit_BME280 bme2(BME_SPI_CS);  //(Ambient sensor over SPI);
 Adafruit_Sensor *bme_pressure_patient1 = bme1.getPressureSensor();
 Adafruit_Sensor *bme_pressure_ambient = bme2.getPressureSensor();
 
@@ -70,7 +75,7 @@ bool BME280_Setup()
       PRESSURE_SENSOR2_INITIALIZED = true;
     }
 
-    if (!bme2.begin(0x76))
+    if (!bme2.begin())
     {   
         Serial.println("BME280 sensor for ambient pressure not found"); 
         return false;        
