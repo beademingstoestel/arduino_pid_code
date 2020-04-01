@@ -1,7 +1,7 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
  
 //---------------------------------------------------------------
@@ -11,8 +11,9 @@
 unsigned long controllerTime = 10000; // us 
 
 volatile float CurrentPressurePatient = 0;
-volatile float Flow2Patient = 0;
+volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
+volatile float CurrentVolumePatient = 0;
 
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
@@ -80,7 +81,7 @@ void setup()
     Serial.println("FLOW SENSOR Failed");
     if(HARDWARE)while(1){};
   }
-  setDeltaT(controllerTime);
+  FLOW_SENSOR_setDeltaT(controllerTime);
   
   //-- set up BME
   Serial.println("Setting up BME sensor: ");
@@ -113,10 +114,8 @@ void loop()
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
 
-  // Handle uart receive from display module
+  // Handle uart receive for debugging
   recvWithEndMarkerSer1();
-
-  //Serial.println(Volume2Patient);
 
   delay(20); 
 }
@@ -129,14 +128,15 @@ void controller()
 {
   // readout sensors
   interrupts();
-  bool isFlow2PatientRead = FLOW_SENSOR_Measure(&Flow2Patient);
+  bool isCurrentFlowPatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient);
   bool isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient);
   bool isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
+  bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   // update values 
-  updateVolume(Flow2Patient);
-  comms_setVOL(getTotalVolumeInt());
-  comms_setVOL(Volume2Patient);
+  FLOW_SENSOR_updateVolume(CurrentFlowPatient);
+  comms_setFLOW(CurrentFlowPatient);
+  comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
   // read switches
   int END_SWITCH_VALUE_STOP = !digitalRead(ENDSIWTCH_FULL_PIN); //TODO
@@ -151,7 +151,7 @@ void controller()
       }
     }break;
     case inhale:{ 
-      resetVolume_flowtriggered();
+      FLOW_SENSOR_resetVolume_flowtriggered();
       // Call PID for inhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
@@ -184,7 +184,7 @@ void controller()
         // update timers and variables
         inhale_start_time = millis();
         start_time_pressure = millis();
-        resetVolume();
+        FLOW_SENSOR_resetVolume();
 
         // load new setting values from input
         target_inhale_time = comms_getInhaleTime();

@@ -1,7 +1,8 @@
 #include <Wire.h>
 #include "sdpsensor.h"
 bool IS_FLOW_SENSOR_INITIALIZED = false;
-float Volume;
+float Volume_l;
+int Volume_ml;
 float totalFlow = 0;
 unsigned long deltaT;
 bool resetAllowed = true;
@@ -96,34 +97,37 @@ bool FLOW_SENSOR_Measure(float* value)
   return false;
 }
 
-void resetVolume(){
+void FLOW_SENSOR_resetVolume(){
   resetAllowed = true;
 }
 
-void resetVolume_flowtriggered(){
-  if(Flow2Patient > 1 && resetAllowed){
+void FLOW_SENSOR_resetVolume_flowtriggered(){
+  if(CurrentFlowPatient > 1 && resetAllowed){
     resetAllowed = false;
-    Volume = 0;
+    Volume_l = 0;
     totalFlow = 0;
   }
 }
 
-void updateVolume(float flow){ //flow = liter/min
+void FLOW_SENSOR_updateVolume(float flow){ //flow = liter/min
   totalFlow += flow;
+  Volume_l = totalFlow * ((float)deltaT / 60000);
+  Volume_ml = (int)(Volume_l*1000);
 }
 
-float getTotalVolume(){ // Volume = l
-  Volume = totalFlow * ((float)deltaT / 60000);
-  return Volume;
+int FLOW_SENSOR_getTotalVolumeInt(){ // Volume = ml
+  return Volume_ml;
 }
 
-int getTotalVolumeInt(){ // Volume = ml
-  getTotalVolume();
-  int intVolume = (int)(Volume*1000);
-  return intVolume;
+bool FLOW_SENSOR_getVolume(float *value){
+  if (IS_FLOW_SENSOR_INITIALIZED){
+    *value = Volume_ml;
+    return true;
+  }
+  return false;
 }
 
 // set time interval
-void setDeltaT(unsigned long deltat){
+void FLOW_SENSOR_setDeltaT(unsigned long deltat){
   deltaT = deltat/1000;
 }
