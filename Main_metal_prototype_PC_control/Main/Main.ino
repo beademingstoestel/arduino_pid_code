@@ -77,7 +77,7 @@ void setup()
     if(HARDWARE)while(1){};
   }
 
-  //-- set up BME
+  //-- set up pressure sensors
   Serial.println("Setting up BME sensor: ");
   if (BME280_Setup()){
     Serial.println("BME OK");
@@ -88,7 +88,7 @@ void setup()
   }
 
   //-- set up interrupt
-  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 100 ms timing
+  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
   Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
 
   //-- setup done
@@ -158,7 +158,7 @@ void controller()
     }break;
     case exhale: {
       // Motor to start position
-      Speed = BREATHE_CONTROL_Regulate(); 
+      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START); 
       MOTOR_CONTROL_setValue(Speed);
       // check if motor has returned
       //inhale_detected = BREATHE_CONTROL_CheckInhale();
