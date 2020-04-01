@@ -156,7 +156,7 @@ void comms_setFLOW(int flow) {
 
 void sendDataToPython() {
   strcpy(message, "");
-  sprintf(message, "BPM=%d=1=", BPM * 10);
+  sprintf(message, "BPM=%d=1=", BPM);
   getCRC(message);
   Serial.println(message);
 
