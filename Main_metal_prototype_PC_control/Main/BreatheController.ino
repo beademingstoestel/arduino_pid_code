@@ -58,9 +58,9 @@ float BREATHE_getPID()
 }
                   
 //------------------------------------------------------------------------------
-controller_state_t BREATHE_setToEXHALE(int end_switch)
+controller_state_t BREATHE_setToEXHALE()
 {
-  if ((end_switch==1 || (millis()-inhale_start_time) > target_inhale_time)) //   || Hall_position>=Hall_position_ref
+  if ((millis()-inhale_start_time) > target_inhale_time) //   || Hall_position>=Hall_position_ref
   {
     PID_value_I=0;
     PID_value_P=0;
@@ -120,14 +120,14 @@ bool BREATHE_CONTROL_CheckInhale(){
 //------------------------------------------------------------------------------
 float BREATHE_CONTROL_Regulate()
 {
-//    Serial1.print(Flow2Patient);
-//    Serial1.print(",");
-//    //Serial1.print(getTotalVolumeInt()*0.1);
-//    //Serial1.print(",");
-//    Serial1.print(Volume2Patient*0.1);
-//    Serial1.print(",");
-//    Serial1.print(CurrentPressurePatient);
-//    Serial1.print(",");
+    Serial1.print(Flow2Patient);
+    Serial1.print(",");
+    //Serial1.print(getTotalVolumeInt()*0.1);
+    //Serial1.print(",");
+    Serial1.print(Volume2Patient*0.1);
+    Serial1.print(",");
+    Serial1.print(CurrentPressurePatient);
+    Serial1.print(",");
   
     float error = current_inhale_pressure-PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
     //Serial.println(diff);
@@ -163,9 +163,12 @@ float BREATHE_CONTROL_Regulate()
     }
 }
 
-float BREATHE_CONTROL_Regulate_With_Volume(){
+float BREATHE_CONTROL_Regulate_With_Volume(int end_switch){
   float Speed = BREATHE_CONTROL_Regulate();
   if (abs(Volume2Patient) > abs(target_volume)){
+    return hold_speed;
+  }
+  else if (end_switch==1){
     return hold_speed;
   }
   else{

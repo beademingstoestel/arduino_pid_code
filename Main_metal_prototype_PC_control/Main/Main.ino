@@ -156,10 +156,10 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // update motor speed
-      Speed = BREATHE_CONTROL_Regulate_With_Volume();
+      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
-      controller_state = BREATHE_setToEXHALE(END_SWITCH_VALUE_STOP);      
+      controller_state = BREATHE_setToEXHALE();      
     }break;
     case exhale: {
       // Motor to start position
