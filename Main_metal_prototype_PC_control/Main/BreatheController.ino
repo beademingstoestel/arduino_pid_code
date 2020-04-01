@@ -106,12 +106,12 @@ bool BREATHE_CONTROL_CheckInhale(){
     bool inhale_detected = 0;
     // check negative flow
     if (Flow2Patient > comms_getTS() && trigger_mode == 0){
-      inhale_detected = 1;
+      //inhale_detected = 1;
       comms_setTRIG(1);
     }
     // check underpressure
     if (CurrentPressurePatient < comms_getTP() && trigger_mode == 1){
-      inhale_detected = 1;
+      //inhale_detected = 1;
       comms_setTRIG(1);
     }
     return inhale_detected;
@@ -122,9 +122,9 @@ float BREATHE_CONTROL_Regulate()
 {
     Serial1.print(Flow2Patient);
     Serial1.print(",");
-    //Serial1.print(getTotalVolumeInt()*0.1);
-    //Serial1.print(",");
-    Serial1.print(Volume2Patient*0.1);
+    Serial1.print(getTotalVolumeInt());
+    Serial1.print(",");
+    Serial1.print(Volume2Patient);
     Serial1.print(",");
     Serial1.print(CurrentPressurePatient);
     Serial1.print(",");
