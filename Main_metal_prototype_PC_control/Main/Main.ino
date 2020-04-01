@@ -66,6 +66,16 @@ void setup()
     Serial.println("HALL SENSOR Failed");
     if(HARDWARE)while(1){};
   }
+  
+  //-- set up pressure sensors
+  Serial.println("Setting up BME sensor: ");
+  if (BME280_Setup()){
+    Serial.println("BME OK");
+  }
+  else{
+    Serial.println("BME Failed");
+    if(HARDWARE)while(1){};
+  }
 
   //--- set up flow sensors here, if init fails, we can continue
   Serial.print("Setting up flow sensor: ");
@@ -75,16 +85,6 @@ void setup()
   }
   else {
     Serial.println("FLOW SENSOR Failed");
-    if(HARDWARE)while(1){};
-  }
-
-  //-- set up pressure sensors
-  Serial.println("Setting up BME sensor: ");
-  if (BME280_Setup()){
-    Serial.println("BME OK");
-  }
-  else{
-    Serial.println("BME Failed");
     if(HARDWARE)while(1){};
   }
 
@@ -112,6 +112,8 @@ void loop()
   if (PYTHON) doCPU_TIMER();
   // Handle uart receive for debugging
   recvWithEndMarkerSer1();
+
+  Serial.println(CurrentPressurePatient);
 
   delay(20); 
 }

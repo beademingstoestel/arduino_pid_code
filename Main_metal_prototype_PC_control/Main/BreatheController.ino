@@ -168,7 +168,8 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch) {
   float Speed = BREATHE_CONTROL_Regulate();
   
   if (controller_state == inhale) {
-    if (abs(Volume2Patient) > abs(target_volume)) {
+    //if (abs(Volume2Patient) > abs(target_volume)) {
+    if (abs(CurrentVolumePatient) > abs(target_volume)) {
       return hold_speed;
     }
     else if (end_switch == 1) {
