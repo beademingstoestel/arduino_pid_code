@@ -1,7 +1,7 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
+#define PYTHON 0
 #define HARDWARE 0
  
 //---------------------------------------------------------------
@@ -9,6 +9,7 @@
 //---------------------------------------------------------------
 
 unsigned long controllerTime = 10000; // us 
+unsigned long interrupttime; 
 
 volatile float CurrentPressurePatient = 0;
 volatile float CurrentFlowPatient = 0;
@@ -120,6 +121,7 @@ void loop()
 
 void controller()
 {
+  interrupttime = millis();
   // readout sensors
   interrupts();
   bool isCurrentFlowPatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient);
@@ -158,6 +160,9 @@ void controller()
       controller_state = BREATHE_setToEXHALE();      
     }break;
     case exhale: {
+      // Call PID for exhale
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Motor to start position
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START); 
       MOTOR_CONTROL_setValue(Speed);
@@ -169,6 +174,9 @@ void controller()
     case wait: {
       // Reset trigger for flow detection
       FLOW_SENSOR_resetVolume();
+      // Call PID for wait
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Stop motor
       Speed = BREATHE_CONTROL_Regulate(); 
       MOTOR_CONTROL_setValue(Speed);
@@ -196,4 +204,5 @@ void controller()
     }break;
     default: controller_state = wait;
   }
+  Serial.println(millis()-interrupttime);
 }

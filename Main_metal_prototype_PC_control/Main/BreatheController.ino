@@ -35,7 +35,7 @@ void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime)
   } else {
     PRESSURE_INHALE_SETPOINT = setting;
   }
-  if (controller_state == exhale || controller_state == wait){
+  if(controller_state == exhale || controller_state == wait){
     PRESSURE_INHALE_SETPOINT = 0;
   }
 }
