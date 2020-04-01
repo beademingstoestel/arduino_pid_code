@@ -2,24 +2,25 @@
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
-#define HARDWARE 0
+#define HARDWARE 1
  
 //---------------------------------------------------------------
 // VARIABLES
 //---------------------------------------------------------------
 
 unsigned long controllerTime = 10000; // us 
+unsigned long interrupttime; 
 
 volatile float CurrentPressurePatient = 0;
-volatile float Flow2Patient = 0;
+volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
+volatile float CurrentVolumePatient = 0;
 
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
 
 volatile unsigned long exhale_start_time = millis();
-volatile unsigned long start_time_pressure;
-volatile unsigned long inhale_start_time;
+volatile unsigned long inhale_start_time = millis();
 volatile unsigned long time_diff = 1;
 float Speed; 
 bool inhale_detected = 0;
@@ -42,23 +43,18 @@ void setup()
 
   //-- set up communication with screen
   if(PYTHON){
-    //initEEPROM();
     initCOMM();
   }
 
-  //-- set up limit switches
-  pinMode(ENDSIWTCH_FULL_PIN,INPUT_PULLUP);
-  pinMode(ENDSWITCH_PUSH_PIN,INPUT_PULLUP);
-
   //-- set up motor
-  MOTOR_CONTROL_setp();
-  if(digitalRead(ENDSWITCH_PUSH_PIN)){
-    MOTOR_CONTROL_setValue(-50);
-    delay(1000);
+  Serial.println("Setting up MOTOR: ");
+  if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
+    Serial.println("MOTOR OK");
   }
-  MOTOR_CONTROL_setValue(50);
-  while(!digitalRead(ENDSWITCH_PUSH_PIN)){}
-  MOTOR_CONTROL_setValue(0);
+  else {
+    Serial.println("MOTOR Failed");
+    if(HARDWARE)while(1){};
+  }
 
   //-- set up hall sensor
   Serial.println("Setting up HALL sensor: ");
@@ -74,15 +70,15 @@ void setup()
   //--- set up flow sensors here, if init fails, we can continue
   Serial.print("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
+    FLOW_SENSOR_setDeltaT(controllerTime);
     Serial.println("FLOW SENSOR OK");
   }
   else {
     Serial.println("FLOW SENSOR Failed");
     if(HARDWARE)while(1){};
   }
-  setDeltaT(controllerTime);
-  
-  //-- set up BME
+
+  //-- set up pressure sensors
   Serial.println("Setting up BME sensor: ");
   if (BME280_Setup()){
     Serial.println("BME OK");
@@ -93,11 +89,12 @@ void setup()
   }
 
   //-- set up interrupt
-  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 100 ms timing
+  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
   Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
 
   //-- setup done
   Serial.println("Setup done");
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
 }
 
 //---------------------------------------------------------------
@@ -112,11 +109,9 @@ void loop()
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
-
-  // Handle uart receive from display module
+  if (PYTHON) doCPU_TIMER();
+  // Handle uart receive for debugging
   recvWithEndMarkerSer1();
-
-  //Serial.println(Volume2Patient);
 
   delay(20); 
 }
@@ -127,20 +122,22 @@ void loop()
 
 void controller()
 {
+  CPU_TIMER_start(millis());
   // readout sensors
   interrupts();
-  bool isFlow2PatientRead = FLOW_SENSOR_Measure(&Flow2Patient);
+  bool isCurrentFlowPatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient);
   bool isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient);
   bool isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
+  bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   // update values 
-  updateVolume(Flow2Patient*0.1);
-  comms_setVOL(getTotalVolumeInt());
-  
-  comms_setVOL(Volume2Patient);
+  FLOW_SENSOR_updateVolume(CurrentFlowPatient);
+  comms_setFLOW(CurrentFlowPatient);
+  comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
+  comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
   // read switches
-  int END_SWITCH_VALUE_STOP = !digitalRead(ENDSIWTCH_FULL_PIN); //TODO
+  int END_SWITCH_VALUE_STOP = digitalRead(ENDSWITCH_FULL_PIN);
   int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);
 
   // State machine
@@ -152,25 +149,35 @@ void controller()
       }
     }break;
     case inhale:{ 
+      // Reset volume to zero when flow detected
+      FLOW_SENSOR_resetVolume_flowtriggered();
       // Call PID for inhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // update motor speed
-      Speed = BREATHE_CONTROL_Regulate_With_Volume();
+      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
-      controller_state = BREATHE_setToEXHALE(END_SWITCH_VALUE_STOP);      
+      controller_state = BREATHE_setToEXHALE();      
     }break;
     case exhale: {
+      // Call PID for exhale
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Motor to start position
-      Speed = BREATHE_CONTROL_Regulate(); 
+      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START); 
       MOTOR_CONTROL_setValue(Speed);
       // check if motor has returned
-      inhale_detected = BREATHE_CONTROL_CheckInhale();
+      //inhale_detected = BREATHE_CONTROL_CheckInhale();
       controller_state = BREATHE_setToWAIT(END_SWITCH_VALUE_START);
       // Check alarm ==> setAlarm() in PID!
     }break;
     case wait: {
+      // Reset trigger for flow detection
+      FLOW_SENSOR_resetVolume();
+      // Call PID for wait
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Stop motor
       Speed = BREATHE_CONTROL_Regulate(); 
       MOTOR_CONTROL_setValue(Speed);
@@ -179,13 +186,10 @@ void controller()
       controller_state = BREATHE_setToINHALE(inhale_detected);
       // reset timers for inhale
       if (controller_state == inhale){
+        // update timers
         comms_setBPM(millis() - inhale_start_time);
-
-        // update timers and variables
         inhale_start_time = millis();
-        start_time_pressure = millis();
-        resetVolume();
-
+        
         // load new setting values from input
         target_inhale_time = comms_getInhaleTime();
         target_exhale_time = comms_getExhaleTime();
@@ -201,4 +205,5 @@ void controller()
     }break;
     default: controller_state = wait;
   }
+  CPU_TIMER_stop(millis());
 }

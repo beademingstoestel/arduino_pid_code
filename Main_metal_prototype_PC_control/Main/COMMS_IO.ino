@@ -5,6 +5,34 @@
 
 char str[20] = {};
 char message[20] = {};
+char counter = 0;
+
+typedef struct{
+   char  settingname[10];
+   float settingvalue;
+   bool  settingok;
+   int   eepromloc;
+   char  messageid;
+   unsigned long messagetime;
+} SETTING;  
+
+SETTING settingarray[15]= {
+  {"RR", 20, false, 0, 0, 0},
+  {"VT", 400, false, 4, 0, 0},
+  {"PK", 50, false, 8, 0, 0},
+  {"PS", 25, false, 12, 0, 0},
+  {"PP", 20, false, 16, 0, 0},
+  {"IE", 0.3, false, 20, 0, 0},
+  {"RP", 0.5, false, 24, 0, 0},
+  {"TS", 10, false, 28, 0, 0},
+  {"TP", 2, false, 32, 0, 0},
+  {"ADPK", 10, false, 36, 0, 0},
+  {"ADVT", 10, false, 40, 0, 0},
+  {"ADPP", 5, false, 44, 0, 0},
+  {"MODE", 0, false, 48, 0, 0},
+  {"ACTIVE", 0, false, 52, 0, 0},
+  {"ALARM", 0, false, 56, 0, 0}
+};
 
 const byte numChars = 32;
 String value0;
@@ -15,149 +43,102 @@ char receivedChars1[numChars];
 boolean newData1 = false;
 
 //---------------------------------------------------------------
-// BREATHING VARIABLES
-//---------------------------------------------------------------
-
-// define bytes to send
-unsigned int RR = 10;         // Number of breaths per minute setting
-unsigned int VT = 400;        // Tidal volume= target to deliver
-unsigned int PK = 50;         // Peak pressure
-float IE = 0.3;               // Inspiration-expiration rate
-unsigned int PP = 15; //TODO         // PEEP Pressure = Max pressure to deliver
-bool Mode = 0;            // Mode: false = flow trigger, true = Pressure
-bool ACTIVE = true;           // active: start or stop
-
-float PS = 25;                // Support pressure
-float RP = 0.5;               // Ramp time
-float TI = 1;// TODO                 // Inhale time
-float TS = 10;                 // Breath Trigger Sensitivity FLOW
-float TP = 5;                 // Breath Trigger Sensitivity PRES
-
-unsigned int ADPK = 10;
-unsigned int ADVT = 10;
-unsigned int ADPP = 5;
-
-// init booleans for startup
-bool RRok = false;
-bool VTok = false;
-bool PKok = false;
-bool TSok = false;
-bool IEok = false;
-bool PPok = false;
-bool Modeok = false;
-bool Activeok = false;
-bool ADPKok = false;
-bool ADVTok = false;
-bool ADPPok = false;
-bool PSok = false;
-bool RPok = false;
-bool TIok = false;
-bool TPok = false;
-
-//---------------------------------------------------------------
 // PYTHON VARIABLES
 //---------------------------------------------------------------
 
 unsigned int BPM = 10;      // Breaths per minute
 int VOL = 20;               // volume
-unsigned int TRIG = 30;     // trigger
+unsigned int TRIG = 0;     // trigger
 int PRES = 40;              // pressure
 int FLOW = 50;              // flow
+int TPRES = 60;              // target pressure
 
 //---------------------------------------------------------------
 // EEPROM
 //---------------------------------------------------------------
 
 void initEEPROM() {
-  EEPROM.get(0, RR);
-  EEPROM.get(4, VT);
-  EEPROM.get(8, PK);
-  EEPROM.get(12, TS);
-  EEPROM.get(16, IE);
-  EEPROM.get(20, PP);
-  EEPROM.get(24, Mode);
-  EEPROM.get(28, ACTIVE);
-
-  EEPROM.get(32, ADPKok);
-  EEPROM.get(36, ADVTok);
-  EEPROM.get(40, ADPPok);
-
-  EEPROM.get(44, PS);
-  EEPROM.get(48, RP);
-  EEPROM.get(52, TI);
-  EEPROM.get(60, TP);
+  for (int i=0; i<15; i++){
+    EEPROM.get(settingarray[i].eepromloc, settingarray[i].settingvalue);
+  }
 }
 
 //---------------------------------------------------------------
-// GETTERS & SETTERS
+// GETTERS & SETTERS SETTINGS
 //---------------------------------------------------------------
 
 unsigned long comms_getInhaleTime(){
-  float target_inhale_duration = 1000.0 * 60.0 * IE / RR  ;   
+  float target_inhale_duration = 1000.0 * 60.0 * settingarray[5].settingvalue / settingarray[0].settingvalue  ;   
   unsigned long target_inhale_duration_int = (unsigned long) target_inhale_duration;
   return target_inhale_duration_int;
 }
 
 unsigned long comms_getExhaleTime(){
-  float target_exhale_duration = 1000.0 * 60.0 * (1-IE) / RR  ;   
+  float target_exhale_duration = 1000.0 * 60.0 * (1-settingarray[5].settingvalue) / settingarray[0].settingvalue  ;   
   unsigned long target_exhale_duration_int = (unsigned long) target_exhale_duration;
   return target_exhale_duration_int;
 }
 
 float comms_getPressure(bool inhale_detected){
   if(inhale_detected){
-    return PS;
+    return settingarray[3].settingvalue;
   }
   else{
-    return PK;
+    return settingarray[2].settingvalue;
   }
 }
 
 unsigned int comms_getRR() {
-  return RR;
+  return settingarray[0].settingvalue;
 }
 unsigned int comms_getVT() {
-  return VT;
+  return settingarray[1].settingvalue;
 }
 unsigned int comms_getPK() {
-  return PK;
+  return settingarray[2].settingvalue;
 }
 int comms_getTS() {
-  return TS;
+  return settingarray[7].settingvalue;
 }
 float comms_getIE() {
-  return IE;
+  return settingarray[5].settingvalue;
 }
 unsigned int comms_getPP() {
-  return PP;
+  return settingarray[4].settingvalue;
 }
 bool comms_getMode() {
-  return Mode;
+  return settingarray[12].settingvalue;
 }
 bool comms_getActive() {
-  return ACTIVE;
+  if (PYTHON){
+    return (bool)settingarray[13].settingvalue;
+  }
+  else{
+    return true;
+  }  
 }
 unsigned int comms_getADPP() {
-  return RR;
+  return settingarray[9].settingvalue;
 }
 unsigned int comms_getADVT() {
-  return VT;
+  return settingarray[10].settingvalue;
 }
 unsigned int comms_getADPK() {
-  return PK;
+  return settingarray[11].settingvalue;
 }
-unsigned int comms_getPS() {
-  return PS;
+float comms_getPS() {
+  return settingarray[3].settingvalue;
 }
-unsigned int comms_getRP() {
-  return RP*1000;
+float comms_getRP() {
+  return settingarray[6].settingvalue*1000;
 }
-unsigned int comms_getTI() {
-  return TI;
+float comms_getTP() {
+  return settingarray[8].settingvalue;
 }
-unsigned int comms_getTP() {
-  return TP;
-}
+
+//---------------------------------------------------------------
+// GETTERS & SETTERS MEASUREMENTS
+//---------------------------------------------------------------
 
 void comms_setBPM(unsigned long bpm_time) {
   BPM = 60000 / (float)bpm_time;
@@ -174,48 +155,45 @@ void comms_setPRES(int pres) {
 void comms_setFLOW(int flow) {
   FLOW = flow;
 }
-
-int comms_getVOL(){
-  return VOL;
+void comms_setTPRES(int tpres) {
+  TPRES = tpres;
 }
-
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
 //---------------------------------------------------------------
 
-void processPython(String input) {
-  value0 = getvalue(input, '=', 1);
-  if (input.startsWith("ALARM")) {
-    setAlarmState(value0.toInt());
-  }
-}
-
 void sendDataToPython() {
   strcpy(message, "");
-  sprintf(message, "BPM=%d=", BPM * 10);
+  sprintf(message, "BPM=%d=1=", BPM);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "VOL=%d=", VOL);
+  sprintf(message, "VOL=%d=1=", VOL);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "TRIG=%d=", TRIG);
+  sprintf(message, "TRIG=%d=1=", TRIG);
+  getCRC(message);
+  Serial.println(message);
+  comms_setTRIG(0);
+
+  strcpy(message, "");
+  sprintf(message, "PRES=%d=1=", PRES);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "PRES=%d=", PRES);
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "FLOW=%d=", FLOW);
+  sprintf(message, "FLOW=%d=1=", FLOW);
   getCRC(message);
   Serial.println(message);  
+
+  strcpy(message, "");
+  sprintf(message, "TPRES=%d=1=", TPRES);
+  getCRC(message);
+  Serial.println(message); 
 }
 
 void sendInitToPython() {
@@ -226,6 +204,7 @@ void sendInitToPython() {
 // FUNCTIONS FROM PYTHON
 //---------------------------------------------------------------
 
+// Init communication at startup: blocking
 bool initCOMM() {
   Serial1.println("SETUP START");
   while (!getSettings()) {
@@ -234,213 +213,86 @@ bool initCOMM() {
   Serial1.println("SETUP DONE");
 }
 
+// Get settings from python
 bool getSettings() {
-  if (!(RRok && VTok && PKok && TSok && IEok && PPok && Modeok && ADPKok && ADVTok && ADPPok)){// && Activeok && PSok && RPok && TIok && TPok)) {
-//    Serial1.println("BOOLEANS: ");
-//    Serial1.println(RRok);
-//    Serial1.println(VTok);
-//    Serial1.println(PKok);
-//    Serial1.println(TSok);
-//    Serial1.println(IEok);
-//    Serial1.println(PPok);
-//    Serial1.println(Modeok);
-//    Serial1.println(ADPKok);
-//    Serial1.println(ADVTok);
-//    Serial1.println(ADPPok);
-    
-    recvWithEndMarkerSer0();
-
-    if (!RRok) {
-      strcpy(message, "");
-      sprintf(message, "RR=%d=", RR);
-      getCRC(message);
-      Serial.println(message);
+  bool allsettingsok = true;
+  for (int i=0; i<14; i++){
+    allsettingsok = allsettingsok && settingarray[i].settingok;
+  }
+  // check if all settings except alarm are OK
+  if (!allsettingsok) {
+    for (int i=0; i<14; i++){
+      if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
+        strcpy(message, "");
+        sprintf(message, "%s=%d.%d=%c=", settingarray[i].settingname, int(settingarray[i].settingvalue), int(settingarray[i].settingvalue * 100) - int(settingarray[i].settingvalue) * 100, ++counter);
+        getCRC(message);
+        Serial.println(message);  
+        settingarray[i].messageid = counter;     
+        settingarray[i].messagetime = millis();
+      }
+      recvWithEndMarkerSer0();
     }
-    if (!VTok) {
-      strcpy(message, "");
-      sprintf(message, "VT=%d=", VT);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!PKok) {
-      strcpy(message, "");
-      sprintf(message, "PK=%d=", PK);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!TSok) {
-      strcpy(message, "");
-      sprintf(message, "TS=%d=", TS);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!IEok) {
-      strcpy(message, "");
-      sprintf(message, "IE=%d=", IE);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!PPok) {
-      strcpy(message, "");
-      sprintf(message, "PP=%d=", PP);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!Modeok) {
-      strcpy(message, "");
-      sprintf(message, "MODE=%d=", Mode);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!Activeok) {
-      strcpy(message, "");
-      sprintf(message, "ACTIVE=%d=", ACTIVE);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!ADPKok) {
-      strcpy(message, "");
-      sprintf(message, "ADPK=%d=", ADPK);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!ADVTok) {
-      strcpy(message, "");
-      sprintf(message, "ADVT=%d=", ADVT);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!ADPPok) {
-      strcpy(message, "");
-      sprintf(message, "ADPP=%d=", ADPP);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!PSok) {
-      strcpy(message, "");
-      sprintf(message, "PS=%d=", PS);
-      getCRC(message);
-      Serial.println(message);
-    }
-    if (!RPok) {
-      strcpy(message, "");
-      sprintf(message, "RP=%d=", RP);
-      getCRC(message);
-      Serial.println(message);
-    }    
-    if (!TIok) {
-      strcpy(message, "");
-      sprintf(message, "TI=%d=", TI);
-      getCRC(message);
-      Serial.println(message);
-    }     
-    if (!TPok) {
-      strcpy(message, "");
-      sprintf(message, "TP=%d=", TP);
-      getCRC(message);
-      Serial.println(message);
-    }    
     return false;
   }
+  // if all settings are ok, send the alarm setting and wait for it to be OK
+  else if(allsettingsok && settingarray[14].settingok == false){
+    if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
+      strcpy(message, "");
+      sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+      getCRC(message);
+      Serial.println(message);  
+      settingarray[i].messageid = counter;     
+      settingarray[i].messagetime = millis();
+    }
+    recvWithEndMarkerSer0();
+  }
+  // if all settings and alarm are OK, return true
   else {
     return true;
   }
 }
 
+// reset python communication
 bool resetComm() {
-  bool RRok = false;
-  bool VTok = false;
-  bool PKok = false;
-  bool TSok = false;
-  bool IEok = false;
-  bool PPok = false;
-  bool Modeok = false;
-  bool Activeok = false;
-  bool ADPKok = false;
-  bool ADVTok = false;
-  bool ADPPok = false;
-  bool PS = false;
-  bool RP = false;
-  bool TI = false;
-  bool TP = false;
+  for (int i=0; i<15; i++){
+    settingarray[i].settingok = false;
+  }
 }
 
+// Read incoming data and ack
 void processSerialPort(String input) {
   value0 = getvalue(input, '=', 1);
-  if (input.startsWith("PS")) {
-    PS = value0.toInt(); // update value0
-    PSok = true;
-    EEPROM.put(44, PS);
+  value1 = getvalue(input, '=', 2);
+  char value2[10];
+  char value3[10];
+  value0.toCharArray(value2, 10);
+  value1.toCharArray(value3, 10);
+  char id_ack = value2[0];
+  char id_msg = value3[0];
+  
+  for (int i=0; i<15; i++){
+    if (input.startsWith(settingarray[i].settingname)) {
+      settingarray[i].settingvalue = value0.toFloat();
+      EEPROM.put(settingarray[i].eepromloc, settingarray[i].settingvalue);
+      // send ack
+      strcpy(message, "");
+      sprintf(message, "ACK=%c=", id_msg);
+      getCRC(message);
+      Serial.println(message);       
+      settingarray[i].messagetime = millis();
+    }
   }
-    if (input.startsWith("RP")) {
-    RP = value0.toInt(); // update value0
-    RPok = true;
-    EEPROM.put(48, RP);
+  
+  if (input.startsWith("ALARM")) {
+    lastWatchdogTime = millis();
   }
-    if (input.startsWith("TI")) {
-    TI = value0.toInt(); // update value0
-    TIok = true;
-    EEPROM.put(52, TI);
-  }
-    if (input.startsWith("TP")) {
-    TP = value0.toInt(); // update value0
-    TPok = true;
-    EEPROM.put(60, TP);
-  }
-  if (input.startsWith("ACTIVE")) {
-    ACTIVE = value0.toInt(); // update value0
-    Activeok = true;
-    EEPROM.put(28, ACTIVE);
-  }
-  if (input.startsWith("ADPK")) {
-    ADPK = value0.toInt(); // update value0
-    ADPKok = true;
-    EEPROM.put(32, ADPKok);
-  }
-  else if (input.startsWith("ADVT")) {
-    ADVT = value0.toInt(); // update value0
-    ADVTok = true;
-    EEPROM.put(36, ADVTok);
-  }
-  else if (input.startsWith("ADPP")) {
-    ADPP = value0.toInt(); // update value0
-    ADPPok = true;
-    EEPROM.put(40, ADPPok);
-  }
-  else if (input.startsWith("MODE")) {
-    Mode = value0.toInt(); // update value0
-    Modeok = true;
-    EEPROM.put(24, Mode);
-  }
-  else if (input.startsWith("PP")) {
-    PP = value0.toInt(); // update value0
-    PPok = true;
-    EEPROM.put(20, PP);
-  }
-  else if (input.startsWith("IE")) {
-    IE = value0.toFloat(); // update value
-    IEok = true;
-    EEPROM.put(16, IE);
-  }
-  else if (input.startsWith("TS")) {
-    TS = value0.toInt(); // update value0
-    TSok = true;
-    EEPROM.put(12, TS);
-  }
-  else if (input.startsWith("PK")) {
-    PK = value0.toInt(); // update value0
-    PKok = true;
-    EEPROM.put(8, PK);
-  }
-  else if (input.startsWith("VT")) {
-    VT = value0.toInt(); // update value0
-    VTok = true;
-    EEPROM.put(4, VT);
-  }
-  else if (input.startsWith("RR")) {
-    RR = value0.toInt(); // update value0
-    RRok = true;
-    EEPROM.put(0, RR);
+  
+  if (input.startsWith("ACK")) {
+    for (int i=0; i<15; i++){
+      if(settingarray[i].messageid == id_ack){
+        settingarray[i].settingok = true;
+      }
+    }
   }
 }
 
@@ -450,7 +302,21 @@ void processSerialPort(String input) {
 
 int sendAlarmState(void) {
   strcpy(message, "");
-  sprintf(message, "ALARM=%d=", ALARM);
+  sprintf(message, "ALARM=%d=%c=", ALARM, ++counter);
+  getCRC(message);
+  Serial.println(message);
+  settingarray[14].messageid = counter;     
+  settingarray[14].messagetime = millis();
+  return 1;
+}
+
+//---------------------------------------------------------------
+// FUNCTIONS CPU
+//---------------------------------------------------------------
+
+int sendCPUState(void) {
+  strcpy(message, "");
+  sprintf(message, "CPU=%d=%c=", CPU_TIMER_get(), ++counter);
   getCRC(message);
   Serial.println(message);
   return 1;
@@ -467,7 +333,6 @@ void recvWithEndMarkerSer0() {
 
   while (Serial.available() > 0 && newData0 == false) {
     rc = Serial.read();
-Serial1.println(rc);
     if (rc != endMarker) {
       receivedChars0[ndx] = rc;
       ndx++;
@@ -485,12 +350,8 @@ Serial1.println(rc);
   if (newData0 == true) {
     updateWatchdog(millis());
     // check CRC
-    Serial1.println("message received");
     if (!checkCRC(receivedChars0)) {
-      processPython(receivedChars0);
       processSerialPort(receivedChars0);
-      // confirm message
-      Serial.println(receivedChars0);
       Serial1.println(receivedChars0);
     }
     else {

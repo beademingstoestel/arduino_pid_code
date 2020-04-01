@@ -21,13 +21,11 @@
 #include <Adafruit_MPL3115A2.h>
 #include <Adafruit_BMP280.h>
 
-#define BME_SPI_SCK 52
-#define BME_SPI_MISO 50
-#define BME_SPI_MOSI 51 
-#define BME_SPI_CS 48
 //-----------------------------------------------------------------------------------------------
-Adafruit_BME280 bme1;//(0x76);
+Adafruit_BME280 bme1;//(0x77: Tube sensor);
+Adafruit_BME280 bme2;//(0x76: Ambient sensor);
 Adafruit_Sensor *bme_pressure_patient1 = bme1.getPressureSensor();
+Adafruit_Sensor *bme_pressure_ambient = bme2.getPressureSensor();
 
 bool PRESSURE_SENSOR1_INITIALIZED = false;
 bool PRESSURE_SENSOR2_INITIALIZED = false;
@@ -36,6 +34,7 @@ bool PRESSURE_SENSOR3_INITIALIZED = false;
 #define PRESSURE_RA_SEQ_LENGTH 5
 float PRESSURE_INIT_VALUE_BME = 0;
 float PRESSURE_INIT_VALUE_MLP = 0;
+float PRESSURE_INIT_VALUE_AMBIENT = 0;
 float PRESSURE_RA_SEQ[PRESSURE_RA_SEQ_LENGTH];
 int PRESSURE_RA_SEQ_WR_INDEX = 0;
 float PRESSURE_SUM = 0;
@@ -49,7 +48,7 @@ bool BME280_Setup()
 {
     if (!bme1.begin(0x77))
     {   
-        Serial.println("BME280 sensor 1 not found"); 
+        Serial.println("BME280 sensor for tube pressure not found"); 
         return false;        
     }
     else
@@ -64,12 +63,29 @@ bool BME280_Setup()
     }
 
     if (! mpl3115a2.begin()) {
-      Serial.println("Couldnt find sensor");
+      Serial.println("Couldnt find MPL sensor for tube pressure");
       return false;
     }
     else{
       PRESSURE_SENSOR2_INITIALIZED = true;
     }
+
+    if (!bme2.begin(0x76))
+    {   
+        Serial.println("BME280 sensor for ambient pressure not found"); 
+        return false;        
+    }
+    else
+    {
+        PRESSURE_SENSOR3_INITIALIZED = true;
+        bme2.setSampling(Adafruit_BME280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BME280::SAMPLING_NONE,     /* Temp. oversampling */
+                  Adafruit_BME280::SAMPLING_X1,    /* Pressure oversampling */
+                  Adafruit_BME280::SAMPLING_NONE,     /* Hum. oversampling */
+                  Adafruit_BME280::FILTER_OFF,      /* Filtering. */
+                  Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
+    }
+
     
     delay(50); // wait here to settle;
 
@@ -92,6 +108,13 @@ bool BME280_Setup()
       sum+= MPL3115A2_readpressure_cmH2O();
     }
     PRESSURE_INIT_VALUE_MLP = sum/50;
+
+    sum = 0;
+    for(int i=0;i<50;i++)
+    {
+      sum+= BME280_readPressureAmbient();
+    }
+    PRESSURE_INIT_VALUE_AMBIENT = sum/50;
 
     
     return true;
@@ -116,7 +139,17 @@ float MPL3115A2_readpressure_cmH2O(){
   }
   return 0;
 }
-
+//-----------------------------------------------------------------------------------------------
+float BME280_readPressureAmbient()
+{
+  if (PRESSURE_SENSOR3_INITIALIZED)
+  {
+    sensors_event_t  pressure_event_ambient;
+    bme_pressure_ambient->getEvent(&pressure_event_ambient);
+    return  pressure_event_ambient.pressure*hPa2cmh2o_scale;
+  }
+  return 0;
+}
 //-----------------------------------------------------------------------------------------------
 bool BME280_readPressurePatient(float *value) 
 {

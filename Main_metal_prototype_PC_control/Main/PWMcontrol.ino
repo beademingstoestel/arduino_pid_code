@@ -6,6 +6,32 @@ const uint8_t L_PWM = L_PWM_PIN;
 const uint8_t R_PWM = R_PWM_PIN;
 BTS7960 motorController(R_EN, L_EN, L_PWM, R_PWM); //initialiseren van de motorcontroller
 //----------------------------------------------------------------------------------
+bool MOTOR_CONTROL_setup(int ENDSWITCH_PUSH, int ENDSWITCH_FULL){
+  pinMode(ENDSWITCH_FULL,INPUT_PULLUP);
+  pinMode(ENDSWITCH_PUSH,INPUT_PULLUP);
+  
+  MOTOR_CONTROL_setp();
+ 
+  // if already at bottom: go up until we clear the switch
+  if(digitalRead(ENDSWITCH_FULL)){
+    MOTOR_CONTROL_setValue(50);
+    while(!digitalRead(ENDSWITCH_FULL)){}
+    delay(100);
+    MOTOR_CONTROL_setValue(0);
+  }
+  // Go down to bottom switch
+  MOTOR_CONTROL_setValue(-80);
+  while(!digitalRead(ENDSWITCH_FULL)){}
+  MOTOR_CONTROL_setValue(0);
+  // Go up to top endswitch
+  MOTOR_CONTROL_setValue(50);
+  while(!digitalRead(ENDSWITCH_PUSH)){}
+  MOTOR_CONTROL_setValue(0);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------------
 void MOTOR_CONTROL_setp()
 {
   motorController.Enable();

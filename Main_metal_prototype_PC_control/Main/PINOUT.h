@@ -2,8 +2,10 @@
 //#define metal
 #define protoseven
 
+#define hall_sensor_i2c  // comment to use SPI
+
 #ifdef plexi
-  #define ENDSIWTCH_FULL_PIN 3 // inhale: lower switch
+  #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
   #define EN_PIN 4
@@ -23,7 +25,7 @@
 #endif
 
 #ifdef metal
-  #define ENDSIWTCH_FULL_PIN 3 // inhale: lower switch
+  #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
   #define R_EN_PIN 3
@@ -43,7 +45,7 @@
 #endif
 
 #ifdef protoseven
-  #define ENDSIWTCH_FULL_PIN 3 // inhale: lower switch
+  #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
   #define R_EN_PIN 5

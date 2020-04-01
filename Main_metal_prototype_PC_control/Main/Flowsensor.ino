@@ -1,12 +1,14 @@
 #include <Wire.h>
 #include "sdpsensor.h"
 bool IS_FLOW_SENSOR_INITIALIZED = false;
-float Volume;
+float Volume_l;
+int Volume_ml;
 float totalFlow = 0;
-unsigned long numberoftriggers = 0;
 unsigned long deltaT;
+bool resetAllowed = true;
 
-int flowsensordirection = 1;
+int flowsensordirection = -1;
+float calibration_offset = 0;
 //----------------------------------------------------------------------------------------------------------------
 // SDP3x on the default I2C address of 0x21:
 SDP3XSensor sdp;
@@ -31,7 +33,22 @@ bool FLOW_SENSOR_INIT()
   if (returnCode == 0) 
   {
     IS_FLOW_SENSOR_INITIALIZED=true;
+
+    // calibration
+    delay(3000);
+    float currentVal;
+    float sum = 0;
+    for(int i=0;i<100;i++)
+    {
+      FLOW_SENSOR_Measure(&currentVal);
+      sum+=currentVal;
+      delay(50);
+    }    
+    calibration_offset =sum/100.0;
+    Serial.println(calibration_offset);
+    
     return true; // init successfull;
+    
   } 
   else 
   {
@@ -74,35 +91,43 @@ bool FLOW_SENSOR_Measure(float* value)
         }
       }
     }
-    *value = y*flowsensordirection;
+    *value = (y*flowsensordirection) - calibration_offset;
     return true; 
   } 
   return false;
 }
 
-void resetVolume(){
-  Volume = 0;
-  totalFlow = 0;
-  numberoftriggers = 0;
+void FLOW_SENSOR_resetVolume(){
+  resetAllowed = true;
 }
 
-void updateVolume(float flow){ //flow = liter/min
+void FLOW_SENSOR_resetVolume_flowtriggered(){
+  if(CurrentFlowPatient > 1 && resetAllowed){
+    resetAllowed = false;
+    Volume_l = 0;
+    totalFlow = 0;
+  }
+}
+
+void FLOW_SENSOR_updateVolume(float flow){ //flow = liter/min
   totalFlow += flow;
-  numberoftriggers += 1;
+  Volume_l = totalFlow * ((float)deltaT / 60000);
+  Volume_ml = (int)(Volume_l*1000);
 }
 
-float getTotalVolume(){ // Volume = ml
-  Volume = totalFlow * ((float)deltaT / 6000) * numberoftriggers;
-  return Volume;
+int FLOW_SENSOR_getTotalVolumeInt(){ // Volume = ml
+  return Volume_ml;
 }
 
-int getTotalVolumeInt(){
-  getTotalVolume();
-  int intVolume = (int)Volume;
-  return intVolume;
+bool FLOW_SENSOR_getVolume(float *value){
+  if (IS_FLOW_SENSOR_INITIALIZED){
+    *value = Volume_ml;
+    return true;
+  }
+  return false;
 }
 
 // set time interval
-void setDeltaT(unsigned long deltat){
+void FLOW_SENSOR_setDeltaT(unsigned long deltat){
   deltaT = deltat/1000;
 }
