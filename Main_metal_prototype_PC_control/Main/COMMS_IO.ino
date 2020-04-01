@@ -297,6 +297,18 @@ int sendAlarmState(void) {
 }
 
 //---------------------------------------------------------------
+// FUNCTIONS CPU
+//---------------------------------------------------------------
+
+int sendCPUState(void) {
+  strcpy(message, "");
+  sprintf(message, "CPU=%d=%c=", CPU_TIMER_get(), ++counter);
+  getCRC(message);
+  Serial.println(message);
+  return 1;
+}
+
+//---------------------------------------------------------------
 // FUNCTIONS SERIAL 0
 //---------------------------------------------------------------
 

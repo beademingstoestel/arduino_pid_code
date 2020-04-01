@@ -1,8 +1,8 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
-#define HARDWARE 0
+#define PYTHON 1
+#define HARDWARE 1
  
 //---------------------------------------------------------------
 // VARIABLES
@@ -94,6 +94,7 @@ void setup()
 
   //-- setup done
   Serial.println("Setup done");
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
 }
 
 //---------------------------------------------------------------
@@ -108,7 +109,7 @@ void loop()
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
-
+  if (PYTHON) doCPU_TIMER();
   // Handle uart receive for debugging
   recvWithEndMarkerSer1();
 
@@ -121,7 +122,7 @@ void loop()
 
 void controller()
 {
-  interrupttime = millis();
+  CPU_TIMER_start(millis());
   // readout sensors
   interrupts();
   bool isCurrentFlowPatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient);
@@ -204,5 +205,5 @@ void controller()
     }break;
     default: controller_state = wait;
   }
-  Serial.println(millis()-interrupttime);
+  CPU_TIMER_stop(millis());
 }

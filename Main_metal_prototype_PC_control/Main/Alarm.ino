@@ -7,6 +7,9 @@ unsigned int ALARMMASK = 0xFF; // give alarm for all states by default
 unsigned long Watchdog = 3000; // 3 seconds watchdog
 unsigned long lastWatchdogTime = millis();
 
+unsigned long CPU_TIMER = 3000; // 3 seconds watchdog
+unsigned long lastCpuTime = millis();
+
 //---------------------------------------------------------------
 // ALARMS
 //---------------------------------------------------------------
@@ -78,6 +81,40 @@ void doWatchdog(void) {
 
 void updateWatchdog(unsigned long newtime){
   lastWatchdogTime = newtime;
+}
+
+//---------------------------------------------------------------
+// CPU watchdog
+//---------------------------------------------------------------
+
+unsigned long maxinterrupttime = 0;
+unsigned long startinterrupttime = 0;
+
+void CPU_TIMER_reset(){
+  maxinterrupttime = 0;
+}
+
+void CPU_TIMER_start(unsigned long starttime){
+  startinterrupttime = starttime;
+}
+
+void CPU_TIMER_stop(unsigned long stoptime){
+  unsigned long interrupttime = stoptime - startinterrupttime;
+  if(interrupttime >= maxinterrupttime){
+    maxinterrupttime = interrupttime;
+  }
+}
+
+unsigned long CPU_TIMER_get(){
+  return (100000 * maxinterrupttime / controllerTime);
+}
+
+void doCPU_TIMER(){
+  if (millis() - lastCpuTime > CPU_TIMER) {
+    sendCPUState();
+    CPU_TIMER_reset();
+    lastCpuTime = millis();
+  }
 }
 
 #endif
