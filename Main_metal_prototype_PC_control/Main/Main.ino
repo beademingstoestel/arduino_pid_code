@@ -1,7 +1,7 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
+#define PYTHON 0
 #define HARDWARE 1
  
 //---------------------------------------------------------------
@@ -113,7 +113,7 @@ void loop()
   // Handle uart receive for debugging
   recvWithEndMarkerSer1();
 
-  Serial.println(CurrentPressurePatient);
+  Serial.println("test");
 
   delay(20); 
 }
@@ -133,6 +133,10 @@ void controller()
   bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   // update values 
+  Serial.print(Volume2Patient);
+  Serial.print(",");
+  Serial.println(CurrentVolumePatient);
+  
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);

@@ -51,7 +51,7 @@ bool HALL_SENSOR_getVolume(float *value) {
     }
 
     // Convert angle to value with calibration from excel file
-    *value = (float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023;
+    *value = 0.1*((float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023);
     if (*value < 0) {
       *value = 0;
     }

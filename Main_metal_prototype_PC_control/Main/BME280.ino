@@ -24,7 +24,7 @@
 #define BME_SPI_SCK 52
 #define BME_SPI_MISO 50
 #define BME_SPI_MOSI 51 
-#define BME_SPI_CS 48
+#define BME_SPI_CS 47
 
 //-----------------------------------------------------------------------------------------------
 Adafruit_BME280 bme1;//(0x77: Tube sensor);

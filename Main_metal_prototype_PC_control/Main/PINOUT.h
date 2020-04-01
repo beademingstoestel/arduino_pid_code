@@ -2,7 +2,7 @@
 //#define metal
 #define protoseven
 
-//#define hall_sensor_i2c  // comment to use SPI
+#define hall_sensor_i2c  // comment to use SPI
 
 #ifdef plexi
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
@@ -61,7 +61,7 @@
   #define BME_SPI_SCK 52
   #define BME_SPI_MISO 50
   #define BME_SPI_MOSI 51 
-  #define BME_SPI_CS 48
+  #define BME_SPI_CS 47
 #endif
 
 #ifdef protoGroteSerie
