@@ -29,7 +29,7 @@ int EXHALE_TIME = 0;
 //------------------------------------------------------------------------------
 void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime)
 {
-  delta_time = millis()-start_time_pressure;  // time since INTAKE state has started
+  delta_time = millis()-inhale_start_time;  // time since INTAKE state has started
   if (delta_time < risetime){
     PRESSURE_INHALE_SETPOINT = setting*delta_time/risetime;
   }else{
