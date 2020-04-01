@@ -63,7 +63,7 @@ void initEEPROM() {
 }
 
 //---------------------------------------------------------------
-// GETTERS & SETTERS
+// GETTERS & SETTERS SETTINGS
 //---------------------------------------------------------------
 
 unsigned long comms_getInhaleTime(){
@@ -130,6 +130,10 @@ float comms_getTP() {
   return settingarray[8].settingvalue;
 }
 
+//---------------------------------------------------------------
+// GETTERS & SETTERS MEASUREMENTS
+//---------------------------------------------------------------
+
 void comms_setBPM(unsigned long bpm_time) {
   BPM = 60000 / (float)bpm_time;
 }
@@ -144,10 +148,6 @@ void comms_setPRES(int pres) {
 }
 void comms_setFLOW(int flow) {
   FLOW = flow;
-}
-
-int comms_getVOL(){
-  return VOL;
 }
 
 //---------------------------------------------------------------
@@ -235,10 +235,10 @@ bool resetComm() {
 void processSerialPort(String input) {
   value0 = getvalue(input, '=', 1);
   value1 = getvalue(input, '=', 2);
-  char value2[1];
-  char value3[1];
-  value0.toCharArray(value2, 1);
-  value1.toCharArray(value3, 1);
+  char value2[10];
+  char value3[10];
+  value0.toCharArray(value2, 10);
+  value1.toCharArray(value3, 10);
   char id_ack = value2[0];
   char id_msg = value3[0];
   
