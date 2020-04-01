@@ -54,7 +54,7 @@
       }
   
       // Convert angle to value with calibration from excel file
-      *value = (float)(angle + 276) * 12.857 - 3979;
+      *value = (float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023;
       if(*value < 0){
         *value = 0;
       }
