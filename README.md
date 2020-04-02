@@ -3,3 +3,5 @@ You can find the location of this folder from File>Preferences>Sketchbook locati
 
 Board: Arduino Mega
 Processor: atmega2560
+
+Current version: metal prototype with pc control
