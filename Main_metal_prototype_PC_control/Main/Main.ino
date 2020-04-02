@@ -148,6 +148,7 @@ void controller()
   // State machine
   switch (controller_state) {
     case ini:{
+      FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == true) {
         controller_state = wait; // start controller

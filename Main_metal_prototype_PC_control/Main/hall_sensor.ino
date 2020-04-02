@@ -42,7 +42,7 @@ bool HALL_SENSOR_getVolume(float *value) {
   if (HALL_SENSOR_INITIALIZED) {
     int angle = hall_encoder.getRawAngle();
     if (angle - startangle > 500) {
-      angle = (angle - startangle) - 1023;
+      angle = (angle - startangle) - 4095;
 
     }
     else {

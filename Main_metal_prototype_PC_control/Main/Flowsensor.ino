@@ -35,7 +35,7 @@ bool FLOW_SENSOR_INIT()
     IS_FLOW_SENSOR_INITIALIZED=true;
 
     // calibration
-    delay(3000);
+    delay(100);
     float currentVal;
     float sum = 0;
     for(int i=0;i<100;i++)
@@ -95,6 +95,11 @@ bool FLOW_SENSOR_Measure(float* value)
     return true; 
   } 
   return false;
+}
+
+void FLOW_SENSOR_hardresetVolume(){
+    Volume_l = 0;
+    totalFlow = 0;
 }
 
 void FLOW_SENSOR_resetVolume(){
