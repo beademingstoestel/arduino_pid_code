@@ -41,17 +41,18 @@ bool HALL_SENSOR_readHall(unsigned int *value)
 bool HALL_SENSOR_getVolume(float *value) {
   if (HALL_SENSOR_INITIALIZED) {
     int angle = hall_encoder.getRawAngle();
-    if (angle - startangle > 500) {
+    if (angle - startangle > 2000) {
       angle = (angle - startangle) - 4095;
 
     }
     else {
       angle = angle - startangle;
-      //Serial.println(angle);
     }
+    // divide by 4 to achieve same range as SPI hall sensor
+    angle = angle >> 2;
 
     // Convert angle to value with calibration from excel file
-    *value = 0.1*((float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023);
+    *value = (float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023;
     if (*value < 0) {
       *value = 0;
     }
@@ -123,11 +124,10 @@ bool HALL_SENSOR_getVolume(float *value) {
     }
     else {
       angle = angle - startangle;
-      //Serial.println(angle);
     }
-
+    
     // Convert angle to value with calibration from excel file
-    *value = (float)(angle + 276) * 12.857 - 3979;
+    *value = (float)angle * (float)angle * 0.0757 + (float)angle * 2.2519 + 0.0023;
     if (*value < 0) {
       *value = 0;
     }
