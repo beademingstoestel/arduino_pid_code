@@ -32,7 +32,7 @@ bool PRESSURE_SENSOR_INIT(){
   bme2ok = BME2_Setup();
   mplok = MPL_Setup();
 
-  return ((bme1ok || BME_tube) && (bme2ok || BME_ambient) && (mplok || MPL_tube));
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) && (mplok || !MPL_tube));
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -44,7 +44,7 @@ bool BME1_Setup()
   }
   else
   {
-    PRESSURE_SENSOR2_INITIALIZED = true;
+    PRESSURE_SENSOR1_INITIALIZED = true;
     bme1.setSampling(Adafruit_BME280::MODE_NORMAL,     /* Operating Mode. */
                      Adafruit_BME280::SAMPLING_NONE,     /* Temp. oversampling */
                      Adafruit_BME280::SAMPLING_X1,    /* Pressure oversampling */
@@ -96,6 +96,7 @@ bool MPL_Setup()
     return false;
   }
   else {
+    delay(100);
     PRESSURE_SENSOR3_INITIALIZED = true;
     sum = 0;
     for (int i = 0; i < 50; i++)
@@ -141,6 +142,8 @@ bool BME280_readPressurePatient(float *value)
 {
   float sensor1 = BME280_readpressure_cmH2O();
   float sensor2 = MPL3115A2_readpressure_cmH2O();
+
+  //Serial.println(sensor1);
 
   *value = sensor1;
 
