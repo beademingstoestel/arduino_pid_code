@@ -152,6 +152,7 @@ void controller()
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == 1) {
+        controller_state = wait;
         // turn on buzzer TODO
       }
       if (comms_getActive() == 2) {
