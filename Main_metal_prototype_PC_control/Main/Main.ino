@@ -151,7 +151,10 @@ void controller()
     case ini:{
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
-      if (comms_getActive() == true) {
+      if (comms_getActive() == 1) {
+        // turn on buzzer TODO
+      }
+      if (comms_getActive() == 2) {
         controller_state = wait; // start controller
       }
     }break;
@@ -206,7 +209,7 @@ void controller()
         target_pressure = comms_getPressure(inhale_detected);
       }
       // Check user input to stop controller
-      if (comms_getActive() == false) { 
+      if (comms_getActive() == 0) { 
         controller_state = ini; // stop controller
       }
     }break;

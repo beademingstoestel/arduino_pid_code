@@ -113,7 +113,7 @@ unsigned int comms_getPP() {
 bool comms_getMode() {
   return settingarray[13].settingvalue;
 }
-bool comms_getActive() {
+int comms_getActive() {
   if (PYTHON){
     return (bool)settingarray[14].settingvalue;
   }
