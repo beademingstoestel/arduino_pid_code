@@ -36,7 +36,7 @@ SETTING settingarray[17]= {
   {"FW", 1.0, false, 52, 0, 0}
 };
 
-int endindex = sizeof(settingarray)/sizeof(settingarray[0]) - 1;
+int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
 
 const byte numChars = 32;
 String value0;
@@ -62,7 +62,7 @@ int TPRES = 60;              // target pressure
 //---------------------------------------------------------------
 
 void initEEPROM() {
-  for (int i=0; i<endindex; i++){
+  for (int i=0; i<arr_size; i++){
     EEPROM.get(settingarray[i].eepromloc, settingarray[i].settingvalue);
   }
 }
@@ -220,12 +220,12 @@ bool initCOMM() {
 // Get settings from python
 bool getSettings() {
   bool allsettingsok = true;
-  for (int i=1; i<endindex; i++){
+  for (int i=1; i<arr_size; i++){
     allsettingsok = allsettingsok && settingarray[i].settingok;
   }
   // check if all settings except alarm are OK
   if (!allsettingsok) {
-    for (int i=1; i<endindex; i++){
+    for (int i=1; i<arr_size; i++){
       if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
         strcpy(message, "");
         sprintf(message, "%s=%d.%d=%c=", settingarray[i].settingname, int(settingarray[i].settingvalue), int(settingarray[i].settingvalue * 100) - int(settingarray[i].settingvalue) * 100, ++counter);
@@ -258,7 +258,7 @@ bool getSettings() {
 
 // reset python communication
 bool resetComm() {
-  for (int i=0; i<endindex; i++){
+  for (int i=0; i<arr_size; i++){
     settingarray[i].settingok = false;
   }
 }
@@ -274,7 +274,7 @@ void processSerialPort(String input) {
   char id_ack = value2[0];
   char id_msg = value3[0];
   
-  for (int i=0; i<endindex; i++){
+  for (int i=0; i<arr_size; i++){
     if (input.startsWith(settingarray[i].settingname)) {
       settingarray[i].settingvalue = value0.toFloat();
       EEPROM.put(settingarray[i].eepromloc, settingarray[i].settingvalue);
@@ -292,7 +292,7 @@ void processSerialPort(String input) {
   }
   
   if (input.startsWith("ACK")) {
-    for (int i=0; i<endindex; i++){
+    for (int i=0; i<arr_size; i++){
       if(settingarray[i].messageid == id_ack){
         settingarray[i].settingok = true;
       }
