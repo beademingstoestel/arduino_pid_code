@@ -1,8 +1,13 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 1
+
+#define hall_sensor_i2c  // comment to use SPI
+#define BME_tube 1
+#define BME_ambient 1
+#define MPL_tube 1
  
 //---------------------------------------------------------------
 // VARIABLES
@@ -68,12 +73,12 @@ void setup()
   }
   
   //-- set up pressure sensors
-  Serial.println("Setting up BME sensor: ");
-  if (BME280_Setup()){
-    Serial.println("BME OK");
+  Serial.println("Setting up PRESSURE SENSORS sensor: ");
+  if (PRESSURE_SENSOR_INIT()){
+    Serial.println("PRESSURE SENSORS OK");
   }
   else{
-    Serial.println("BME Failed");
+    Serial.println("PRESSURE SENSORS Failed");
     if(HARDWARE)while(1){};
   }
 
@@ -113,8 +118,6 @@ void loop()
   // Handle uart receive for debugging
   recvWithEndMarkerSer1();
 
-  Serial.println("test");
-
   delay(20); 
 }
 
@@ -133,10 +136,7 @@ void controller()
   bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   // update values 
-  Serial.print(Volume2Patient);
-  Serial.print(",");
-  Serial.println(CurrentVolumePatient);
-  
+ 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);
