@@ -10,27 +10,80 @@ unsigned long lastWatchdogTime = millis();
 unsigned long CPU_TIMER = 3000; // 3 seconds watchdog
 unsigned long lastCpuTime = millis();
 
+#define ON_REQUEST_DEBOUNCE_CYCLES 10  // alarm is accepted after 100ms or in case of intermittent error, 10 more errors than not errors 
+#define OFF_REQUEST_DEBOUNCE_CYCLES 50  // alarm is switched off  after 500ms without alarm request
+#define ALARM_OFF 1
+#define ALARM_ON 1 
+unsigned int alarmDebounceCounter = ON_REQUEST_DEBOUNCE_CYCLES; 
+unsigned int debouncedAlarmOnOffState = ALARM_OFF;
+
+ 
 //---------------------------------------------------------------
 // ALARMS
 //---------------------------------------------------------------
+
+// debounceAlarm is to be called every 10ms,
+// it treats all alarms set the last 10ms and feeds it to the debounce filter
+void debounceAlarm()
+{
+    unsigned int alarmRequested =  (ALARM & ALARMMASK);
+    if (ALARM_OFF == debouncedAlarmOnOffState)
+    {
+      if (alarmRequested > 0)
+      {
+        alarmDebounceCounter--;
+        if (0 == alarmDebounceCounter)
+        {
+           debouncedAlarmOnOffState = ALARM_ON;
+           alarmDebounceCounter = OFF_REQUEST_DEBOUNCE_CYCLES;
+        }
+      }
+      else // (alarmRequested == 0 )
+      {
+        if (alarmDebounceCounter < ON_REQUEST_DEBOUNCE_CYCLES)
+        {
+          alarmDebounceCounter++;
+        }      
+      }
+    }
+    else  // (ALARM_ON == debouncedAlarmOnOffState)
+    {
+      if (alarmRequested > 0)
+      {
+        alarmDebounceCounter = OFF_REQUEST_DEBOUNCE_CYCLES;
+      }
+      else // (alarmRequested == 0 )
+      {
+        if (0 == alarmDebounceCounter)
+        {
+           debouncedAlarmOnOffState = ALARM_OFF;
+           alarmDebounceCounter = ON_REQUEST_DEBOUNCE_CYCLES;
+        }      
+      }
+    }
+
+    if (ALARM_ON == debouncedAlarmOnOffState)
+    {
+      // SOUND ALARM
+      // digitalWrite(ALARMLED, HIGH);
+    }
+    else 
+    {
+      //digitalWrite(ALARMLED, LOW);
+    }
+}
+
 
 void setAlarmState(int alarm) {
   byte alarmbyte = 0x01 << alarm;
   // BITWISE OR current alarm with new to SET
   ALARM |= alarmbyte;
 
-  // BITWISE AND current alarm with mask to check if alarm needs to be triggered
-  if (ALARM & ALARMMASK) {
-    // SOUND ALARM
-    // digitalWrite(ALARMLED, HIGH);
-  }
-  else {
-    //digitalWrite(ALARMLED, LOW);
-  }
-  sendAlarmState();
+  sendAlarmState(); // do we need to report this every call of this function? Once each 10ms should be enough?
 }
 
 void resetAlarmState(int alarm) {
+  debounceAlarm(); // take current alarms into account fro debounce. Could be moved somewhere else.
   // BITWISE AND current alarm with new to RESET
   ALARM &= alarm;
 }

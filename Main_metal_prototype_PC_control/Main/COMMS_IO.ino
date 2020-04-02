@@ -352,7 +352,6 @@ void recvWithEndMarkerSer0() {
   }
 
   if (newData0 == true) {
-    updateWatchdog(millis());
     // check CRC
     if (!checkCRC(receivedChars0)) {
       processSerialPort(receivedChars0);
