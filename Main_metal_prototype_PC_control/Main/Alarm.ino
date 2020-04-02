@@ -30,8 +30,9 @@ void ALARM_init(){
 // it treats all alarms set the last 10ms and feeds it to the debounce filter
 void debounceAlarm()
 {
-    unsigned int alarmRequested =  (ALARM & ALARMMASK);
-    if (ALARM_OFF == debouncedAlarmOnOffState)
+   unsigned int alarmRequested =  (ALARM & ALARMMASK);
+   unsigned int alarmStatusFromPython = 0;
+   if (ALARM_OFF == debouncedAlarmOnOffState)
     {
       if (alarmRequested > 0)
       {
@@ -66,7 +67,8 @@ void debounceAlarm()
       }
     }
 
-    if (ALARM_ON == debouncedAlarmOnOffState)
+    alarmStatusFromPython = comms_getAlarmSatusFromPython();  
+    if ( (ALARM_ON == debouncedAlarmOnOffState) ||  (alarmStatusFromPython > 0 ) )  
     {
       // SOUND ALARM
       // digitalWrite(ALARMLED, HIGH);
