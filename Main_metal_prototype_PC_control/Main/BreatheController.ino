@@ -8,6 +8,7 @@ float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
 
+bool volumeTriggered = false;
 //----------------------------------
 float Kp = 10;
 float Ki = 0.1;
@@ -123,15 +124,15 @@ bool BREATHE_CONTROL_CheckInhale() {
 //------------------------------------------------------------------------------
 float BREATHE_CONTROL_Regulate()
 {
-  Serial1.print(CurrentFlowPatient);
-  Serial1.print(",");
-  Serial1.print(CurrentVolumePatient);
-  Serial1.print(",");
-  Serial1.print(Volume2Patient);
-  Serial1.print(",");
-  Serial1.print(CurrentPressurePatient);
-  Serial1.print(",");
-  Serial1.println(PRESSURE_INHALE_SETPOINT);
+  DEBUGserial.print(CurrentFlowPatient);
+  DEBUGserial.print(",");
+  DEBUGserial.print(CurrentVolumePatient);
+  DEBUGserial.print(",");
+  DEBUGserial.print(Volume2Patient);
+  DEBUGserial.print(",");
+  DEBUGserial.print(CurrentPressurePatient);
+  DEBUGserial.print(",");
+  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
 
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
   //Serial.println(diff);
@@ -169,7 +170,8 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch) {
   
   if (controller_state == inhale) {
     //if (abs(Volume2Patient) > abs(target_volume)) {
-    if (abs(CurrentVolumePatient) > abs(target_volume)) {
+    if (abs(CurrentVolumePatient) > abs(target_volume) && volumeTriggered == false) {
+      volumeTriggered = true;
       return hold_speed;
     }
     else if (end_switch == 1) {
@@ -181,6 +183,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch) {
   }
 
   else if (controller_state == exhale) {
+    volumeTriggered = false;
     if (end_switch == 1) {
       return hold_speed;
     }

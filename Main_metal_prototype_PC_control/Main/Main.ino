@@ -3,6 +3,7 @@
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
 #define HARDWARE 1
+#define DEBUGserial Serial3
 
 //#define hall_sensor_i2c  // comment to use SPI
 #define BME_tube 1
@@ -44,7 +45,7 @@ unsigned int trigger_mode = 0;
 void setup()
 {
   Serial.begin(115200);
-  Serial1.begin(115200);
+  DEBUGserial.begin(115200);
 
   //-- set up communication with screen
   if(PYTHON){

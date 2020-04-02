@@ -206,11 +206,11 @@ void sendInitToPython() {
 
 // Init communication at startup: blocking
 bool initCOMM() {
-  Serial1.println("SETUP START");
+  DEBUGserial.println("SETUP START");
   while (!getSettings()) {
     recvWithEndMarkerSer0();
   }
-  Serial1.println("SETUP DONE");
+  DEBUGserial.println("SETUP DONE");
 }
 
 // Get settings from python
@@ -352,11 +352,11 @@ void recvWithEndMarkerSer0() {
     // check CRC
     if (!checkCRC(receivedChars0)) {
       processSerialPort(receivedChars0);
-      Serial1.println(receivedChars0);
+      DEBUGserial.println(receivedChars0);
     }
     else {
-      Serial1.print("Resend data: ");
-      Serial1.println(receivedChars0);
+      DEBUGserial.print("Resend data: ");
+      DEBUGserial.println(receivedChars0);
     }
     newData0 = false;
   }
@@ -371,8 +371,8 @@ void recvWithEndMarkerSer1() {
   char endMarker = '\n';
   char rc;
 
-  while (Serial1.available() > 0 && newData1 == false) {
-    rc = Serial1.read();
+  while (DEBUGserial.available() > 0 && newData1 == false) {
+    rc = DEBUGserial.read();
 
     if (rc != endMarker) {
       receivedChars1[ndx] = rc;
@@ -392,7 +392,7 @@ void recvWithEndMarkerSer1() {
     // manual input: do not check CRC
     processSerialPort(receivedChars1);
     // confirm message
-    Serial1.println(receivedChars1);
+    DEBUGserial.println(receivedChars1);
     newData1 = false;
   }
 }
