@@ -17,6 +17,7 @@ typedef struct{
 } SETTING;  
 
 SETTING settingarray[15]= {
+  {"ALARM", 0, false, 56, 0, 0},
   {"RR", 20, false, 0, 0, 0},
   {"VT", 400, false, 4, 0, 0},
   {"PK", 50, false, 8, 0, 0},
@@ -30,13 +31,11 @@ SETTING settingarray[15]= {
   {"ADVT", 10, false, 40, 0, 0},
   {"ADPP", 5, false, 44, 0, 0},
   {"MODE", 0, false, 48, 0, 0},
-  {"ACTIVE", 0, false, 52, 0, 0},
-  {"ALARM", 0, false, 56, 0, 0}
+  {"ACTIVE", 0, false, 52, 0, 0}
+
 };
 
-int arraylen_alarm = sizeof(settingarray)/sizeof(settingarray[0]);
-int arraylen_noalarm = sizeof(settingarray)/sizeof(settingarray[0]) - 1;
-int alarm = sizeof(settingarray)/sizeof(settingarray[0])-1;
+int endindex = sizeof(settingarray)/sizeof(settingarray[0]) - 1;
 
 const byte numChars = 32;
 String value0;
@@ -62,7 +61,7 @@ int TPRES = 60;              // target pressure
 //---------------------------------------------------------------
 
 void initEEPROM() {
-  for (int i=0; i<arraylen_alarm; i++){
+  for (int i=0; i<endindex; i++){
     EEPROM.get(settingarray[i].eepromloc, settingarray[i].settingvalue);
   }
 }
@@ -72,72 +71,72 @@ void initEEPROM() {
 //---------------------------------------------------------------
 
 unsigned long comms_getInhaleTime(){
-  float target_inhale_duration = 1000.0 * 60.0 * settingarray[5].settingvalue / settingarray[0].settingvalue  ;   
+  float target_inhale_duration = 1000.0 * 60.0 * settingarray[6].settingvalue / settingarray[1].settingvalue  ;   
   unsigned long target_inhale_duration_int = (unsigned long) target_inhale_duration;
   return target_inhale_duration_int;
 }
 
 unsigned long comms_getExhaleTime(){
-  float target_exhale_duration = 1000.0 * 60.0 * (1-settingarray[5].settingvalue) / settingarray[0].settingvalue  ;   
+  float target_exhale_duration = 1000.0 * 60.0 * (1-settingarray[6].settingvalue) / settingarray[1].settingvalue  ;   
   unsigned long target_exhale_duration_int = (unsigned long) target_exhale_duration;
   return target_exhale_duration_int;
 }
 
 float comms_getPressure(bool inhale_detected){
   if(inhale_detected){
-    return settingarray[3].settingvalue;
+    return settingarray[4].settingvalue;
   }
   else{
-    return settingarray[2].settingvalue;
+    return settingarray[3].settingvalue;
   }
 }
 
 unsigned int comms_getRR() {
-  return settingarray[0].settingvalue;
-}
-unsigned int comms_getVT() {
   return settingarray[1].settingvalue;
 }
-unsigned int comms_getPK() {
+unsigned int comms_getVT() {
   return settingarray[2].settingvalue;
 }
+unsigned int comms_getPK() {
+  return settingarray[3].settingvalue;
+}
 int comms_getTS() {
-  return settingarray[7].settingvalue;
+  return settingarray[8].settingvalue;
 }
 float comms_getIE() {
-  return settingarray[5].settingvalue;
+  return settingarray[6].settingvalue;
 }
 unsigned int comms_getPP() {
-  return settingarray[4].settingvalue;
+  return settingarray[5].settingvalue;
 }
 bool comms_getMode() {
-  return settingarray[12].settingvalue;
+  return settingarray[13].settingvalue;
 }
 bool comms_getActive() {
   if (PYTHON){
-    return (bool)settingarray[13].settingvalue;
+    return (bool)settingarray[14].settingvalue;
   }
   else{
     return true;
   }  
 }
 unsigned int comms_getADPP() {
-  return settingarray[9].settingvalue;
-}
-unsigned int comms_getADVT() {
   return settingarray[10].settingvalue;
 }
+unsigned int comms_getADVT() {
+  return settingarray[12].settingvalue;
+}
 unsigned int comms_getADPK() {
-  return settingarray[11].settingvalue;
+  return settingarray[12].settingvalue;
 }
 float comms_getPS() {
-  return settingarray[3].settingvalue;
+  return settingarray[4].settingvalue;
 }
 float comms_getRP() {
-  return settingarray[6].settingvalue*1000;
+  return settingarray[7].settingvalue*1000;
 }
 float comms_getTP() {
-  return settingarray[8].settingvalue;
+  return settingarray[9].settingvalue;
 }
 
 //---------------------------------------------------------------
@@ -220,12 +219,12 @@ bool initCOMM() {
 // Get settings from python
 bool getSettings() {
   bool allsettingsok = true;
-  for (int i=0; i<arraylen_noalarm; i++){
+  for (int i=1; i<endindex; i++){
     allsettingsok = allsettingsok && settingarray[i].settingok;
   }
   // check if all settings except alarm are OK
   if (!allsettingsok) {
-    for (int i=0; i<arraylen_noalarm; i++){
+    for (int i=1; i<endindex; i++){
       if((!settingarray[i].settingok) && (millis() - settingarray[i].messagetime > 1000)){
         strcpy(message, "");
         sprintf(message, "%s=%d.%d=%c=", settingarray[i].settingname, int(settingarray[i].settingvalue), int(settingarray[i].settingvalue * 100) - int(settingarray[i].settingvalue) * 100, ++counter);
@@ -239,14 +238,14 @@ bool getSettings() {
     return false;
   }
   // if all settings are ok, send the alarm setting and wait for it to be OK
-  else if(allsettingsok && settingarray[alarm].settingok == false){
-    if((!settingarray[alarm].settingok) && (millis() - settingarray[alarm].messagetime > 1000)){
+  else if(allsettingsok && settingarray[0].settingok == false){
+    if((!settingarray[0].settingok) && (millis() - settingarray[0].messagetime > 1000)){
       strcpy(message, "");
-      sprintf(message, "%s=%d.%d=%c=", settingarray[alarm].settingname, int(settingarray[alarm].settingvalue), int(settingarray[alarm].settingvalue * 100) - int(settingarray[alarm].settingvalue) * 100, ++counter);
+      sprintf(message, "%s=%d.%d=%c=", settingarray[0].settingname, int(settingarray[0].settingvalue), int(settingarray[0].settingvalue * 100) - int(settingarray[0].settingvalue) * 100, ++counter);
       getCRC(message);
       Serial.println(message);  
-      settingarray[alarm].messageid = counter;     
-      settingarray[alarm].messagetime = millis();
+      settingarray[0].messageid = counter;     
+      settingarray[0].messagetime = millis();
     }
     recvWithEndMarkerSer0();
   }
@@ -258,7 +257,7 @@ bool getSettings() {
 
 // reset python communication
 bool resetComm() {
-  for (int i=0; i<arraylen_alarm; i++){
+  for (int i=0; i<endindex; i++){
     settingarray[i].settingok = false;
   }
 }
@@ -274,7 +273,7 @@ void processSerialPort(String input) {
   char id_ack = value2[0];
   char id_msg = value3[0];
   
-  for (int i=0; i<arraylen_alarm; i++){
+  for (int i=0; i<endindex; i++){
     if (input.startsWith(settingarray[i].settingname)) {
       settingarray[i].settingvalue = value0.toFloat();
       EEPROM.put(settingarray[i].eepromloc, settingarray[i].settingvalue);
@@ -292,7 +291,7 @@ void processSerialPort(String input) {
   }
   
   if (input.startsWith("ACK")) {
-    for (int i=0; i<arraylen_alarm; i++){
+    for (int i=0; i<endindex; i++){
       if(settingarray[i].messageid == id_ack){
         settingarray[i].settingok = true;
       }
@@ -309,8 +308,8 @@ int sendAlarmState(void) {
   sprintf(message, "ALARM=%d=%c=", ALARM, ++counter);
   getCRC(message);
   Serial.println(message);
-  settingarray[alarm].messageid = counter;     
-  settingarray[alarm].messagetime = millis();
+  settingarray[0].messageid = counter;     
+  settingarray[0].messagetime = millis();
   return 1;
 }
 
