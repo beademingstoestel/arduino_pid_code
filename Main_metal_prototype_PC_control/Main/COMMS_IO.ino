@@ -92,6 +92,12 @@ float comms_getPressure(bool inhale_detected){
   }
 }
 
+unsigned int comms_getAlarmSatusFromPython() 
+{
+   return settingarray[0].settingvalue;
+}
+
+
 unsigned int comms_getRR() {
   return settingarray[1].settingvalue;
 }
