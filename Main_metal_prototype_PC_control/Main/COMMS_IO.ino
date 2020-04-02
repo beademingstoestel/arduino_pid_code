@@ -141,7 +141,7 @@ float comms_getTP() {
 //---------------------------------------------------------------
 
 void comms_setBPM(unsigned long bpm_time) {
-  BPM = 60000 / (float)bpm_time;
+  BPM = round(60000.0 / bpm_time);
 }
 void comms_setVOL(int vol) {
   VOL = vol;
