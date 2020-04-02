@@ -119,7 +119,7 @@ void loop()
   // Handle uart receive for debugging
   recvWithEndMarkerSer1();
 
-  delay(20); 
+  delay(100); 
 }
 
 // ---------------------------------------------------------------------------------------------------------
