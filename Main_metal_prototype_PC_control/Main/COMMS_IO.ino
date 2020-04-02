@@ -16,7 +16,7 @@ typedef struct{
    unsigned long messagetime;
 } SETTING;  
 
-SETTING settingarray[15]= {
+SETTING settingarray[17]= {
   {"ALARM", 0, false, 56, 0, 0},
   {"RR", 20, false, 0, 0, 0},
   {"VT", 400, false, 4, 0, 0},
@@ -31,8 +31,9 @@ SETTING settingarray[15]= {
   {"ADVT", 10, false, 40, 0, 0},
   {"ADPP", 5, false, 44, 0, 0},
   {"MODE", 0, false, 48, 0, 0},
-  {"ACTIVE", 0, false, 52, 0, 0}
-
+  {"ACTIVE", 0, false, 52, 0, 0},
+  {"MT", 0, false, 52, 0, 0},
+  {"FW", 1.0, false, 52, 0, 0}
 };
 
 int endindex = sizeof(settingarray)/sizeof(settingarray[0]) - 1;
