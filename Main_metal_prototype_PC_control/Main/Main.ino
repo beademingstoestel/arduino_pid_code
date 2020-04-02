@@ -4,9 +4,9 @@
 #define PYTHON 1
 #define HARDWARE 1
 
-#define hall_sensor_i2c  // comment to use SPI
+//#define hall_sensor_i2c  // comment to use SPI
 #define BME_tube 1
-#define BME_ambient 1
+#define BME_ambient 0
 #define MPL_tube 1
  
 //---------------------------------------------------------------
@@ -73,7 +73,7 @@ void setup()
   }
   
   //-- set up pressure sensors
-  Serial.println("Setting up PRESSURE SENSORS sensor: ");
+  Serial.println("Setting up PRESSURE sensors: ");
   if (PRESSURE_SENSOR_INIT()){
     Serial.println("PRESSURE SENSORS OK");
   }
@@ -93,13 +93,13 @@ void setup()
     if(HARDWARE)while(1){};
   }
 
-  //-- set up interrupt
-  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
-  Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
-
   //-- setup done
   Serial.println("Setup done");
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+
+  //-- set up interrupt
+  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
+  Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
 }
 
 //---------------------------------------------------------------
@@ -136,7 +136,6 @@ void controller()
   bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   // update values 
- 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);
