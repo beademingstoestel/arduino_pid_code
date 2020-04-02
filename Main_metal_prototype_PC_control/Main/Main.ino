@@ -59,7 +59,7 @@ void setup()
   }
   else {
     Serial.println("MOTOR Failed");
-    if(HARDWARE)while(1){};
+    if(HARDWARE)ALARM_init();
   }
 
   //-- set up hall sensor
@@ -70,7 +70,7 @@ void setup()
   }
   else {
     Serial.println("HALL SENSOR Failed");
-    if(HARDWARE)while(1){};
+    if(HARDWARE)ALARM_init();
   }
   
   //-- set up pressure sensors
@@ -80,7 +80,7 @@ void setup()
   }
   else{
     Serial.println("PRESSURE SENSORS Failed");
-    if(HARDWARE)while(1){};
+    if(HARDWARE)ALARM_init();
   }
 
   //--- set up flow sensors here, if init fails, we can continue
@@ -91,7 +91,7 @@ void setup()
   }
   else {
     Serial.println("FLOW SENSOR Failed");
-    if(HARDWARE)while(1){};
+    if(HARDWARE)ALARM_init();
   }
 
   //-- setup done

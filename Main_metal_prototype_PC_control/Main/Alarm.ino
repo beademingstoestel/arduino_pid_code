@@ -22,6 +22,10 @@ unsigned int debouncedAlarmOnOffState = ALARM_OFF;
 // ALARMS
 //---------------------------------------------------------------
 
+void ALARM_init(){
+  while(1);
+}
+
 // debounceAlarm is to be called every 10ms,
 // it treats all alarms set the last 10ms and feeds it to the debounce filter
 void debounceAlarm()
