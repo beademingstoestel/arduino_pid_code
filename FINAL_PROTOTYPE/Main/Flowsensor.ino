@@ -58,11 +58,11 @@ bool FLOW_SENSOR_INIT()
       }
     }    
     calibration_offset =sum/100.0;    
-    Serial.print("Flow sensor offset: ");
-    Serial.println(calibration_offset);
+    DEBUGserial.print("Flow sensor offset: ");
+    DEBUGserial.println(calibration_offset);
     if(flowcalOK==false) {
-    Serial.print("Flow sensor difference: ");
-    Serial.println(diff_error);
+    DEBUGserial.print("Flow sensor difference: ");
+    DEBUGserial.println(diff_error);
     }
     
 //    return true; // init successfull;
@@ -90,8 +90,8 @@ bool FLOW_SENSOR_Measure(float *value, float maxflowinhale, float minflowinhale)
     else 
     {
       return false;
-      //Serial.print("Error in readSample(), ret = ");
-      //Serial.println(ret);
+      //DEBUGserial.print("Error in readSample(), ret = ");
+      //DEBUGserial.println(ret);
     }
     bool neg = (DP<0?true:false);
     double x = abs(DP);

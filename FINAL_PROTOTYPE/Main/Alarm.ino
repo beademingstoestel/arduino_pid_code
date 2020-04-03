@@ -84,7 +84,7 @@ void debounceAlarm()
 //----------------------------------------------------------
 void setAlarmState(int alarm) {
     
-  Serial.println(alarm);
+  DEBUGserial.println(alarm);
   
   byte alarmbyte = 0x01 << alarm;
   // BITWISE OR current alarm with new to SET

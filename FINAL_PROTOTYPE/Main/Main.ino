@@ -3,8 +3,7 @@
 // for debuggin purposes: allows to turn off features
 #define PYTHON 0
 #define HARDWARE 0
-//#define DEBUGserial Serial3
-#define DEBUGserial Serial1
+#define DEBUGserial Serial3
 
 //#define hall_sensor_i2c  // comment to use SPI
 #define BME_tube 1
@@ -90,91 +89,91 @@ void setup()
   }
 
   //--- check battery voltage
-  Serial.print("Supply Voltage (V): ");
+  DEBUGserial.print("Supply Voltage (V): ");
   main_supply = MainSupplyVoltage()/1000;
-  Serial.println(main_supply);
-  Serial.print("Battery Voltage (V): ");
+  DEBUGserial.println(main_supply);
+  DEBUGserial.print("Battery Voltage (V): ");
   batt_supply = PSUSupplyVoltage()/1000;
-  Serial.println(batt_supply);
+  DEBUGserial.println(batt_supply);
   battery_SoC = batt_supply/25;
 
   //--- set up flow sensors here, if init fails, we can continue
-  Serial.println("Setting up flow sensor: ");
+  DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
     FLOW_SENSOR_setDeltaT(controllerTime);
-    Serial.println("FLOW SENSOR OK");
+    DEBUGserial.println("FLOW SENSOR OK");
   }
   else {
-    Serial.println("FLOW SENSOR Failed");
+    DEBUGserial.println("FLOW SENSOR Failed");
     if(HARDWARE)ALARM_init();
   }
 
 //  //-- set up pressure sensors
-//  Serial.println("Setting up BME sensor: ");
+//  DEBUGserial.println("Setting up BME sensor: ");
 //   pressure_sens_init_ok =   BME280_Setup();
 //
 //  if (pressure_sens_init_ok){
-//    Serial.println("BME OK");
+//    DEBUGserial.println("BME OK");
 //  }
 //  else{
-//    Serial.println("BME Failed");
+//    DEBUGserial.println("BME Failed");
 //    if(HARDWARE)while(1){};
 //  }
 
   //-- set up motor
-  Serial.println("Setting up MOTOR: ");
+  DEBUGserial.println("Setting up MOTOR: ");
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
-    Serial.println("MOTOR OK");
+    DEBUGserial.println("MOTOR OK");
   }
   else {
-    Serial.println("MOTOR Failed");
+    DEBUGserial.println("MOTOR Failed");
     if(HARDWARE)ALARM_init();
   }
 
   //-- set up hall sensor
-  Serial.println("Setting up HALL sensor: ");
+  DEBUGserial.println("Setting up HALL sensor: ");
   if (HALL_SENSOR_INIT()) {
     HALL_SENSOR_calibrateHall();
-    Serial.println("HALL SENSOR OK");
+    DEBUGserial.println("HALL SENSOR OK");
   }
   else {
-    Serial.println("HALL SENSOR Failed");
+    DEBUGserial.println("HALL SENSOR Failed");
     if(HARDWARE)ALARM_init();
   }
   
   //-- set up pressure sensors
-  Serial.println("Setting up PRESSURE sensors: ");
+  DEBUGserial.println("Setting up PRESSURE sensors: ");
   if (PRESSURE_SENSOR_INIT()){
-    Serial.println("PRESSURE SENSORS OK");
+    DEBUGserial.println("PRESSURE SENSORS OK");
   }
   else{
-    Serial.println("PRESSURE SENSORS Failed");
+    DEBUGserial.println("PRESSURE SENSORS Failed");
     if(HARDWARE)ALARM_init();
   }
 
 //  //--- set up flow sensors here, if init fails, we can continue
-//  Serial.print("Setting up flow sensor: ");
+//  DEBUGserial.print("Setting up flow sensor: ");
 //  if (FLOW_SENSOR_INIT()) {
 //    FLOW_SENSOR_setDeltaT(controllerTime);
-//    Serial.println("FLOW SENSOR OK");
+//    DEBUGserial.println("FLOW SENSOR OK");
 //  }
 //  else {
-//    Serial.println("FLOW SENSOR Failed");
+//    DEBUGserial.println("FLOW SENSOR Failed");
 //    if(HARDWARE)ALARM_init();
 //  }
 
 //  //-- set up motor
-//  Serial.println("Setting up MOTOR: ");
+//  DEBUGserial.println("Setting up MOTOR: ");
 //  if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
-//    Serial.println("MOTOR OK");
+//    DEBUGserial.println("MOTOR OK");
 //  }
 //  else {
-//    Serial.println("MOTOR Failed");
+//    DEBUGserial.println("MOTOR Failed");
 //    if(HARDWARE)ALARM_init();
 //  }
 
   //-- setup done
-  Serial.println("Setup done");
+  DEBUGserial.println("Setup done");
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
 
   //-- set up interrupt

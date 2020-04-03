@@ -141,7 +141,7 @@ float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 
 //------------------------------------------------------------------------
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
-  //Serial.println(diff);
+  //DEBUGserial.println(diff);
   if (controller_state == inhale)
   {
     dError = r * dError_t_m_1 + 1000.0 * (1 - r) * (error - error_t_m_1) / time_diff;

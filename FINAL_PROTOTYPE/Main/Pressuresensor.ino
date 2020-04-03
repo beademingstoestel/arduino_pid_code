@@ -39,7 +39,7 @@ bool BME1_Setup()
 {
   if (!bme1.begin(0x77))
   {
-    Serial.println("BME280 sensor for tube pressure not found");
+    DEBUGserial.println("BME280 sensor for tube pressure not found");
     return false;
   }
   else
@@ -66,7 +66,7 @@ bool BME2_Setup()
 {
   if (!bme2.begin())
   {
-    Serial.println("BME280 sensor for ambient pressure not found");
+    DEBUGserial.println("BME280 sensor for ambient pressure not found");
     return false;
   }
   else
@@ -92,7 +92,7 @@ bool BME2_Setup()
 bool MPL_Setup()
 {
   if (! mpl3115a2.begin()) {
-    Serial.println("Couldnt find MPL sensor for tube pressure");
+    DEBUGserial.println("Couldnt find MPL sensor for tube pressure");
     return false;
   }
   else {
@@ -145,7 +145,7 @@ bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minp
   float sensor2 = MPL3115A2_readpressure_cmH2O();
   bool SensorHealthy = false;
 
-  //Serial.println(sensor1);
+  //DEBUGserial.println(sensor1);
 
   *value = sensor1;
 
