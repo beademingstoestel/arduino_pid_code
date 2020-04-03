@@ -128,7 +128,11 @@ void checkALARM(float pressure, int volume, unsigned long timer, controller_stat
 void doWatchdog(void) {
   if (millis() - lastWatchdogTime > Watchdog) {
     setAlarmState(2);
-    resetComm();
+    // reset the settings if connection lost
+    if (!getSettings()){
+      delay(1000);
+      resetComm();
+    }
   }
   
   // check if all settings are OK
