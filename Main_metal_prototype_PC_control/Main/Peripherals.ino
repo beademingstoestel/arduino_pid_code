@@ -1,9 +1,20 @@
-//Support functions for SPEAKER
+void initPeripherals(){
+  initFan();
+  initLight();
+  initSpeaker();
+}
+
+
+/////////////////////Support functions for SPEAKER
 #ifdef Speaker_PWM
 
 unsigned long SpeakerTimeStamp;
 bool SpeakerBeepState = false;
 int SpeakerBeepLength;
+
+void initSpeaker(){
+  pinMode(Speaker_PWM, OUTPUT);
+}
 
 void SpeakerOn() {
   analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
@@ -38,6 +49,10 @@ void SpeakerBeep(int lengthInMillis){}
 
 /////////////////////Support functions for Light
 #ifdef Light_PWM
+void initLight(){
+  pinMode(Light_PWM, OUTPUT);
+}
+
 void LightOn() {
   analogWrite(Light_PWM, 255); //Turn on PWM @100% duty
 }
@@ -56,6 +71,12 @@ void LightOff() { }
 
 /////////////////////Support functions for FAN
 #ifdef Fan_PWM
+void initFan(){
+  pinMode(Fan_PWM, OUTPUT);
+  pinMode(fan_speed, INPUT_PULLUP);
+  FanOnPWM(FANPWMSETTING);
+}
+
 void FanOn() {
   analogWrite(Fan_PWM, 255); //Turn on PWM @100% duty
 }
@@ -67,14 +88,14 @@ void FanOff() {
 }
 bool FanState = true;
 int FanCounter = 0;
-const int FanTimeout = 10000; //sampling period
-const int FanThreshold = 20; //minimum amount of counts over sampling period
-unsigned long FanTimeStamp;
+const int FanTimeout = 1000; //sampling period
+const int FanThreshold = 5; //minimum amount of counts over sampling period
+unsigned long FanTimeStamp = 0;
 
 
 bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of the fan
   //crude way of detecting fan is running. Sample RPM pin regularly, and if over a certain period amount of samples not reached, FAN is not running
-  if(digitalRead(fan_speed)){
+  if(analogRead(fan_speed) < 100){
     FanCounter++;
   }
 
@@ -87,7 +108,7 @@ bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of t
     FanCounter = 0; //reset counter
     FanTimeStamp = millis(); //new timestamp
   }
-    return FanState;
+  return FanState;
 }
 #else
 void FanOn() { }

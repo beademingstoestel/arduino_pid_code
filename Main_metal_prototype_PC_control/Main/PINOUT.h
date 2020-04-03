@@ -71,6 +71,8 @@
   #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
   #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
   #define fan_speed A4
+
+  #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
 #endif
 
@@ -102,5 +104,6 @@
   #define fan_speed A4
   // TX3 and RX3 to staggered debug header
   // (pinout debug header: 5V - TX - RX - GND, Square pad = pin1)
+  #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
 #endif

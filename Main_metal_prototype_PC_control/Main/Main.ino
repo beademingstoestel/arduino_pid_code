@@ -47,6 +47,9 @@ void setup()
   Serial.begin(115200);
   DEBUGserial.begin(115200);
 
+  //-- set up peripherals
+  initPeripherals();
+
   //-- set up communication with screen
   if(PYTHON){
     initCOMM();
@@ -121,7 +124,8 @@ void loop()
 
   // update speaker
   SpeakerTimingSupportRoutine();
-
+  // check fan
+  FanPollingRoutine();
   delay(40); 
 }
 
