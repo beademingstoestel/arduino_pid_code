@@ -117,7 +117,7 @@ void loop()
   if (PYTHON) doWatchdog();
   if (PYTHON) doCPU_TIMER();
   // Handle uart receive for debugging
-  recvWithEndMarkerSer1();
+  if (!PYTHON) recvWithEndMarkerSer1();
 
   delay(40); 
 }
