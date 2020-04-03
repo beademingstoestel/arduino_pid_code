@@ -2,7 +2,7 @@
 #define ALARM_H
 
 unsigned int ALARM = 0;
-unsigned int ALARMMASK = 0xFF; // give alarm for all states by default
+unsigned int ALARMMASK = 0xFFFF; // give alarm for all states by default
 
 unsigned long Watchdog = 3000; // 3 seconds watchdog
 unsigned long lastWatchdogTime = millis();
@@ -106,7 +106,7 @@ void setAlarmState(int alarm) {
   DEBUGserial.print("SET ALARM: ");
   DEBUGserial.println(alarm);
 
-  byte alarmbyte = 0x01 << alarm;
+  unsigned int alarmbyte = (0x01 << alarm);
   // BITWISE OR current alarm with new to SET
   ALARM |= alarmbyte;
 
@@ -120,7 +120,7 @@ void resetAlarmState(int alarm) {
   DEBUGserial.print("RESET ALARM: ");
   DEBUGserial.println(alarm);
 
-  byte alarmbyte = 0x01 << alarm;
+  unsigned int alarmbyte = (0x01 << alarm);
   alarmbyte = 0xFF ^ alarmbyte;
   // BITWISE AND current alarm with new to RESET
   ALARM &= alarmbyte;
