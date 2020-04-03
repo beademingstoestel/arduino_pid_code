@@ -207,34 +207,4 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
     }
   }
 }
-
-//------------------------------------------------------------------------
-//float BREATHE_CONTROL_Regulate_With_Volume(int end_switch) {
-//  float Speed = BREATHE_CONTROL_Regulate();
-//  
-//  if (controller_state == inhale) {
-//    //if (abs(Volume2Patient) > abs(target_volume)) {
-//    if (abs(CurrentVolumePatient) > abs(target_volume) && volumeTriggered == false) {
-//      volumeTriggered = true;
-//      return hold_speed;
-//    }
-//    else if (end_switch == 1) {
-//      return hold_speed;
-//    }
-//    else {
-//      return Speed;
-//    }
-//  }
-//
-//  else if (controller_state == exhale) {
-//    volumeTriggered = false;
-//    if (end_switch == 1) {
-//      return hold_speed;
-//    }
-//    else {
-//      return Speed;
-//    }
-//  }
-//}
-//------------------------------------------------------------------------------
 #endif

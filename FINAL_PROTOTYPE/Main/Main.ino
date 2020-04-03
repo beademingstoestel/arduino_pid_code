@@ -180,14 +180,6 @@ void controller()
   CPU_TIMER_start(millis());
   // readout sensors
   interrupts();
-//  bool isCurrentFlowPatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient);
-//  bool isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient);
-  
-//  bool isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
-//  bool isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
-//  bool isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
-//  bool isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
-
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
@@ -216,10 +208,11 @@ void controller()
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == 1) {
-        SpeakerBeep(BEEPLENGTH); // turn on BUZZER
+        SpeakerOn(); // turn on BUZZER
       }
       if (comms_getActive() == 2) {
         controller_state = wait; // start controller
+        SpeakerOff(); // turn off BUZZER
       }
     }break;
     case inhale:{ 
@@ -229,7 +222,6 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // update motor speed
-//      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP);
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP,min_degraded_mode_ON);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
@@ -251,7 +243,6 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Motor to start position
-//      Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START);
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START,min_degraded_mode_ON); 
       MOTOR_CONTROL_setValue(Speed);
       // check if motor has returned
@@ -266,7 +257,6 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Stop motor
-//      Speed = BREATHE_CONTROL_Regulate(); 
       Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON); 
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to inhale

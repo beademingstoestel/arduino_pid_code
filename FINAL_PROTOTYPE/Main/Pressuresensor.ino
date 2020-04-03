@@ -138,7 +138,6 @@ float MPL3115A2_readpressure_cmH2O() {
   return 0;
 }
 //-----------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------
 bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minpressureinhale)
 {
   float sensor1 = BME280_readpressure_cmH2O();

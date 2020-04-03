@@ -114,10 +114,8 @@ bool FLOW_SENSOR_Measure(float *value, float maxflowinhale, float minflowinhale)
     }
     *value = (y*flowsensordirection) - calibration_offset;
 
-	// Check if min-max is healthy:
+	  // Check if min-max is healthy:
     SensorHealthy = abs(maxflowinhale-minflowinhale)>1;
-
-    // return true; 
   } 
   return SensorHealthy;
 }
