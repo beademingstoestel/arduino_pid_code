@@ -67,9 +67,9 @@
   #define Light_PWM 11
   #define Fan_PWM 45
   #define main_supply_voltage A4 // ~batt voltage if no PSU [ANALOG]
-  #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+  #define MainSupplyVoltageScaling 5 //Scaling factor for resistor divider 20K over 5.1K ==> *5
   #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
-  #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+  #define PSUSupplyVoltageScaling 5 //Scaling factor for resistor divider 20K over 5.1K ==> *5
   #define fan_speed A4
 
   #define FANPWMSETTING 100

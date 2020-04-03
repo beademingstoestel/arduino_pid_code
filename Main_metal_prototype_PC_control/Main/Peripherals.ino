@@ -14,6 +14,7 @@ int SpeakerBeepLength;
 
 void initSpeaker(){
   pinMode(Speaker_PWM, OUTPUT);
+  SpeakerOff();
 }
 
 void SpeakerOn() {
@@ -51,6 +52,7 @@ void SpeakerBeep(int lengthInMillis){}
 #ifdef Light_PWM
 void initLight(){
   pinMode(Light_PWM, OUTPUT);
+  LightOff();
 }
 
 void LightOn() {

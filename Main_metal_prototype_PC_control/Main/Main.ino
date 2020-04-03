@@ -159,10 +159,11 @@ void controller()
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == 1) {
-        SpeakerBeep(BEEPLENGTH); // turn on BUZZER
+        SpeakerOn(); // turn on BUZZER
       }
       if (comms_getActive() == 2) {
         controller_state = wait; // start controller
+        SpeakerOff(); // turn off BUZZER
       }
     }break;
     case inhale:{ 
