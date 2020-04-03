@@ -20,7 +20,7 @@ SETTING settingarray[17]= {
   {"ALARM", 0, false, 56, 0, 0},
   {"RR", 20, false, 0, 0, 0},
   {"VT", 400, false, 4, 0, 0},
-  {"PK", 50, false, 8, 0, 0},
+  {"PK", 35, false, 8, 0, 0},
   {"PS", 25, false, 12, 0, 0},
   {"PP", 20, false, 16, 0, 0},
   {"IE", 0.3, false, 20, 0, 0},
