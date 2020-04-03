@@ -26,13 +26,11 @@ float sum = 0;
 bool PRESSURE_SENSOR_INIT(){
   bool bme1ok = 0;
   bool bme2ok = 0;
-  bool mplok = 0;
 
   bme1ok = BME1_Setup();
   bme2ok = BME2_Setup();
-  mplok = MPL_Setup();
 
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) && (mplok || !MPL_tube));
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient));
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -141,7 +139,6 @@ float MPL3115A2_readpressure_cmH2O() {
 bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minpressureinhale)
 {
   float sensor1 = BME280_readpressure_cmH2O();
-  float sensor2 = MPL3115A2_readpressure_cmH2O();
   bool SensorHealthy = false;
 
   //DEBUGserial.println(sensor1);
