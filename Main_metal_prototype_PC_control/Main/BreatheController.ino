@@ -167,7 +167,7 @@ float BREATHE_CONTROL_Regulate()
 
 float BREATHE_CONTROL_Regulate_With_Volume(int end_switch) {
   float Speed = BREATHE_CONTROL_Regulate();
-  float Dead_Time_Volume = 0.1; // td = (0.01^2*pi*1)/(100/60/1000) 
+  float Dead_Time_Volume = 0.25; // td = (0.01^2*pi*1)/(100/60/1000) from 0.1 to 0.5
   
   if (controller_state == inhale) {
     //if (abs(Volume2Patient) > abs(target_volume)) {
