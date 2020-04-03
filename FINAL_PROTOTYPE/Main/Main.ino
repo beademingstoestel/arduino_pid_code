@@ -108,17 +108,15 @@ void setup()
     if(HARDWARE)ALARM_init();
   }
 
-//  //-- set up pressure sensors
-//  DEBUGserial.println("Setting up BME sensor: ");
-//   pressure_sens_init_ok =   BME280_Setup();
-//
-//  if (pressure_sens_init_ok){
-//    DEBUGserial.println("BME OK");
-//  }
-//  else{
-//    DEBUGserial.println("BME Failed");
-//    if(HARDWARE)while(1){};
-//  }
+  //-- set up pressure sensors
+  DEBUGserial.println("Setting up PRESSURE sensors: ");
+  if (PRESSURE_SENSOR_INIT()){
+    DEBUGserial.println("PRESSURE SENSORS OK");
+  }
+  else{
+    DEBUGserial.println("PRESSURE SENSORS Failed");
+    if(HARDWARE)ALARM_init();
+  }
 
   //-- set up motor
   DEBUGserial.println("Setting up MOTOR: ");
@@ -140,37 +138,6 @@ void setup()
     DEBUGserial.println("HALL SENSOR Failed");
     if(HARDWARE)ALARM_init();
   }
-  
-  //-- set up pressure sensors
-  DEBUGserial.println("Setting up PRESSURE sensors: ");
-  if (PRESSURE_SENSOR_INIT()){
-    DEBUGserial.println("PRESSURE SENSORS OK");
-  }
-  else{
-    DEBUGserial.println("PRESSURE SENSORS Failed");
-    if(HARDWARE)ALARM_init();
-  }
-
-//  //--- set up flow sensors here, if init fails, we can continue
-//  DEBUGserial.print("Setting up flow sensor: ");
-//  if (FLOW_SENSOR_INIT()) {
-//    FLOW_SENSOR_setDeltaT(controllerTime);
-//    DEBUGserial.println("FLOW SENSOR OK");
-//  }
-//  else {
-//    DEBUGserial.println("FLOW SENSOR Failed");
-//    if(HARDWARE)ALARM_init();
-//  }
-
-//  //-- set up motor
-//  DEBUGserial.println("Setting up MOTOR: ");
-//  if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
-//    DEBUGserial.println("MOTOR OK");
-//  }
-//  else {
-//    DEBUGserial.println("MOTOR Failed");
-//    if(HARDWARE)ALARM_init();
-//  }
 
   //-- setup done
   DEBUGserial.println("Setup done");
