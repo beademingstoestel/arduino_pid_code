@@ -255,6 +255,7 @@ bool getSettings() {
       settingarray[0].messagetime = millis();
     }
     recvWithEndMarkerSer0();
+    return false;
   }
   // if all settings and alarm are OK, return true
   else {
