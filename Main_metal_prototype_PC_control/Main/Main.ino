@@ -119,6 +119,9 @@ void loop()
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
 
+  // update speaker
+  SpeakerTimingSupportRoutine();
+
   delay(40); 
 }
 
@@ -152,8 +155,7 @@ void controller()
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == 1) {
-        controller_state = wait;
-        // turn on buzzer TODO
+        SpeakerBeep(BEEPLENGTH); // turn on BUZZER
       }
       if (comms_getActive() == 2) {
         controller_state = wait; // start controller

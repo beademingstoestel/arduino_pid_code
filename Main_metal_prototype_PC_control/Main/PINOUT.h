@@ -62,6 +62,16 @@
   #define BME_SPI_MISO 50
   #define BME_SPI_MOSI 51 
   #define BME_SPI_CS 47
+
+  #define Speaker_PWM 12
+  #define Light_PWM 11
+  #define Fan_PWM 45
+  #define main_supply_voltage A4 // ~batt voltage if no PSU [ANALOG]
+  #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+  #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
+  #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+  #define fan_speed A4
+  #define BEEPLENGTH 2000
 #endif
 
 #ifdef protoGroteSerie
@@ -82,8 +92,8 @@
   #define BME_SPI_MOSI 51 // DI
   #define BME_SPI_CS 19 // CS for external barometer
   
-  #define Speaker_PWM 5;
-  #define Light_PWM 4;
+  #define Speaker_PWM 5
+  #define Light_PWM 4
   #define Fan_PWM 3
   #define main_supply_voltage A2 // ~batt voltage if no PSU [ANALOG]
   #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
@@ -92,4 +102,5 @@
   #define fan_speed A4
   // TX3 and RX3 to staggered debug header
   // (pinout debug header: 5V - TX - RX - GND, Square pad = pin1)
+  #define BEEPLENGTH 2000
 #endif

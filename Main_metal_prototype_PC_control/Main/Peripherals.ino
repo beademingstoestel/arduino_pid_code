@@ -1,5 +1,10 @@
 //Support functions for SPEAKER
 #ifdef Speaker_PWM
+
+unsigned long SpeakerTimeStamp;
+bool SpeakerBeepState = false;
+int SpeakerBeepLength;
+
 void SpeakerOn() {
   analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
 }
@@ -8,9 +13,6 @@ void SpeakerOff() {
   SpeakerBeepState = false;
 }
 
-unsigned long SpeakerTimeStamp;
-bool SpeakerBeepState = false;
-int SpeakerBeepLength;
 void SpeakerBeep(int lengthInMillis){
   SpeakerBeepLength  = lengthInMillis; //store the lenght of the BEEP
   SpeakerBeepState = true; //set beep to true
@@ -37,7 +39,7 @@ void SpeakerBeep(int lengthInMillis){}
 /////////////////////Support functions for Light
 #ifdef Light_PWM
 void LightOn() {
-  analogWrite(Light_PWM, 255); //Turn on PWM @50% duty
+  analogWrite(Light_PWM, 255); //Turn on PWM @100% duty
 }
 void LightOnPWM(uint8_t intensity) {
   analogWrite(Light_PWM, intensity); //Turn on PWM
@@ -55,7 +57,7 @@ void LightOff() { }
 /////////////////////Support functions for FAN
 #ifdef Fan_PWM
 void FanOn() {
-  analogWrite(Fan_PWM, 255); //Turn on PWM @50% duty
+  analogWrite(Fan_PWM, 255); //Turn on PWM @100% duty
 }
 void FanOnPWM(uint8_t intensity) {
   analogWrite(Fan_PWM, intensity); //Turn on PWM
@@ -99,7 +101,7 @@ bool FanPollingRoutine(){
 #ifdef main_supply_voltage
 int MainSupplyVoltage() {
   int ADCvalue = analogRead(main_supply_voltage); //readout adc
-  int scaledVoltage =  map(ADCval, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
+  int scaledVoltage =  map(ADCvalue, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
   return scaledVoltage * MainSupplyVoltageScaling;
 }
 #else
@@ -111,13 +113,13 @@ int MainSupplyVoltage() {
 #ifdef PSU_supply_voltage
 int PSUSupplyVoltage() {
   int ADCvalue = analogRead(PSU_supply_voltage); //readout adc
-  int scaledVoltage =  map(ADCval, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
+  int scaledVoltage =  map(ADCvalue, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
   return scaledVoltage * PSUSupplyVoltageScaling;
 }
 
 bool OnMainsPower(){
   int ADCvalue = analogRead(PSU_supply_voltage); //readout adc
-  int scaledVoltage =  map(ADCval, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
+  int scaledVoltage =  map(ADCvalue, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
   if (scaledVoltage > 1000){ // check if scaled PSU voltage larger than 1V
     return true;
   }else{
