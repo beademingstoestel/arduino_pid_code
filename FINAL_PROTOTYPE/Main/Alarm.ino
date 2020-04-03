@@ -77,7 +77,7 @@ void debounceAlarm()
   // TODO: ADD MASK FOR PYTHON MESSAGES!
   if ( (ALARM_ON == debouncedAlarmOnOffState) ||  (alarmStatusFromPython > 0 ) )
   {
-    SpeakerOn();
+    //SpeakerOn();
     LightOn();
   }
   else
@@ -91,7 +91,7 @@ void debounceAlarm()
 // alarm state
 //----------------------------------------------------------
 void setAlarmState(int alarm) {
-
+  DEBUGserial.print("SET ALARM: ");
   DEBUGserial.println(alarm);
 
   byte alarmbyte = 0x01 << alarm;
@@ -105,6 +105,7 @@ void setAlarmState(int alarm) {
 // reset alarm state
 //-----------------------------------------------------
 void resetAlarmState(int alarm) {
+  DEBUGserial.print("RESET ALARM: ");
   DEBUGserial.println(alarm);
 
   byte alarmbyte = 0x01 << alarm;

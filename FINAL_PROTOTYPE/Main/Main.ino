@@ -158,7 +158,7 @@ void loop()
   // Handle uart receive from PC
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
-  if (PYTHON) doWatchdog();
+  //if (PYTHON) doWatchdog();
   if (PYTHON) doCPU_TIMER();
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
