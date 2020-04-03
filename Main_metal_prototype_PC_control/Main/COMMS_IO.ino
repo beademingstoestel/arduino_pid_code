@@ -121,7 +121,7 @@ bool comms_getMode() {
 }
 int comms_getActive() {
   if (PYTHON){
-    return (bool)settingarray[14].settingvalue;
+    return settingarray[14].settingvalue;
   }
   else{
     return 2;
