@@ -158,7 +158,7 @@ void loop()
   // Handle uart receive from PC
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
-  //if (PYTHON) doWatchdog();
+  if (PYTHON) doWatchdog();
   if (PYTHON) doCPU_TIMER();
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
@@ -184,9 +184,21 @@ void controller()
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
 
+  //--- check again power supply in the loop
+//  DEBUGserial.print("Supply Voltage (V): ");
+  main_supply = MainSupplyVoltage()/1000;
+//  DEBUGserial.println(main_supply);
+//  DEBUGserial.print("Battery Voltage (V): ");
+  batt_supply = PSUSupplyVoltage()/1000;
+//  DEBUGserial.println(batt_supply);
+  battery_SoC = batt_supply/25;
+
   //switch to minimum degraded mode if flow sensor nok OR pressure sensor nok OR battery sub 25% Soc
   if (battery_SoC > 0.25) {
     battery_above_25 = true;  // hardcoded for now - implement check
+  }
+  else {
+    battery_above_25 = false;
   }
   min_degraded_mode_ON = !(isFlow2PatientRead & isPatientPressureCorrect & battery_above_25);
 

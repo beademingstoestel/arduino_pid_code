@@ -12,7 +12,7 @@ unsigned long lastCpuTime = millis();
 
 #define ON_REQUEST_DEBOUNCE_CYCLES 10  // alarm is accepted after 100ms or in case of intermittent error, 10 more errors than not errors 
 #define OFF_REQUEST_DEBOUNCE_CYCLES 50  // alarm is switched off  after 500ms without alarm request
-#define ALARM_OFF 1
+#define ALARM_OFF 0
 #define ALARM_ON 1
 unsigned int alarmDebounceCounter = ON_REQUEST_DEBOUNCE_CYCLES;
 unsigned int debouncedAlarmOnOffState = ALARM_OFF;
@@ -74,14 +74,26 @@ void debounceAlarm()
   }
 
   alarmStatusFromPython = comms_getAlarmSatusFromPython();
+
+//    DEBUGserial.print("python alarm status: ");
+//    DEBUGserial.println(alarmStatusFromPython);
+//    DEBUGserial.print("arduino alarm status: ");
+//    DEBUGserial.println(debouncedAlarmOnOffState);
+//    DEBUGserial.print("counter alarm: ");
+//    DEBUGserial.println(alarmDebounceCounter);
+//    DEBUGserial.print("arduino bit alarm: ");
+//    DEBUGserial.println(ALARM);
+    
   // TODO: ADD MASK FOR PYTHON MESSAGES!
   if ( (ALARM_ON == debouncedAlarmOnOffState) ||  (alarmStatusFromPython > 0 ) )
-  {
-    //SpeakerOn();
+  {    
+    SpeakerOn();
     LightOn();
   }
   else
   {
+//    DEBUGserial.print("arduino alarm status: ");
+//    DEBUGserial.println(debouncedAlarmOnOffState);
     SpeakerOff();
     LightOff();
   }
@@ -126,67 +138,75 @@ int getAlarmState(void) {
 //-----------------------------------------------------
 // check alarm
 //-----------------------------------------------------
-// TODO: UPDATE FROM EXCEL
-void checkALARM(float pressure, int volume, unsigned long timer, controller_state_t state) {
-  if (pressure < 5 && state == inhale && timer > 500) {
-    //no pressure
-    setAlarmState(3);
-  }
-  if (volume < 100 && state == inhale && timer > 500) {
-    // no flow
-    setAlarmState(4);
-  }
-  if (pressure > comms_getPK() + comms_getADPK()) {
-    // max pressure exceeded
-    setAlarmState(5);
-  }
-  if (pressure < comms_getPP() - comms_getADPP()) {
-    // Peep deviation exceeded
-    setAlarmState(6);
-  }
-  if (volume > comms_getVT() + comms_getADVT()) {
-    // max volume exceeded
-    setAlarmState(7);
+void checkALARM(float pressure, int volume, unsigned long timer, controller_state_t state, bool isPatientPressureCorrect, bool isFlow2PatientRead, 
+    bool pressure_sens_init_ok, bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, bool battery_powered, float battery_SOC)
+    {
+  if (pressure > comms_getPK() + comms_getADPK()){
+  // max pressure exceeded
+  setAlarmState(1);
   }
 
-  // new added
-  if (isPatientPressureCorrect == false) {
+  if (volume > comms_getVT() + comms_getADVT()){
+    // max volume exceeded
+    setAlarmState(2);
+  }
+  
+  if (pressure < comms_getPP() - comms_getADPP()){
+    // Peep deviation exceeded
+    setAlarmState(3);
+  }
+
+   if (isPatientPressureCorrect==false){
     // check pressure sensor connected and reacting
     setAlarmState(4);
   }
-  if (isFlow2PatientRead == false) {
+
+  if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
     setAlarmState(6);
   }
-  if (pressure_sens_init_ok == false) {
+
+   if (false){
+    // flow sensors; see if it still reacts --> Hall tbd
+    setAlarmState(7);
+   }      
+
+  if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
     setAlarmState(8);
   }
-  if (flow_sens_init_ok == false) {
+
+   if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
     setAlarmState(9);
   }
-  if (motor_sens_init_ok == false) {
+  
+   if (motor_sens_init_ok==false){
     // Motor limit switches check failed
     setAlarmState(10);
   }
-  if (hall_sens_init_ok == false) {
+  
+   if (hall_sens_init_ok==false){
     // hall sensor initialization failed
     setAlarmState(11);
   }
-  if (battery_powered) {
+
+  if (battery_powered){
     // switched to battery --> check if externally powered tbd
     setAlarmState(12);
   }
-  if (battery_SoC < 0.5) {
+
+if (battery_SoC<0.5){
     // SoC battery <50% -  low
     setAlarmState(13);
   }
-  if (battery_SoC < 0.25) {
+
+if (battery_SoC<0.25){
     // SoC battery <25% - critical
     setAlarmState(14);
   }
-  if (fan_OK == false) {
+
+  if (fan_OK==false){
     // Fan not operational
     setAlarmState(16);
   }

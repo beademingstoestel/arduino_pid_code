@@ -60,7 +60,7 @@ void LightOnPWM(uint8_t intensity) {
   analogWrite(Light_PWM, intensity); //Turn on PWM
 }
 void LightOff() {
-  analogWrite(Speaker_PWM, 0); //Turn set duty to 0;
+  analogWrite(Light_PWM, 0); //Turn set duty to 0;
 }
 #else
 void LightOn() { }

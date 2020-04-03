@@ -129,15 +129,15 @@ bool BREATHE_CONTROL_CheckInhale() {
 //float BREATHE_CONTROL_Regulate()
 float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 {
-  DEBUGserial.print(CurrentFlowPatient);
-  DEBUGserial.print(",");
-  DEBUGserial.print(CurrentVolumePatient);
-  DEBUGserial.print(",");
-  DEBUGserial.print(Volume2Patient);
-  DEBUGserial.print(",");
-  DEBUGserial.print(CurrentPressurePatient);
-  DEBUGserial.print(",");
-  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
+//  DEBUGserial.print(CurrentFlowPatient);
+//  DEBUGserial.print(",");
+//  DEBUGserial.print(CurrentVolumePatient);
+//  DEBUGserial.print(",");
+//  DEBUGserial.print(Volume2Patient);
+//  DEBUGserial.print(",");
+//  DEBUGserial.print(CurrentPressurePatient);
+//  DEBUGserial.print(",");
+//  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
 
 //------------------------------------------------------------------------
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
