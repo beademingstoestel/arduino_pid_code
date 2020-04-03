@@ -26,6 +26,7 @@
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
+  #define MOTORDRIVER_BTS7960
   #define R_EN_PIN 3
   #define L_EN_PIN 26
   #define L_PWM_PIN 4
@@ -46,6 +47,7 @@
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
+  #define MOTORDRIVER_BTS7960
   #define R_EN_PIN 5
   #define L_EN_PIN 26
   #define L_PWM_PIN 6
@@ -66,6 +68,8 @@
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 6 // exhale: upper switch
   //Motor driver: VNH3SP30-E
+
+  #define MOTORDRIVER_VNH3SP30
   #define Motor_IN_A 12
   #define Motor_EN_A 11
   #define Motor_EN_B 10
@@ -82,7 +86,9 @@
   #define Light_PWM 4;
   #define Fan_PWM 3
   #define main_supply_voltage A2 // ~batt voltage if no PSU [ANALOG]
+  #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
   #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
+  #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
   #define fan_speed A4
   // TX3 and RX3 to staggered debug header
   // (pinout debug header: 5V - TX - RX - GND, Square pad = pin1)
