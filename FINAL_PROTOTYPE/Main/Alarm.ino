@@ -22,6 +22,11 @@ unsigned int debouncedAlarmOnOffState = ALARM_OFF;
 // ALARMS
 //---------------------------------------------------------------
 
+void ALARM_Short_Beep(){
+  debouncedAlarmOnOffState = ALARM_ON;
+  alarmDebounceCounter = 50;
+}
+
 void ALARM_init(){
   while(1);
 }
@@ -113,7 +118,6 @@ void setAlarmState(int alarm) {
 // reset alarm state
 //-----------------------------------------------------
 void resetAlarmState(int alarm) {
-  debounceAlarm(); // take current alarms into account fro debounce. Could be moved somewhere else.
   // BITWISE AND current alarm with new to RESET
   ALARM &= alarm;
 }

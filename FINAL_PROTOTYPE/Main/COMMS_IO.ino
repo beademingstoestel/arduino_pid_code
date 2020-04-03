@@ -127,6 +127,9 @@ int comms_getActive() {
     return 2;
   }  
 }
+bool comms_resetActive() {
+    settingarray[14].settingvalue = 0;
+}
 unsigned int comms_getADPP() {
   return settingarray[10].settingvalue;
 }

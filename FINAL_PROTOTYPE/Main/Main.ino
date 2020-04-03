@@ -207,11 +207,11 @@ void controller()
       FLOW_SENSOR_hardresetVolume();
       // Check user input to start controller
       if (comms_getActive() == 1) {
-        SpeakerOn(); // turn on BUZZER
+        comms_resetActive(); // reset state to 0 (avoid buzzer resetting)
+        ALARM_Short_Beep(); // turn on BUZZER   
       }
       if (comms_getActive() == 2) {
         controller_state = wait; // start controller
-        SpeakerOff(); // turn off BUZZER
       }
     }break;
     case inhale:{ 
@@ -293,5 +293,6 @@ void controller()
     }break;
     default: controller_state = wait;
   }
+  debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
 }
