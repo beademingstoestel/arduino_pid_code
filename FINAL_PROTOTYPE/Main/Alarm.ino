@@ -102,7 +102,7 @@ void debounceAlarm()
 //----------------------------------------------------------
 // alarm state
 //----------------------------------------------------------
-void setAlarmState(int alarm) {
+void setAlarmState(unsigned int alarm) {
   DEBUGserial.print("SET ALARM: ");
   DEBUGserial.println(alarm);
 
@@ -116,12 +116,14 @@ void setAlarmState(int alarm) {
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
-void resetAlarmState(int alarm) {
+void resetAlarmState(unsigned int alarm) {
   DEBUGserial.print("RESET ALARM: ");
   DEBUGserial.println(alarm);
+//  DEBUGserial.print("arduino bit alarm: ");
+//  DEBUGserial.println(ALARM);
 
   unsigned int alarmbyte = (0x01 << alarm);
-  alarmbyte = 0xFF ^ alarmbyte;
+  alarmbyte = 0xFFFF ^ alarmbyte;
   // BITWISE AND current alarm with new to RESET
   ALARM &= alarmbyte;
 
@@ -216,20 +218,20 @@ if (battery_SoC<0.25){
 // WATCHDOG
 //---------------------------------------------------------------
 
-void doWatchdog(void) {
+void doWatchdog(void) {  
   if (millis() - lastWatchdogTime > Watchdog) {
-    setAlarmState(15);
+    setAlarmState(15); //---> this cause unintended alarm sometimes, need to be fixed      
     // reset the settings if connection lost
     if (!getSettings()) {
       delay(1000);
-      resetComm();
+      resetComm();      
     }
   }
 
   // check if all settings are OK
   if (getSettings()) {
     // reset watchdog if OK
-    resetAlarmState(15);
+    resetAlarmState(15);   //---> this is called too often, sometimes it overwrites set-alarm too quick    
   }
 }
 
