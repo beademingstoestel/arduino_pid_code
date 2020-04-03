@@ -1,8 +1,8 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
-#define HARDWARE 0
+#define PYTHON 1
+#define HARDWARE 1
 #define DEBUGserial Serial3
 
 //#define hall_sensor_i2c  // comment to use SPI
@@ -95,7 +95,18 @@ void setup()
   batt_supply = PSUSupplyVoltage()/1000;
   DEBUGserial.println(batt_supply);
   battery_SoC = batt_supply/25;
-
+  
+  //-- set up hall sensor
+  DEBUGserial.println("Setting up HALL sensor: ");
+  if (HALL_SENSOR_INIT()) {
+    HALL_SENSOR_calibrateHall();
+    DEBUGserial.println("HALL SENSOR OK");
+  }
+  else {
+    DEBUGserial.println("HALL SENSOR Failed");
+    if(HARDWARE)ALARM_init();
+  }
+  
   //--- set up flow sensors here, if init fails, we can continue
   DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
@@ -124,17 +135,6 @@ void setup()
   }
   else {
     DEBUGserial.println("MOTOR Failed");
-    if(HARDWARE)ALARM_init();
-  }
-
-  //-- set up hall sensor
-  DEBUGserial.println("Setting up HALL sensor: ");
-  if (HALL_SENSOR_INIT()) {
-    HALL_SENSOR_calibrateHall();
-    DEBUGserial.println("HALL SENSOR OK");
-  }
-  else {
-    DEBUGserial.println("HALL SENSOR Failed");
     if(HARDWARE)ALARM_init();
   }
 
