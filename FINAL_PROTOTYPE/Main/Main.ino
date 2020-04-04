@@ -89,7 +89,7 @@ void setup()
     initCOMM();
   }
 
-  //--- check battery voltage
+  //--- check mains supply and battery voltage
   DEBUGserial.print("Supply Voltage (V): ");
   main_supply = MainSupplyVoltage()/1000;
   DEBUGserial.println(main_supply);
@@ -186,22 +186,20 @@ void controller()
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
 
-  //--- check again power supply in the loop
-//  DEBUGserial.print("Supply Voltage (V): ");
+  //--- routine checks in the loop -----//
+  // main power supply
   main_supply = MainSupplyVoltage()/1000;
-//  DEBUGserial.println(main_supply);
-//  DEBUGserial.print("Battery Voltage (V): ");
+  // battery voltage
   batt_supply = PSUSupplyVoltage()/1000;
-//  DEBUGserial.println(batt_supply);
+  // battery status percentage
   battery_SoC = batt_supply/25;
-
+  // check if powered from battery only or if main supply is connected
+  if(main_supply > 23) battery_powered = false;
+  else battery_powered = true;
+  // check if battery is critically low
+  if (battery_SoC > 0.25) battery_above_25 = true;  
+  else battery_above_25 = false;  
   //switch to minimum degraded mode if flow sensor nok OR pressure sensor nok OR battery sub 25% Soc
-  if (battery_SoC > 0.25) {
-    battery_above_25 = true;  // hardcoded for now - implement check
-  }
-  else {
-    battery_above_25 = false;
-  }
   min_degraded_mode_ON = !(isFlow2PatientRead & isPatientPressureCorrect & battery_above_25);
 
   noInterrupts();
@@ -213,8 +211,13 @@ void controller()
   comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
   // read switches
   int END_SWITCH_VALUE_STOP = digitalRead(ENDSWITCH_FULL_PIN);
-  int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);
+  int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);  
 
+  // check alarm
+  checkALARM(CurrentPressurePatient, CurrentVolumePatient, millis(), controller_state, isPatientPressureCorrect, 
+    isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
+    fan_OK, battery_powered, battery_SoC);
+    
   // State machine
   switch (controller_state) {
     case ini:{
@@ -307,6 +310,7 @@ void controller()
     }break;
     default: controller_state = wait;
   }
+      
   debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
 }

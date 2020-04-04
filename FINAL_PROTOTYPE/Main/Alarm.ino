@@ -102,9 +102,13 @@ void debounceAlarm()
 //----------------------------------------------------------
 // alarm state
 //----------------------------------------------------------
-void setAlarmState(unsigned int alarm) {
+void setAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
   DEBUGserial.print("SET ALARM: ");
   DEBUGserial.println(alarm);
+  DEBUGserial.print("CONTROL STATE: ");
+  DEBUGserial.println(state);
+  DEBUGserial.print("Timer: ");
+  DEBUGserial.println(timer);
 
   unsigned int alarmbyte = (0x01 << alarm);
   // BITWISE OR current alarm with new to SET
@@ -116,9 +120,13 @@ void setAlarmState(unsigned int alarm) {
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
-void resetAlarmState(unsigned int alarm) {
+void resetAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
   DEBUGserial.print("RESET ALARM: ");
   DEBUGserial.println(alarm);
+  DEBUGserial.print("CONTROL STATE: ");
+  DEBUGserial.println(state);
+  DEBUGserial.print("Timer: ");
+  DEBUGserial.println(timer);
 //  DEBUGserial.print("arduino bit alarm: ");
 //  DEBUGserial.println(ALARM);
 
@@ -140,85 +148,82 @@ int getAlarmState(void) {
 //-----------------------------------------------------
 // check alarm
 //-----------------------------------------------------
-void checkALARM(float pressure, int volume, unsigned long timer, controller_state_t state, bool isPatientPressureCorrect, bool isFlow2PatientRead, 
-    bool pressure_sens_init_ok, bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, bool battery_powered, float battery_SOC)
+void checkALARM(float pressure, int volume, unsigned long timer, controller_state_t state, 
+    bool isPatientPressureCorrect, bool isFlow2PatientRead, bool pressure_sens_init_ok, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
+    bool battery_powered, float battery_SOC)
     {
   if (pressure > comms_getPK() + comms_getADPK()){
   // max pressure exceeded
-  setAlarmState(1);
+  setAlarmState(1,timer,state);
   }
 
   if (volume > comms_getVT() + comms_getADVT()){
     // max volume exceeded
-    setAlarmState(2);
+    setAlarmState(2,timer,state);
   }
   
   if (pressure < comms_getPP() - comms_getADPP()){
     // Peep deviation exceeded
-    setAlarmState(3);
+    setAlarmState(3,timer,state);
   }
 
    if (isPatientPressureCorrect==false){
     // check pressure sensor connected and reacting
-    setAlarmState(4);
+    setAlarmState(4,timer,state);
   }
 
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
-    setAlarmState(6);
-  }
-
-   if (false){
-    // flow sensors; see if it still reacts --> Hall tbd
-    setAlarmState(7);
-   }      
+    setAlarmState(6,timer,state);
+  }   
 
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
-    setAlarmState(8);
+    setAlarmState(7,timer,state);
   }
 
    if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
-    setAlarmState(9);
+    setAlarmState(8,timer,state);
   }
   
    if (motor_sens_init_ok==false){
     // Motor limit switches check failed
-    setAlarmState(10);
+    setAlarmState(9,timer,state);
   }
   
    if (hall_sens_init_ok==false){
     // hall sensor initialization failed
-    setAlarmState(11);
+    setAlarmState(10,timer,state);
   }
 
   if (battery_powered){
-    // switched to battery --> check if externally powered tbd
-    setAlarmState(12);
+    // switched to battery --> check if externally powered
+    setAlarmState(11,timer,state);
   }
 
-if (battery_SoC<0.5){
+  if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    setAlarmState(13);
+    setAlarmState(12,timer,state);
   }
 
-if (battery_SoC<0.25){
+  if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    setAlarmState(14);
+    setAlarmState(13,timer,state);
   }
 
   if (fan_OK==false){
     // Fan not operational
-    setAlarmState(16);
+    setAlarmState(14,timer,state);
   }
 
   if (isPythonOK==false){
     // Python not operational
-    setAlarmState(15);
+    setAlarmState(15,timer,state);
   }
   else{
-    resetAlarmState(15);
+    resetAlarmState(15,timer,state);
   }
 }
 
