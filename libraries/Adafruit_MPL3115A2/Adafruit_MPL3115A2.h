@@ -110,6 +110,7 @@ public:
   Adafruit_MPL3115A2();
   boolean begin(TwoWire *twoWire = &Wire);
   float getPressure(void);
+  float getPressureTHOMASVDD(void);
   float getAltitude(void);
   float getTemperature(void);
   void setSeaPressure(float pascal);
@@ -120,6 +121,7 @@ private:
   TwoWire *_i2c;
   uint8_t read8(uint8_t a);
   uint8_t mode;
+  float prevBaro = -99999.9;
 
   typedef union {
     struct {
