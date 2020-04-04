@@ -8,6 +8,7 @@
 //#define hall_sensor_i2c  // comment to use SPI
 #define BME_tube 1
 #define BME_ambient 0
+#define MPL_tube 1
  
 //---------------------------------------------------------------
 // VARIABLES

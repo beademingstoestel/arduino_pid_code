@@ -26,11 +26,13 @@ float sum = 0;
 bool PRESSURE_SENSOR_INIT(){
   bool bme1ok = 0;
   bool bme2ok = 0;
+  bool mplok = 0;
 
   bme1ok = BME1_Setup();
   bme2ok = BME2_Setup();
+  mplok = MPL_Setup();
 
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient));
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) && (mplok || !MPL_tube));
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -90,7 +92,7 @@ bool BME2_Setup()
 bool MPL_Setup()
 {
   if (! mpl3115a2.begin()) {
-    DEBUGserial.println("Couldnt find MPL sensor for tube pressure");
+    DEBUGserial.println("MPL sensor for tube pressure not found");
     return false;
   }
   else {
@@ -100,6 +102,7 @@ bool MPL_Setup()
     for (int i = 0; i < 50; i++)
     {
       sum += MPL3115A2_readpressure_cmH2O();
+      delay(40); // add small delay: this sensor has long sampling time!
     }
     PRESSURE_INIT_VALUE_MPL = sum / 50;
   }
@@ -131,7 +134,7 @@ float BME280_readPressureAmbient()
 float MPL3115A2_readpressure_cmH2O() {
   if (PRESSURE_SENSOR3_INITIALIZED)
   {
-    return (mpl3115a2.getPressure() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_MPL;
+    return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_MPL;
   }
   return 0;
 }
