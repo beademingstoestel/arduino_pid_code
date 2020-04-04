@@ -69,6 +69,7 @@ bool isFlow2PatientRead = false;
 bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isVolumeOK = false;
+bool isPythonOK = false;
 
 //---------------------------------------------------------------
 // SETUP

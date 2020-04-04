@@ -212,6 +212,14 @@ if (battery_SoC<0.25){
     // Fan not operational
     setAlarmState(16);
   }
+
+  if (isPythonOK==false){
+    // Python not operational
+    setAlarmState(15);
+  }
+  else{
+    resetAlarmState(15);
+  }
 }
 
 //---------------------------------------------------------------
@@ -219,19 +227,15 @@ if (battery_SoC<0.25){
 //---------------------------------------------------------------
 
 void doWatchdog(void) {  
-  if (millis() - lastWatchdogTime > Watchdog) {
-    setAlarmState(15); //---> this cause unintended alarm sometimes, need to be fixed      
-    // reset the settings if connection lost
-    if (!getSettings()) {
-      delay(1000);
-      resetComm();      
-    }
+  // if watchdog timer has passed AND the communication was OK ==> reset communication
+  if (millis() - lastWatchdogTime > Watchdog && isPythonOK == true) {
+    isPythonOK = false;
+    resetComm();      
   }
 
-  // check if all settings are OK
-  if (getSettings()) {
-    // reset watchdog if OK
-    resetAlarmState(15);   //---> this is called too often, sometimes it overwrites set-alarm too quick    
+  // if python communication is gone, send settings and check if OK
+  if (getSettings() && isPythonOK == false) {
+    isPythonOK = true;   
   }
 }
 
