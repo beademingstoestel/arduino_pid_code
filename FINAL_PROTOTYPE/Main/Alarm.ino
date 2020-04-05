@@ -157,65 +157,104 @@ void checkALARM(float pressure, int volume, unsigned long timer, controller_stat
   // max pressure exceeded
   setAlarmState(1,timer,state);
   }
+  else{
+    resetAlarmState(1,timer,state);
+  }
 
   if (volume > comms_getVT() + comms_getADVT()){
     // max volume exceeded
     setAlarmState(2,timer,state);
+  }
+  else{
+    resetAlarmState(2,timer,state);
   }
   
   if (pressure < comms_getPP() - comms_getADPP()){
     // Peep deviation exceeded
     setAlarmState(3,timer,state);
   }
+  else{
+    resetAlarmState(3,timer,state);
+  }
 
    if (isPatientPressureCorrect==false){
     // check pressure sensor connected and reacting
     setAlarmState(4,timer,state);
   }
+  else{
+    resetAlarmState(4,timer,state);
+  }
 
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
     setAlarmState(6,timer,state);
+  }
+  else{
+    resetAlarmState(6,timer,state);
   }   
 
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
     setAlarmState(7,timer,state);
   }
+  else{
+    resetAlarmState(7,timer,state);
+  }
 
    if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
     setAlarmState(8,timer,state);
+  }
+  else{
+    resetAlarmState(8,timer,state);
   }
   
    if (motor_sens_init_ok==false){
     // Motor limit switches check failed
     setAlarmState(9,timer,state);
   }
+  else{
+    resetAlarmState(9,timer,state);
+  }
   
    if (hall_sens_init_ok==false){
     // hall sensor initialization failed
     setAlarmState(10,timer,state);
+  }
+  else{
+    resetAlarmState(10,timer,state);
   }
 
   if (battery_powered){
     // switched to battery --> check if externally powered
     setAlarmState(11,timer,state);
   }
+  else{
+    resetAlarmState(11,timer,state);
+  }
 
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
     setAlarmState(12,timer,state);
+  }
+  else{
+    resetAlarmState(12,timer,state);
   }
 
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
     setAlarmState(13,timer,state);
   }
+  else{
+    resetAlarmState(13,timer,state);
+  }
 
   if (fan_OK==false){
     // Fan not operational
     setAlarmState(14,timer,state);
+  }
+  else{
+    resetAlarmState(14,timer,state);
   }
 
   if (isPythonOK==false){

@@ -186,19 +186,9 @@ void controller()
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
 
-  //--- routine checks in the loop -----//
-  // main power supply
-  main_supply = MainSupplyVoltage()/1000;
-  // battery voltage
-  batt_supply = PSUSupplyVoltage()/1000;
-  // battery status percentage
-  battery_SoC = batt_supply/25;
-  // check if powered from battery only or if main supply is connected
-  if(main_supply > 23) battery_powered = false;
-  else battery_powered = true;
-  // check if battery is critically low
-  if (battery_SoC > 0.25) battery_above_25 = true;  
-  else battery_above_25 = false;  
+  // power supply check
+  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
+  
   //switch to minimum degraded mode if flow sensor nok OR pressure sensor nok OR battery sub 25% Soc
   min_degraded_mode_ON = !(isFlow2PatientRead & isPatientPressureCorrect & battery_above_25);
 
@@ -243,7 +233,7 @@ void controller()
       // check if we need to change state based on time or endswitch
       controller_state = BREATHE_setToEXHALE();  
 
-      //safety  pressure sensor check
+      //safety  pressure & flow sensor check
       if (maxpressure<CurrentPressurePatient)
       { maxpressure=CurrentPressurePatient;}
       if (minpressure>CurrentPressurePatient)
