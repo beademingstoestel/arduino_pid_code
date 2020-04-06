@@ -179,20 +179,19 @@ void loop()
 void controller()
 {
   CPU_TIMER_start(millis());
+  
   // readout sensors
   interrupts();
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
-
-  // power supply check
-  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  
-  //switch to minimum degraded mode if flow sensor nok OR pressure sensor nok OR battery sub 25% Soc
-  min_degraded_mode_ON = !(isFlow2PatientRead & isPatientPressureCorrect & battery_above_25);
-
   noInterrupts();
+  
+  // Check power supply and minimal degraded mode
+  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
+  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, battery_above_25);
+  
   // update values 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
   comms_setFLOW(CurrentFlowPatient);

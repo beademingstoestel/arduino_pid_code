@@ -75,6 +75,10 @@ bool HALL_SENSOR_calibrateHall()
   }
 }
 
+void HALL_SENSOR_DISABLE(){
+  HALL_SENSOR_INITIALIZED = 0;
+}
+
 #else
 #include <AS5040.h>
 
@@ -148,6 +152,10 @@ bool HALL_SENSOR_calibrateHall()
   else {
     return 0;
   }
+}
+
+void HALL_SENSOR_DISABLE(){
+  HALL_SENSOR_INITIALIZED = 0;
 }
 
 #endif

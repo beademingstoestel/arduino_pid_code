@@ -1,6 +1,8 @@
 #ifndef ALARM_H
 #define ALARM_H
 
+#include <Wire.h>
+
 unsigned int ALARM = 0;
 unsigned int ALARMMASK = 0xFFFF; // give alarm for all states by default
 
@@ -74,15 +76,6 @@ void debounceAlarm()
   }
 
   alarmStatusFromPython = comms_getAlarmSatusFromPython();
-
-//    DEBUGserial.print("python alarm status: ");
-//    DEBUGserial.println(alarmStatusFromPython);
-//    DEBUGserial.print("arduino alarm status: ");
-//    DEBUGserial.println(debouncedAlarmOnOffState);
-//    DEBUGserial.print("counter alarm: ");
-//    DEBUGserial.println(alarmDebounceCounter);
-//    DEBUGserial.print("arduino bit alarm: ");
-//    DEBUGserial.println(ALARM);
     
   // TODO: ADD MASK FOR PYTHON MESSAGES!
   if ( (ALARM_ON == debouncedAlarmOnOffState) ||  (alarmStatusFromPython > 0 ) )
@@ -92,8 +85,6 @@ void debounceAlarm()
   }
   else
   {
-//    DEBUGserial.print("arduino alarm status: ");
-//    DEBUGserial.println(debouncedAlarmOnOffState);
     SpeakerOff();
     LightOff();
   }
@@ -103,13 +94,6 @@ void debounceAlarm()
 // alarm state
 //----------------------------------------------------------
 void setAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
-  DEBUGserial.print("SET ALARM: ");
-  DEBUGserial.println(alarm);
-  DEBUGserial.print("CONTROL STATE: ");
-  DEBUGserial.println(state);
-  DEBUGserial.print("Timer: ");
-  DEBUGserial.println(timer);
-
   unsigned int alarmbyte = (0x01 << alarm);
   // BITWISE OR current alarm with new to SET
   ALARM |= alarmbyte;
@@ -121,15 +105,6 @@ void setAlarmState(unsigned int alarm, unsigned long timer, controller_state_t s
 // reset alarm state
 //-----------------------------------------------------
 void resetAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
-  DEBUGserial.print("RESET ALARM: ");
-  DEBUGserial.println(alarm);
-  DEBUGserial.print("CONTROL STATE: ");
-  DEBUGserial.println(state);
-  DEBUGserial.print("Timer: ");
-  DEBUGserial.println(timer);
-//  DEBUGserial.print("arduino bit alarm: ");
-//  DEBUGserial.println(ALARM);
-
   unsigned int alarmbyte = (0x01 << alarm);
   alarmbyte = 0xFFFF ^ alarmbyte;
   // BITWISE AND current alarm with new to RESET
@@ -263,6 +238,35 @@ void checkALARM(float pressure, int volume, unsigned long timer, controller_stat
   }
   else{
     resetAlarmState(15,timer,state);
+  }
+}
+
+//---------------------------------------------------------------
+// DEGRADED MODE
+//---------------------------------------------------------------
+
+bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool battery_above_25){
+  // if i2c sensors fail ==> disable i2c bus!
+  if (!(isFlow2PatientRead && isPatientPressureCorrect)){
+    FLOW_SENSOR_DISABLE();
+    BME280_DISABLE();
+    #ifdef hall_sensor_i2c
+      HALL_SENSOR_DISABLE();
+    #endif
+    // flush i2c
+    while(Wire.available()){
+      Wire.read();
+    }
+    pinMode(20, INPUT);
+    pinMode(21, INPUT);
+
+    return 1;
+  }
+  else if(!battery_above_25){
+    return 1;
+  }
+  else{
+    return 0;
   }
 }
 

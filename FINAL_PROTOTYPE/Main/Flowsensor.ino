@@ -9,6 +9,8 @@ bool resetAllowed = true;
 
 int flowsensordirection = -1;
 float calibration_offset = 0;
+int sensorHealthyCounter = 0;
+int maxsensorHealthyCounter = 3;
 //----------------------------------------------------------------------------------------------------------------
 // SDP3x on the default I2C address of 0x21:
 SDP3XSensor sdp;
@@ -82,16 +84,24 @@ bool FLOW_SENSOR_Measure(float *value, float maxflowinhale, float minflowinhale)
   if (IS_FLOW_SENSOR_INITIALIZED)
   {
     int ret = sdp.readcont();
-    float DP;
+    float DP; 
     if (ret == 0) 
     {    
       DP = (sdp.getDifferentialPressure());
+      sensorHealthyCounter--;
+      if (sensorHealthyCounter < 0){
+        sensorHealthyCounter = 0;
+      }
     } 
     else 
     {
-      return false;
-      //DEBUGserial.print("Error in readSample(), ret = ");
-      //DEBUGserial.println(ret);
+      sensorHealthyCounter++;
+      // check for consecutive failures!
+      if (sensorHealthyCounter >= maxsensorHealthyCounter){
+        return false;
+      }else{
+        return true;
+      }
     }
     bool neg = (DP<0?true:false);
     double x = abs(DP);
@@ -115,7 +125,9 @@ bool FLOW_SENSOR_Measure(float *value, float maxflowinhale, float minflowinhale)
     *value = (y*flowsensordirection) - calibration_offset;
 
 	  // Check if min-max is healthy:
-    SensorHealthy = abs(maxflowinhale-minflowinhale)>1;
+    if (abs(maxflowinhale-minflowinhale)>1){
+       SensorHealthy = true;
+    }
   } 
   return SensorHealthy;
 }
@@ -158,4 +170,8 @@ bool FLOW_SENSOR_getVolume(float *value){
 // set time interval
 void FLOW_SENSOR_setDeltaT(unsigned long deltat){
   deltaT = deltat/1000;
+}
+
+void FLOW_SENSOR_DISABLE(){
+  IS_FLOW_SENSOR_INITIALIZED = 0;
 }
