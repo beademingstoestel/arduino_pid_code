@@ -12,6 +12,8 @@ unsigned long lastWatchdogTime = millis();
 unsigned long CPU_TIMER = 3000; // 3 seconds watchdog
 unsigned long lastCpuTime = millis();
 
+float maxTemperature = 50;
+
 #define ON_REQUEST_DEBOUNCE_CYCLES 10  // alarm is accepted after 100ms or in case of intermittent error, 10 more errors than not errors 
 #define OFF_REQUEST_DEBOUNCE_CYCLES 50  // alarm is switched off  after 500ms without alarm request
 #define ALARM_OFF 0
@@ -154,6 +156,14 @@ void checkALARM(float pressure, int volume, controller_state_t state,
   }
   else{
     resetAlarmState(4);
+  }
+  
+  if (FLOW_SENSOR_GET_TEMP() > maxTemperature){
+    // check flow sensor temperature measurement
+    setAlarmState(5);
+  }
+  else{
+    resetAlarmState(5);
   }
 
   if (isFlow2PatientRead==false){

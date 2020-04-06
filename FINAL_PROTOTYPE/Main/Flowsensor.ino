@@ -179,3 +179,7 @@ bool FLOW_SENSOR_CHECK_I2C(){
     return true;
   }
 }
+
+float FLOW_SENSOR_GET_TEMP(){
+  return sdp.getTemperature();
+}
