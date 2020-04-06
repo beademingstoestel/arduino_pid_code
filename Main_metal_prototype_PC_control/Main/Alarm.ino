@@ -125,27 +125,22 @@ void checkALARM(float pressure, int volume, unsigned long timer, controller_stat
 // WATCHDOG
 //---------------------------------------------------------------
 
-void doWatchdog(void) {
-  if (millis() - lastWatchdogTime > Watchdog) {
-    setAlarmState(2);
-    // reset the settings if connection lost
-    if (!getSettings()){
-      delay(1000);
-      resetComm();
-    }
+void doWatchdog(void) {  
+  // if watchdog timer has passed AND the communication was OK ==> reset communication
+  if (millis() - lastWatchdogTime > Watchdog && isPythonOK == true) {
+    isPythonOK = false;
+    resetComm();      
   }
-  
-  // check if all settings are OK
-  if(getSettings()){
-    // reset watchdog if OK
-    resetAlarmState(2);
+
+  // if python communication is gone, send settings and check if OK
+  if (getSettings() && isPythonOK == false) {
+    isPythonOK = true;   
   }
 }
 
-void updateWatchdog(unsigned long newtime){
+void updateWatchdog(unsigned long newtime) {
   lastWatchdogTime = newtime;
 }
-
 //---------------------------------------------------------------
 // CPU watchdog
 //---------------------------------------------------------------

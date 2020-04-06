@@ -37,6 +37,7 @@ unsigned int target_volume = 700;
 unsigned int target_inhale_time = 0;
 unsigned int target_exhale_time = 0;
 unsigned int trigger_mode = 0;
+bool isPythonOK = false;
 
 //---------------------------------------------------------------
 // SETUP
@@ -49,11 +50,6 @@ void setup()
 
   //-- set up peripherals
   initPeripherals();
-
-  //-- set up communication with screen
-  if(PYTHON){
-    initCOMM();
-  }
 
   //-- set up motor
   Serial.println("Setting up MOTOR: ");
@@ -100,6 +96,14 @@ void setup()
   //-- setup done
   Serial.println("Setup done");
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+
+  //-- set up communication with screen
+  if(PYTHON){
+    initCOMM();
+  }
+  else{
+    isPythonOK = true;
+  }
 
   //-- set up interrupt
   Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
