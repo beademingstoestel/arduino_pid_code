@@ -79,15 +79,14 @@ bool isPythonOK = false;
 void setup()
 {
   Serial.begin(115200);
-  DEBUGserial.begin(115200);
+  DEBUGserial.begin(115200); 
 
   //-- set up peripherals
   initPeripherals();
 
   //-- set up communication with screen
-  if(PYTHON){
-    initCOMM();
-  }
+  if(PYTHON) initCOMM();
+  if (!PYTHON) isPythonOK = true;
 
   //--- check mains supply and battery voltage
   DEBUGserial.print("Supply Voltage (V): ");
@@ -101,6 +100,7 @@ void setup()
   //-- set up hall sensor
   DEBUGserial.println("Setting up HALL sensor: ");
   if (HALL_SENSOR_INIT()) {
+    hall_sens_init_ok = true;
     HALL_SENSOR_calibrateHall();
     DEBUGserial.println("HALL SENSOR OK");
   }
@@ -112,6 +112,7 @@ void setup()
   //--- set up flow sensors here, if init fails, we can continue
   DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
+    flow_sens_init_ok = true;
     FLOW_SENSOR_setDeltaT(controllerTime);
     DEBUGserial.println("FLOW SENSOR OK");
   }
@@ -123,6 +124,7 @@ void setup()
   //-- set up pressure sensors
   DEBUGserial.println("Setting up PRESSURE sensors: ");
   if (PRESSURE_SENSOR_INIT()){
+    pressure_sens_init_ok = true;
     DEBUGserial.println("PRESSURE SENSORS OK");
   }
   else{
@@ -133,6 +135,7 @@ void setup()
   //-- set up motor
   DEBUGserial.println("Setting up MOTOR: ");
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
+    motor_sens_init_ok = true;
     DEBUGserial.println("MOTOR OK");
   }
   else {
@@ -142,7 +145,6 @@ void setup()
 
   //-- setup done
   DEBUGserial.println("Setup done");
-  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
 
   //-- set up interrupt
   Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
@@ -157,6 +159,7 @@ void loop()
 {
   // Handle uart send to PC
   if (PYTHON) sendDataToPython();
+  if (PYTHON) sendAlarmState();
   // Handle uart receive from PC
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
@@ -169,7 +172,8 @@ void loop()
   SpeakerTimingSupportRoutine();
   // check fan
   FanPollingRoutine();
-  delay(40); 
+  // delay loop to avoid full serial buffers
+  delay(50); 
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -198,12 +202,13 @@ void controller()
   comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
   comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
+  
   // read switches
   int END_SWITCH_VALUE_STOP = digitalRead(ENDSWITCH_FULL_PIN);
   int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);  
 
   // check alarm
-  checkALARM(CurrentPressurePatient, CurrentVolumePatient, millis(), controller_state, isPatientPressureCorrect, 
+  checkALARM(CurrentPressurePatient, CurrentVolumePatient,  isPatientPressureCorrect, 
     isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
     fan_OK, battery_powered, battery_SoC);
     
@@ -286,7 +291,7 @@ void controller()
         minpressureinhale=minpressure;    // initialize high positive --> no error on start-up
         maxpressure=-99999.9;   // initialize low negative--> no error on start-up
         minpressure=99999.9;    // initialize high positive --> no error on start-up
-
+                
         maxflowinhale=maxflow;   // initialize low negative--> no error on start-up
         minflowinhale=minflow;    // initialize high positive --> no error on start-up
         maxflow=-99999.9;   // initialize low negative--> no error on start-up

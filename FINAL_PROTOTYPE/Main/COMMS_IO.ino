@@ -148,6 +148,9 @@ float comms_getRP() {
 float comms_getTP() {
   return settingarray[9].settingvalue;
 }
+float comms_getMT() {
+  return settingarray[15].settingvalue;
+}
 
 //---------------------------------------------------------------
 // GETTERS & SETTERS MEASUREMENTS
@@ -321,6 +324,12 @@ int sendAlarmState(void) {
   Serial.println(message);
   settingarray[0].messageid = counter;     
   settingarray[0].messagetime = millis();
+
+  if (ALARM != 0){
+    DEBUGserial.print(" ==> ALARM = ");
+    DEBUGserial.println(ALARM, BIN);
+  }
+  
   return 1;
 }
 
@@ -366,10 +375,10 @@ void recvWithEndMarkerSer0() {
     if (!checkCRC(receivedChars0)) {
       processSerialPort(receivedChars0);
       DEBUGserial.println(receivedChars0);
-    }
+    } 
     else {
-      DEBUGserial.print("Resend data: ");
-      DEBUGserial.println(receivedChars0);
+//      DEBUGserial.print("Resend data: ");
+//      DEBUGserial.println(receivedChars0);
     }
     newData0 = false;
   }

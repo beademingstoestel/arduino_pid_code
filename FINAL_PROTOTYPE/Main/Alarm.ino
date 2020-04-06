@@ -4,7 +4,7 @@
 #include <Wire.h>
 
 unsigned int ALARM = 0;
-unsigned int ALARMMASK = 0xFFFF; // give alarm for all states by default
+unsigned int ALARMMASK = 0x7FFF; // give alarm for all states by default
 
 unsigned long Watchdog = 3000; // 3 seconds watchdog
 unsigned long lastWatchdogTime = millis();
@@ -39,12 +39,12 @@ void debounceAlarm()
 {
   unsigned int alarmRequested =  (ALARM & ALARMMASK);
   unsigned int alarmStatusFromPython = 0;
-  if (ALARM_OFF == debouncedAlarmOnOffState)
+  if (debouncedAlarmOnOffState == ALARM_OFF)
   {
     if (alarmRequested > 0)
     {
       alarmDebounceCounter--;
-      if (0 == alarmDebounceCounter)
+      if (alarmDebounceCounter == 0)
       {
         debouncedAlarmOnOffState = ALARM_ON;
         alarmDebounceCounter = OFF_REQUEST_DEBOUNCE_CYCLES;
@@ -67,7 +67,7 @@ void debounceAlarm()
     else // (alarmRequested == 0 )
     {
       alarmDebounceCounter--;
-      if (0 == alarmDebounceCounter)
+      if (alarmDebounceCounter == 0)
       {
         debouncedAlarmOnOffState = ALARM_OFF;
         alarmDebounceCounter = ON_REQUEST_DEBOUNCE_CYCLES;
@@ -78,9 +78,9 @@ void debounceAlarm()
   alarmStatusFromPython = comms_getAlarmSatusFromPython();
     
   // TODO: ADD MASK FOR PYTHON MESSAGES!
-  if ( (ALARM_ON == debouncedAlarmOnOffState) ||  (alarmStatusFromPython > 0 ) )
+  if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
   {    
-    SpeakerOn();
+    if (!comms_getMT())SpeakerOn();
     LightOn();
   }
   else
@@ -93,151 +93,147 @@ void debounceAlarm()
 //----------------------------------------------------------
 // alarm state
 //----------------------------------------------------------
-void setAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
-  unsigned int alarmbyte = (0x01 << alarm);
+void setAlarmState(unsigned int alarm) {
+  unsigned int alarmbyte = (0x0001 << alarm);
   // BITWISE OR current alarm with new to SET
   ALARM |= alarmbyte;
-
-  sendAlarmState();
 }
 
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
-void resetAlarmState(unsigned int alarm, unsigned long timer, controller_state_t state) {
-  unsigned int alarmbyte = (0x01 << alarm);
+void resetAlarmState(unsigned int alarm) {
+  unsigned int alarmbyte = (0x0001 << alarm);
   alarmbyte = 0xFFFF ^ alarmbyte;
   // BITWISE AND current alarm with new to RESET
   ALARM &= alarmbyte;
-
-  sendAlarmState();
 }
 
 //-----------------------------------------------------
 // get alarm state
 //-----------------------------------------------------
-int getAlarmState(void) {
+unsigned int getAlarmState(void) {
   return ALARM;
 }
 
 //-----------------------------------------------------
 // check alarm
 //-----------------------------------------------------
-void checkALARM(float pressure, int volume, unsigned long timer, controller_state_t state, 
+void checkALARM(float pressure, int volume, 
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool pressure_sens_init_ok, 
     bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC)
     {
   if (pressure > comms_getPK() + comms_getADPK()){
   // max pressure exceeded
-  setAlarmState(1,timer,state);
+  setAlarmState(1);
   }
   else{
-    resetAlarmState(1,timer,state);
+    resetAlarmState(1);
   }
 
   if (volume > comms_getVT() + comms_getADVT()){
     // max volume exceeded
-    setAlarmState(2,timer,state);
+    setAlarmState(2);
   }
   else{
-    resetAlarmState(2,timer,state);
+    resetAlarmState(2);
   }
   
   if (pressure < comms_getPP() - comms_getADPP()){
     // Peep deviation exceeded
-    setAlarmState(3,timer,state);
+    //setAlarmState(3);
   }
   else{
-    resetAlarmState(3,timer,state);
+    resetAlarmState(3);
   }
 
    if (isPatientPressureCorrect==false){
     // check pressure sensor connected and reacting
-    setAlarmState(4,timer,state);
+    setAlarmState(4);
   }
   else{
-    resetAlarmState(4,timer,state);
+    resetAlarmState(4);
   }
 
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
-    setAlarmState(6,timer,state);
+    setAlarmState(6);
   }
   else{
-    resetAlarmState(6,timer,state);
+    resetAlarmState(6);
   }   
 
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
-    setAlarmState(7,timer,state);
+    setAlarmState(7);
   }
   else{
-    resetAlarmState(7,timer,state);
+    resetAlarmState(7);
   }
 
    if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
-    setAlarmState(8,timer,state);
+    setAlarmState(8);
   }
   else{
-    resetAlarmState(8,timer,state);
+    resetAlarmState(8);
   }
   
    if (motor_sens_init_ok==false){
     // Motor limit switches check failed
-    setAlarmState(9,timer,state);
+    setAlarmState(9);
   }
   else{
-    resetAlarmState(9,timer,state);
+    resetAlarmState(9);
   }
   
    if (hall_sens_init_ok==false){
     // hall sensor initialization failed
-    setAlarmState(10,timer,state);
+    setAlarmState(10);
   }
   else{
-    resetAlarmState(10,timer,state);
+    resetAlarmState(10);
   }
 
   if (battery_powered){
     // switched to battery --> check if externally powered
-    setAlarmState(11,timer,state);
+    setAlarmState(11);
   }
   else{
-    resetAlarmState(11,timer,state);
+    resetAlarmState(11);
   }
 
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    setAlarmState(12,timer,state);
+    setAlarmState(12);
   }
   else{
-    resetAlarmState(12,timer,state);
+    resetAlarmState(12);
   }
 
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    setAlarmState(13,timer,state);
+    setAlarmState(13);
   }
   else{
-    resetAlarmState(13,timer,state);
+    resetAlarmState(13);
   }
 
   if (fan_OK==false){
     // Fan not operational
-    setAlarmState(14,timer,state);
+    setAlarmState(14);
   }
   else{
-    resetAlarmState(14,timer,state);
+    resetAlarmState(14);
   }
 
   if (isPythonOK==false){
     // Python not operational
-    setAlarmState(15,timer,state);
+    setAlarmState(15);
   }
   else{
-    resetAlarmState(15,timer,state);
+    resetAlarmState(15);
   }
 }
 
@@ -247,7 +243,8 @@ void checkALARM(float pressure, int volume, unsigned long timer, controller_stat
 
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool battery_above_25){
   // if i2c sensors fail ==> disable i2c bus!
-  if (!(isFlow2PatientRead && isPatientPressureCorrect)){
+  if (!FLOW_SENSOR_CHECK_I2C()){
+    DEBUGserial.println("=== RESET I2C SENSORS ===");
     FLOW_SENSOR_DISABLE();
     BME280_DISABLE();
     #ifdef hall_sensor_i2c
@@ -257,12 +254,14 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
     while(Wire.available()){
       Wire.read();
     }
-    pinMode(20, INPUT);
-    pinMode(21, INPUT);
+    // disable i2c
+    pinMode(SCL, INPUT);
+    pinMode(SDA, INPUT);
 
     return 1;
   }
-  else if(!battery_above_25){
+  else if(!(isFlow2PatientRead && isPatientPressureCorrect && battery_above_25)){
+    DEBUGserial.println("=== GO TO SAFE MODE ===");
     return 1;
   }
   else{
