@@ -96,12 +96,7 @@ bool FLOW_SENSOR_Measure(float *value, float maxflowinhale, float minflowinhale)
     else 
     {
       sensorHealthyCounter++;
-      // check for consecutive failures!
-      if (sensorHealthyCounter >= maxsensorHealthyCounter){
-        return false;
-      }else{
-        return true;
-      }
+      return true;
     }
     bool neg = (DP<0?true:false);
     double x = abs(DP);
@@ -174,4 +169,13 @@ void FLOW_SENSOR_setDeltaT(unsigned long deltat){
 
 void FLOW_SENSOR_DISABLE(){
   IS_FLOW_SENSOR_INITIALIZED = 0;
+}
+
+bool FLOW_SENSOR_CHECK_I2C(){
+  // check consecutive failures
+  if (sensorHealthyCounter >= maxsensorHealthyCounter){
+    return false;
+  }else{
+    return true;
+  }
 }

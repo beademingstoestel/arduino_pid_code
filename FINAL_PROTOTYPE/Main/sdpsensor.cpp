@@ -94,7 +94,7 @@ int SDPSensor::readcont(){
   int16_t temp_raw = (int16_t)data[3] << 8 | data[4];
   int8_t dp_scale  = (int16_t)data[7] << 8 | data[7];
 
-  if (dp_raw != 0){
+  if (temp_raw != 0){
     mDifferentialPressure = (float) dp_raw / (float)dp_scale;
     mTemperature = temp_raw / 200.0;
   }
