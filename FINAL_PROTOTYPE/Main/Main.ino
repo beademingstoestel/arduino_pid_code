@@ -169,6 +169,8 @@ void loop()
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
 
+  // update ambient pressure
+  BME_280_UPDATE_AMBIENT();
   // check fan
   FanPollingRoutine();
   // delay loop to avoid full serial buffers

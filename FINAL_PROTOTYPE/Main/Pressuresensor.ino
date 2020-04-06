@@ -22,6 +22,14 @@ float sum = 0;
 
 #define hPa2cmh2o_scale 1.0197442889221
 #define Pa2cmh2o_scale 0.010197442889221
+
+//-----------------------------------------------------------------------------------------------
+const int numReadings = 100;
+const int updaterate = 10;
+int updatecounter = 0;
+float readings[numReadings];      // the readings from the analog input
+int readIndex = 0;                // the index of the current reading
+float total = 0;                  // the running total
 //-----------------------------------------------------------------------------------------------
 bool PRESSURE_SENSOR_INIT(){
   bool bme1ok = 0;
@@ -80,12 +88,11 @@ bool BME2_Setup()
                      Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
     // calibrate
     delay(50);
-    sum = 0;
-    for (int i = 0; i < 50; i++)
-    {
-      sum += BME280_readPressureAmbient();
+    for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+      readings[thisReading] = BME280_readPressureAmbient();
+      total += readings[thisReading];
     }
-    PRESSURE_INIT_VALUE_AMBIENT = sum / 50;
+    PRESSURE_INIT_VALUE_AMBIENT = total / numReadings;
   }
   return true;
 }
@@ -115,7 +122,12 @@ float BME280_readpressure_cmH2O()
   {
     sensors_event_t  pressure_event1;
     bme_pressure_patient1->getEvent(&pressure_event1);
-    return  (pressure_event1.pressure * hPa2cmh2o_scale) - PRESSURE_INIT_VALUE_BME;
+    if(PRESSURE_SENSOR2_INITIALIZED){
+      return (pressure_event1.pressure * hPa2cmh2o_scale) - PRESSURE_INIT_VALUE_AMBIENT;
+    }
+    else{
+      return (pressure_event1.pressure * hPa2cmh2o_scale) - PRESSURE_INIT_VALUE_BME;
+    }
   }
   return 0;
 }
@@ -126,7 +138,7 @@ float BME280_readPressureAmbient()
   {
     sensors_event_t  pressure_event_ambient;
     bme_pressure_ambient->getEvent(&pressure_event_ambient);
-    return  (pressure_event_ambient.pressure * hPa2cmh2o_scale) - PRESSURE_INIT_VALUE_AMBIENT;
+    return  (pressure_event_ambient.pressure * hPa2cmh2o_scale);
   }
   return 0;
 }
@@ -134,7 +146,12 @@ float BME280_readPressureAmbient()
 float MPL3115A2_readpressure_cmH2O() {
   if (PRESSURE_SENSOR3_INITIALIZED)
   {
-    return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_MPL;
+    if(PRESSURE_SENSOR2_INITIALIZED){
+      return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_AMBIENT;
+    }
+    else{
+      return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_MPL;
+    }
   }
   return 0;
 }
@@ -159,4 +176,30 @@ void BME280_DISABLE(){
     PRESSURE_SENSOR1_INITIALIZED = 0;
     PRESSURE_SENSOR2_INITIALIZED = 0;
     PRESSURE_SENSOR3_INITIALIZED = 0;
+}
+
+//-----------------------------------------------------------------------------------------------
+bool BME_280_UPDATE_AMBIENT(){
+  // don't recalculate every loop
+  if (updatecounter == updaterate){
+    updatecounter = 0;
+
+    // subtract the last reading:
+    total = total - readings[readIndex];
+    // read from the sensor:
+    readings[readIndex] = BME280_readPressureAmbient();
+    // add the reading to the total:
+    total = total + readings[readIndex];
+    // advance to the next position in the array:
+    readIndex = readIndex + 1;
+  
+    // if we're at the end of the array wrap around to the beginning:
+    if (readIndex >= numReadings) readIndex = 0;
+  
+    // calculate the average:
+    PRESSURE_INIT_VALUE_AMBIENT = (total / numReadings);
+  }
+  updatecounter++;
+  
+  return true;
 }

@@ -61,7 +61,7 @@
   #define BME_SPI_SCK 52
   #define BME_SPI_MISO 50
   #define BME_SPI_MOSI 51 
-  #define BME_SPI_CS 47
+  #define BME_SPI_CS 48
 
   #define Speaker_PWM 12
   #define Light_PWM 11
