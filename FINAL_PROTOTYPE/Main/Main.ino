@@ -80,16 +80,14 @@ void setup()
 {
   Serial.begin(115200);
   DEBUGserial.begin(115200); 
-
+  
+  Serial.print("FW version: ");
   Serial.println(comms_getFW());
+  DEBUGserial.print("FW version: ");
   DEBUGserial.println(comms_getFW());
 
   //-- set up peripherals
   initPeripherals();
-
-  //-- set up communication with screen
-  if(PYTHON) initCOMM();
-  if (!PYTHON) isPythonOK = true;
 
   //--- check mains supply and battery voltage
   DEBUGserial.print("Supply Voltage (V): ");
@@ -148,6 +146,10 @@ void setup()
 
   //-- setup done
   DEBUGserial.println("Setup done");
+
+  //-- set up communication with screen
+  if(PYTHON) initCOMM();
+  if (!PYTHON) isPythonOK = true;
 
   //-- set up interrupt
   Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
