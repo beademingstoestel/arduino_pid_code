@@ -81,6 +81,9 @@ void setup()
   Serial.begin(115200);
   DEBUGserial.begin(115200); 
 
+  Serial.println(comms_getFW());
+  DEBUGserial.println(comms_getFW());
+
   //-- set up peripherals
   initPeripherals();
 
