@@ -119,7 +119,7 @@ unsigned int getAlarmState(void) {
 //-----------------------------------------------------
 // check alarm
 //-----------------------------------------------------
-void checkALARM(float pressure, int volume, 
+void checkALARM(float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool pressure_sens_init_ok, 
     bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC)
@@ -140,9 +140,9 @@ void checkALARM(float pressure, int volume,
     resetAlarmState(2);
   }
   
-  if (pressure < comms_getPP() - comms_getADPP()){
+  if (pressure < comms_getPP() - comms_getADPP() && state != ini){
     // Peep deviation exceeded
-    //setAlarmState(3);
+    setAlarmState(3);
   }
   else{
     resetAlarmState(3);

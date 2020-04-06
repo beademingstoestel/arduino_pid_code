@@ -90,12 +90,8 @@ void setup()
   initPeripherals();
 
   //--- check mains supply and battery voltage
-  DEBUGserial.print("Supply Voltage (V): ");
   main_supply = MainSupplyVoltage()/1000;
-  DEBUGserial.println(main_supply);
-  DEBUGserial.print("Battery Voltage (V): ");
   batt_supply = PSUSupplyVoltage()/1000;
-  DEBUGserial.println(batt_supply);
   battery_SoC = batt_supply/25;
   
   //-- set up hall sensor
@@ -110,7 +106,7 @@ void setup()
     if(HARDWARE)ALARM_init();
   }
   
-  //--- set up flow sensors here, if init fails, we can continue
+  //--- set up flow sensor
   DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
     flow_sens_init_ok = true;
@@ -173,8 +169,6 @@ void loop()
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
 
-  // update speaker
-  SpeakerTimingSupportRoutine();
   // check fan
   FanPollingRoutine();
   // delay loop to avoid full serial buffers
@@ -213,7 +207,7 @@ void controller()
   int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);  
 
   // check alarm
-  checkALARM(CurrentPressurePatient, CurrentVolumePatient,  isPatientPressureCorrect, 
+  checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
     isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
     fan_OK, battery_powered, battery_SoC);
     
