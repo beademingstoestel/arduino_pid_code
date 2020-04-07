@@ -4,7 +4,8 @@
 #include <Wire.h>
 
 unsigned int ALARM = 0;
-unsigned int ALARMMASK = 0x7FFF; // give alarm for all states by default
+unsigned int ALARMMASK = 0x7FFF; // give alarm for all states except watchdog by default
+unsigned int PYTHONMASK = 0xFFFF; // give alarm for all python errors
 
 unsigned long Watchdog = 3000; // 3 seconds watchdog
 unsigned long lastWatchdogTime = millis();
@@ -77,9 +78,8 @@ void debounceAlarm()
     }
   }
 
-  alarmStatusFromPython = comms_getAlarmSatusFromPython();
+  alarmStatusFromPython = comms_getAlarmSatusFromPython() & PYTHONMASK;
     
-  // TODO: ADD MASK FOR PYTHON MESSAGES!
   if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
   {    
     if (!comms_getMT())SpeakerOn();
