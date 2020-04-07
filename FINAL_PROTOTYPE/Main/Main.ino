@@ -31,7 +31,7 @@ volatile unsigned long time_diff = 1;
 float Speed; 
 bool inhale_detected = 0;
 int transientMute = 0;
-int transientMuteCycles = 10;
+int transientMuteCycles = 5;
 
 float target_risetime = 500;           
 unsigned int target_pressure = 20; 
