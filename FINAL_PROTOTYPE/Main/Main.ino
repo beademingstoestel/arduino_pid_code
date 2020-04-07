@@ -30,6 +30,8 @@ volatile unsigned long inhale_start_time = millis();
 volatile unsigned long time_diff = 1;
 float Speed; 
 bool inhale_detected = 0;
+int transientMute = 0;
+int transientMuteCycles = 10;
 
 float target_risetime = 500;           
 unsigned int target_pressure = 20; 
@@ -222,6 +224,7 @@ void controller()
         ALARM_Short_Beep(); // turn on BUZZER   
       }
       if (comms_getActive() == 2) {
+        transientMute = transientMuteCycles;
         controller_state = wait; // start controller
       }
     }break;
@@ -277,6 +280,9 @@ void controller()
         // update timers
         comms_setBPM(millis() - inhale_start_time);
         inhale_start_time = millis();
+
+        // check mute setting
+        if(transientMute > 0) transientMute--;
         
         // load new setting values from input
         target_inhale_time = comms_getInhaleTime();
