@@ -160,7 +160,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     resetAlarmState(4);
   }
   
-  if (FLOW_SENSOR_GET_TEMP() > maxTemperature){
+  if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
   }
@@ -253,7 +253,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
 // DEGRADED MODE
 //---------------------------------------------------------------
 
-bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool battery_above_25){
+bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool battery_above_25, bool temperature_OK){
   // if i2c sensors fail ==> disable i2c bus!
   if (!FLOW_SENSOR_CHECK_I2C()){
     DEBUGserial.println("=== RESET I2C SENSORS ===");
@@ -272,7 +272,7 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
 
     return 1;
   }
-  else if(!(isFlow2PatientRead && isPatientPressureCorrect && battery_above_25)){
+  else if(!(isFlow2PatientRead && isPatientPressureCorrect && battery_above_25 && temperature_OK)){
     DEBUGserial.println("=== GO TO SAFE MODE ===");
     return 1;
   }

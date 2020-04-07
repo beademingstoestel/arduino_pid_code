@@ -60,6 +60,7 @@ float batt_supply = 0.0;
    
 // safety minimum degraded mode
 bool min_degraded_mode_ON = true;
+bool temperature_OK = false;
 bool battery_above_25 = false;
 bool fan_OK = true;   
 bool battery_powered = false;
@@ -195,7 +196,8 @@ void controller()
   
   // Check power supply and minimal degraded mode
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, battery_above_25);
+  temperature_OK = FLOW_SENSOR_CHECK_TEMP();
+  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, battery_above_25, temperature_OK);
   
   // update values 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);

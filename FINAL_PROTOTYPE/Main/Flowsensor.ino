@@ -183,3 +183,12 @@ bool FLOW_SENSOR_CHECK_I2C(){
 float FLOW_SENSOR_GET_TEMP(){
   return sdp.getTemperature();
 }
+
+bool FLOW_SENSOR_CHECK_TEMP(){
+  if (FLOW_SENSOR_GET_TEMP() > maxTemperature){
+    return false;
+  }
+  else{
+    return true;
+  }
+}
