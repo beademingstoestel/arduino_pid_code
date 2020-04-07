@@ -1,0 +1,11 @@
+STARTUP SEQUENCE
+
+1) Unplug PC + machine to completely power down!
+2) Turn on power and USB (sequence does not matter)
+
+3) Machine initializes 
+4) Machine connects to PC
+
+5) Choose settings on GUI
+6) Press save on GUI
+7)Press start button on GUI
