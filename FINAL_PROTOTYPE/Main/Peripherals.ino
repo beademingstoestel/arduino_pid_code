@@ -156,3 +156,20 @@ bool OnMainsPower(){
   return true; //if no way to check return true;
 }
 #endif
+
+// ---------- Endswitches
+#ifdef endswitches_inverted
+bool read_endswitch_stop() {
+  return !digitalRead(ENDSWITCH_FULL_PIN);
+}
+bool read_endswitch_start() {
+  return !digitalRead(ENDSWITCH_PUSH_PIN);
+}
+#else
+bool read_endswitch_stop() {
+  return digitalRead(ENDSWITCH_FULL_PIN);
+}
+bool read_endswitch_start() {
+  return digitalRead(ENDSWITCH_PUSH_PIN);
+}
+#endif

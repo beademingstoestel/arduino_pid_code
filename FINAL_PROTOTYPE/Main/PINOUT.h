@@ -77,6 +77,7 @@
 #endif
 
 #ifdef protoGroteSerie
+  #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 6 // exhale: upper switch
   //Motor driver: VNH3SP30-E

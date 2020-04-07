@@ -87,17 +87,17 @@ bool MOTOR_CONTROL_setup(int ENDSWITCH_PUSH, int ENDSWITCH_FULL){
   // if already at bottom: go up until we clear the switch
   if(digitalRead(ENDSWITCH_FULL)){
     MOTOR_CONTROL_setValue(50);
-    while(!digitalRead(ENDSWITCH_FULL)){}
+    while(digitalRead(ENDSWITCH_FULL)){}
     delay(100);
     MOTOR_CONTROL_setValue(0);
   }
   // Go down to bottom switch
   MOTOR_CONTROL_setValue(-80);
-  while(!digitalRead(ENDSWITCH_FULL)){}
+  while(digitalRead(ENDSWITCH_FULL)){}
   MOTOR_CONTROL_setValue(0);
   // Go up to top endswitch
   MOTOR_CONTROL_setValue(50);
-  while(!digitalRead(ENDSWITCH_PUSH)){}
+  while(digitalRead(ENDSWITCH_PUSH)){}
   MOTOR_CONTROL_setValue(0);
 
   return true;

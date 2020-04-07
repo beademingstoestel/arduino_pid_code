@@ -60,7 +60,6 @@ float batt_supply = 0.0;
    
 // safety minimum degraded mode
 bool min_degraded_mode_ON = true;
-//bool min_degraded_mode_ON = false;
 bool battery_above_25 = false;
 bool fan_OK = true;   
 bool battery_powered = false;
@@ -206,8 +205,8 @@ void controller()
   comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
   
   // read switches
-  int END_SWITCH_VALUE_STOP = digitalRead(ENDSWITCH_FULL_PIN);
-  int END_SWITCH_VALUE_START = digitalRead(ENDSWITCH_PUSH_PIN);  
+  int END_SWITCH_VALUE_STOP = read_endswitch_stop();
+  int END_SWITCH_VALUE_START = read_endswitch_start();  
 
   // check alarm
   checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
