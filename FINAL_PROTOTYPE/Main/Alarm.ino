@@ -7,8 +7,10 @@ unsigned int ALARM = 0;
 unsigned int ALARMMASK = 0x7FFF; // give alarm for all states except watchdog by default
 unsigned int PYTHONMASK = 0xFFFF; // give alarm for all python errors
 
-unsigned long Watchdog = 3000; // 3 seconds watchdog
-unsigned long lastWatchdogTime = millis();
+unsigned long WatchdogTimeRX = 3000; // 3 seconds watchdog
+unsigned long WatchdogTimeTX = 1000; // 1 seconds watchdog
+unsigned long lastWatchdogTimeRX = millis();
+unsigned long lastWatchdogTimeTX = millis();
 
 unsigned long CPU_TIMER = 3000; // 3 seconds watchdog
 unsigned long lastCpuTime = millis();
@@ -285,7 +287,7 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
 
 void doWatchdog(void) {  
   // if watchdog timer has passed AND the communication was OK ==> reset communication
-  if (millis() - lastWatchdogTime > Watchdog && isPythonOK == true) {
+  if (millis() - lastWatchdogTimeRX > WatchdogTimeRX && isPythonOK == true) {
     isPythonOK = false;
     resetComm();      
   }
@@ -294,10 +296,16 @@ void doWatchdog(void) {
   if (getSettings() && isPythonOK == false) {
     isPythonOK = true;   
   }
+
+  // TX alarms
+  if (millis() - lastWatchdogTimeTX > WatchdogTimeTX) {
+    lastWatchdogTimeTX = millis();
+    sendAlarmState();         
+  }
 }
 
 void updateWatchdog(unsigned long newtime) {
-  lastWatchdogTime = newtime;
+  lastWatchdogTimeRX = newtime;
 }
 
 //---------------------------------------------------------------

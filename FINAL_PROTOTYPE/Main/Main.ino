@@ -160,7 +160,6 @@ void loop()
 {
   // Handle uart send to PC
   if (PYTHON) sendDataToPython();
-  if (PYTHON) sendAlarmState();
   // Handle uart receive from PC
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
