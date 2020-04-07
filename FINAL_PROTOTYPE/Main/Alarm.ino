@@ -4,7 +4,7 @@
 #include <Wire.h>
 
 unsigned int ALARM = 0;
-unsigned int ALARMMASK = 0x7FFF; // give alarm for all states except watchdog by default
+unsigned int ALARMMASK = 0x77FF; // give alarm for all states except watchdog and battery power
 unsigned int PYTHONMASK = 0xFFFF; // give alarm for all python errors
 
 unsigned long WatchdogTimeRX = 3000; // 3 seconds watchdog
