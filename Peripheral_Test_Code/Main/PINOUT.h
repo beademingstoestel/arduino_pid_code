@@ -101,9 +101,9 @@
 //  #define Speaker_PWM 5 // original pinout PCB
 //  #define Light_PWM 4   // original pinout PCB
   #define Fan_PWM 3
-  #define main_supply_voltage A2 // ~batt voltage if no PSU [ANALOG]
+  #define main_supply_voltage A3 // ~batt voltage if no PSU [ANALOG]
   #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
-  #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
+  #define PSU_supply_voltage A2 // detect if PSU is unplugged [ANALOG OR DIGITAL]
   #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
   #define fan_speed A4
   // TX3 and RX3 to staggered debug header
