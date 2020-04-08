@@ -188,6 +188,10 @@ bool BME_280_UPDATE_AMBIENT(){
     total = total - readings[readIndex];
     // read from the sensor:
     readings[readIndex] = BME280_readPressureAmbient();
+    // check if the value is reasonable: between 650 and 1150 cmH2O
+    if(readings[readIndex] > 1150 || readings[readIndex] < 650){
+      return false;
+    }
     // add the reading to the total:
     total = total + readings[readIndex];
     // advance to the next position in the array:

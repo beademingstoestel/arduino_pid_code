@@ -73,6 +73,7 @@ bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isVolumeOK = false;
 bool isPythonOK = false;
+bool isAmbientPressureCorrect = false;
 
 //---------------------------------------------------------------
 // SETUP
@@ -171,7 +172,7 @@ void loop()
   if (!PYTHON) recvWithEndMarkerSer1();
 
   // update ambient pressure
-  BME_280_UPDATE_AMBIENT();
+  isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   // check fan
   FanPollingRoutine();
   // delay loop to avoid full serial buffers
@@ -197,7 +198,7 @@ void controller()
   // Check power supply and minimal degraded mode
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   temperature_OK = FLOW_SENSOR_CHECK_TEMP();
-  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, battery_above_25, temperature_OK);
+  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect, battery_above_25, temperature_OK);
   
   // update values 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
@@ -213,7 +214,7 @@ void controller()
   // check alarm
   checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
     isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
-    fan_OK, battery_powered, battery_SoC);
+    fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect);
     
   // State machine
   switch (controller_state) {
