@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},
   {"ACTIVE", 0, false, 52, 0, 0},
   {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.20, false, 52, 0, 0}
+  {"FW", 2.21, false, 52, 0, 0}
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -189,7 +189,7 @@ void sendDataToPython() {
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "VOL=%d=1=", (int)(VOL*100));
+  sprintf(message, "VOL=%d=1=", (long)(VOL*100));
   getCRC(message);
   Serial.println(message);
 
