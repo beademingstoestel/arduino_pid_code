@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},
   {"ACTIVE", 0, false, 52, 0, 0},
   {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.12, false, 52, 0, 0}
+  {"FW", 2.13, false, 52, 0, 0}
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -51,11 +51,11 @@ boolean newData1 = false;
 //---------------------------------------------------------------
 
 unsigned int BPM = 10;      // Breaths per minute
-int VOL = 20;               // volume
+float VOL = 20;               // volume
 unsigned int TRIG = 0;     // trigger
-int PRES = 40;              // pressure
-int FLOW = 50;              // flow
-int TPRES = 60;              // target pressure
+float PRES = 40;              // pressure
+float FLOW = 50;              // flow
+float TPRES = 60;              // target pressure
 
 //---------------------------------------------------------------
 // EEPROM
@@ -162,19 +162,19 @@ float comms_getFW() {
 void comms_setBPM(unsigned long bpm_time) {
   BPM = round(60000.0 / bpm_time);
 }
-void comms_setVOL(int vol) {
+void comms_setVOL(float vol) {
   VOL = vol;
 }
 void comms_setTRIG(unsigned int trig) {
   TRIG = trig;
 }
-void comms_setPRES(int pres) {
+void comms_setPRES(float pres) {
   PRES = pres;
 }
-void comms_setFLOW(int flow) {
+void comms_setFLOW(float flow) {
   FLOW = flow;
 }
-void comms_setTPRES(int tpres) {
+void comms_setTPRES(float tpres) {
   TPRES = tpres;
 }
 
@@ -184,33 +184,33 @@ void comms_setTPRES(int tpres) {
 
 void sendDataToPython() {
   strcpy(message, "");
-  sprintf(message, "BPM=%d=1=", BPM);
+  sprintf(message, "BPM=%d=1=", BPM*100);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "VOL=%d=1=", VOL);
+  sprintf(message, "VOL=%d=1=", VOL*100);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "TRIG=%d=1=", TRIG);
+  sprintf(message, "TRIG=%d=1=", TRIG*100);
   getCRC(message);
   Serial.println(message);
   comms_setTRIG(0);
 
   strcpy(message, "");
-  sprintf(message, "PRES=%d=1=", PRES);
+  sprintf(message, "PRES=%d=1=", PRES*100);
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "FLOW=%d=1=", FLOW);
+  sprintf(message, "FLOW=%d=1=", FLOW*100);
   getCRC(message);
   Serial.println(message);  
 
   strcpy(message, "");
-  sprintf(message, "TPRES=%d=1=", TPRES);
+  sprintf(message, "TPRES=%d=1=", TPRES*100);
   getCRC(message);
   Serial.println(message); 
 }
