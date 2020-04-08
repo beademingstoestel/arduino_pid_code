@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},
   {"ACTIVE", 0, false, 52, 0, 0},
   {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.10, false, 52, 0, 0}
+  {"FW", 2.11, false, 52, 0, 0}
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -130,13 +130,13 @@ int comms_getActive() {
 bool comms_resetActive() {
     settingarray[14].settingvalue = 0;
 }
-unsigned int comms_getADPP() {
+unsigned int comms_getADPK() {
   return settingarray[10].settingvalue;
 }
 unsigned int comms_getADVT() {
-  return settingarray[12].settingvalue;
+  return settingarray[11].settingvalue;
 }
-unsigned int comms_getADPK() {
+unsigned int comms_getADPP() {
   return settingarray[12].settingvalue;
 }
 float comms_getPS() {
