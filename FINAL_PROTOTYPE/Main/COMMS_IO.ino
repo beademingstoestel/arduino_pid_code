@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},
   {"ACTIVE", 0, false, 52, 0, 0},
   {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.13, false, 52, 0, 0}
+  {"FW", 2.14, false, 52, 0, 0}
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -184,33 +184,33 @@ void comms_setTPRES(float tpres) {
 
 void sendDataToPython() {
   strcpy(message, "");
-  sprintf(message, "BPM=%d=1=", BPM*100);
+  sprintf(message, "BPM=%d=1=", (int)(BPM*100));
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "VOL=%d=1=", VOL*100);
+  sprintf(message, "VOL=%d=1=", (int)(VOL*100));
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "TRIG=%d=1=", TRIG*100);
+  sprintf(message, "TRIG=%d=1=", (int)(TRIG*100));
   getCRC(message);
   Serial.println(message);
   comms_setTRIG(0);
 
   strcpy(message, "");
-  sprintf(message, "PRES=%d=1=", PRES*100);
+  sprintf(message, "PRES=%d=1=", (int)(PRES*100));
   getCRC(message);
   Serial.println(message);
 
   strcpy(message, "");
-  sprintf(message, "FLOW=%d=1=", FLOW*100);
+  sprintf(message, "FLOW=%d=1=", (int)(FLOW*100));
   getCRC(message);
   Serial.println(message);  
 
   strcpy(message, "");
-  sprintf(message, "TPRES=%d=1=", TPRES*100);
+  sprintf(message, "TPRES=%d=1=", (int)(TPRES*100));
   getCRC(message);
   Serial.println(message); 
 }
