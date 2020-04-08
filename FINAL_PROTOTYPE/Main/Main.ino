@@ -229,7 +229,7 @@ void controller()
       // Reset volume to zero when flow detected
       FLOW_SENSOR_resetVolume_flowtriggered();
       // Call PID for inhale
-      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // update motor speed
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP,min_degraded_mode_ON);
@@ -250,7 +250,7 @@ void controller()
     }break;
     case exhale: {
       // Call PID for exhale
-      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Motor to start position
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_START,min_degraded_mode_ON); 
@@ -264,7 +264,7 @@ void controller()
       // Reset trigger for flow detection
       FLOW_SENSOR_resetVolume();
       // Call PID for wait
-      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime);
+      BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Stop motor
       Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON); 

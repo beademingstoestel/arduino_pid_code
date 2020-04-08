@@ -32,13 +32,16 @@ float PID_value_D = 0;
 
 int EXHALE_TIME = 0;
 //------------------------------------------------------------------------------
-void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime)
+void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime, bool min_degraded_mode_ON)
 {
   delta_time = millis() - inhale_start_time; // time since INTAKE state has started
   if (delta_time < risetime) {
     PRESSURE_INHALE_SETPOINT = setting * delta_time / risetime;
   } else {
     PRESSURE_INHALE_SETPOINT = setting;
+  }
+  if(min_degraded_mode_ON){
+    PRESSURE_INHALE_SETPOINT = 10;
   }
   if(controller_state == exhale || controller_state == wait){
     PRESSURE_INHALE_SETPOINT = 0;
