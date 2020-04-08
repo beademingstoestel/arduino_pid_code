@@ -54,13 +54,16 @@ void initLight(){
 }
 
 void LightOn() {
-  analogWrite(Light_PWM, 255); //Turn on PWM @100% duty
+  Timer3.pwm(Light_PWM, 1023);
+//  analogWrite(Light_PWM, 255); //Turn on PWM @100% duty
 }
 void LightOnPWM(uint8_t intensity) {
-  analogWrite(Light_PWM, intensity); //Turn on PWM
+  Timer3.pwm(Light_PWM, intensity*4);
+//  analogWrite(Light_PWM, intensity); //Turn on PWM
 }
 void LightOff() {
-  analogWrite(Light_PWM, 0); //Turn set duty to 0;
+  Timer3.pwm(Light_PWM, 0);
+//  analogWrite(Light_PWM, 0); //Turn set duty to 0;
 }
 #else
 void LightOn() { }
@@ -78,13 +81,16 @@ void initFan(){
 }
 
 void FanOn() {
-  analogWrite(Fan_PWM, 255); //Turn on PWM @100% duty
+  Timer3.pwm(Fan_PWM, 1023);
+//  analogWrite(Fan_PWM, 255); //Turn on PWM @100% duty
 }
 void FanOnPWM(uint8_t intensity) {
-  analogWrite(Fan_PWM, intensity); //Turn on PWM
+  Timer3.pwm(Fan_PWM, intensity*4);
+//  analogWrite(Fan_PWM, intensity); //Turn on PWM
 }
 void FanOff() {
-  analogWrite(Fan_PWM, 0); //Turn set duty to 0;
+  Timer3.pwm(Fan_PWM, 0);
+//  analogWrite(Fan_PWM, 0); //Turn set duty to 0;
 }
 bool FanState = true;
 int FanCounter = 0;
@@ -139,14 +145,13 @@ int PSUSupplyVoltage() {
 }
 
 bool OnMainsPower(){
-  int ADCvalue = analogRead(PSU_supply_voltage); //readout adc
+  int ADCvalue = analogRead(main_supply_voltage); //readout adc
   int scaledVoltage =  map(ADCvalue, 0, 1023, 0, 5000); //rescale ADC value to 5V Vref in millivolts
-  if (scaledVoltage > 1000){ // check if scaled PSU voltage larger than 1V
-    return true;
+  if (scaledVoltage * MainSupplyVoltageScaling < 10000){ // check if scaled mains voltage smaller than 10V
+    return false;
   }else{
-      return false;
-    }
-    
+    return true;
+  }
 }
 #else
 int PSUSupplyVoltage() {

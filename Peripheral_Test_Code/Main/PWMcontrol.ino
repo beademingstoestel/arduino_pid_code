@@ -60,12 +60,11 @@ void MOTOR_CONTROL_setValue(int value)
 #endif
 
 #ifdef MOTORDRIVER_VNH3SP30
-/* reference for DEFINE PINNAMES
-  #define Motor_IN_A 12
-  #define Motor_EN_A 11
-  #define Motor_EN_B 10
-  #define Motor_PWM 9
-  #define Motor_IN_B 8*/
+  const int MOTOR_IN_A = Motor_IN_A_PIN;
+  const int MOTOR_EN_A = Motor_EN_A_PIN;
+  const int MOTOR_EN_B = Motor_EN_B_PIN;
+  const int MOTOR_PWM = Motor_PWM_PIN;
+  const int MOTOR_IN_B = Motor_IN_B_PIN;
 
 //----------------------------------------------------------------------------------
 bool MOTOR_CONTROL_setup(int ENDSWITCH_PUSH, int ENDSWITCH_FULL){
@@ -121,13 +120,13 @@ void MOTOR_CONTROL_setValue(int value)
 }
 //----------------------------------------------------------------------------------
 void Motor_TurnLeft(uint8_t PWMValue){
-   analogWrite(MOTOR_PWM, PWMValue);
+   //analogWrite(MOTOR_PWM, PWMValue);
    digitalWrite(MOTOR_IN_A, HIGH);
    digitalWrite(MOTOR_IN_B, LOW);
    analogWrite(MOTOR_PWM, PWMValue);
 }
 void Motor_TurnRight(uint8_t PWMValue){
-   analogWrite(MOTOR_PWM, PWMValue);
+   //analogWrite(MOTOR_PWM, PWMValue);
    digitalWrite(MOTOR_IN_A, LOW);
    digitalWrite(MOTOR_IN_B, HIGH);
    analogWrite(MOTOR_PWM, PWMValue);

@@ -78,7 +78,7 @@
 #endif
 
 #ifdef protoGroteSerie
-  #define endswitches_inverted
+//  #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 6 // exhale: upper switch
   //Motor driver: VNH3SP30-E
@@ -96,8 +96,10 @@
   #define BME_SPI_MOSI 51 // DI
   #define BME_SPI_CS 19 // CS for external barometer
   
-  #define Speaker_PWM 5
-  #define Light_PWM 4
+  #define Speaker_PWM 4 // ADJUSTED
+  #define Light_PWM 5   // ADJUSTED
+//  #define Speaker_PWM 5 // original pinout PCB
+//  #define Light_PWM 4   // original pinout PCB
   #define Fan_PWM 3
   #define main_supply_voltage A2 // ~batt voltage if no PSU [ANALOG]
   #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
