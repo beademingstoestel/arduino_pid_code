@@ -86,6 +86,7 @@ void debounceAlarm()
   {    
     if (!comms_getMT() && !transientMute) SpeakerOn();
     LightOn();
+    DEBUGserial.println(ALARM, BIN);
   }
   else
   {

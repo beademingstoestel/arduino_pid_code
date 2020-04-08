@@ -29,11 +29,11 @@ SETTING settingarray[17]= {
   {"TP", 2, false, 32, 0, 0},
   {"ADPK", 10, false, 36, 0, 0},
   {"ADVT", 10, false, 40, 0, 0},
-  {"ADPP", 5, false, 44, 0, 0},
+  {"ADPP", 15, false, 44, 0, 0},
   {"MODE", 0, false, 48, 0, 0},
   {"ACTIVE", 0, false, 52, 0, 0},
   {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.14, false, 52, 0, 0}
+  {"FW", 2.20, false, 52, 0, 0}
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);

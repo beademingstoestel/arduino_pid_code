@@ -1,6 +1,7 @@
 //#define plexi
 //#define metal
-#define protoseven
+//#define FINAL_PROTOTYPE
+#define AUDI_V1
 
 #ifdef plexi
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
@@ -43,7 +44,13 @@
   #define BME_SPI_CS 48
 #endif
 
-#ifdef protoseven
+#ifdef FINAL_PROTOTYPE
+  #define hall_sensor_i2c
+
+  #define BME_tube 1
+  #define BME_ambient 1
+  #define MPL_tube 1
+
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 2 // exhale: upper switch
 
@@ -76,35 +83,46 @@
   #define BEEPLENGTH 2000
 #endif
 
-#ifdef protoGroteSerie
-  #define endswitches_inverted
+#ifdef AUDI_V1
+  #define hall_sensor_i2c
+
+  #define BME_tube 1
+  #define BME_ambient 1
+  #define MPL_tube 1
+  
+//  #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
   #define ENDSWITCH_PUSH_PIN 6 // exhale: upper switch
-  //Motor driver: VNH3SP30-E
-
+  
   #define MOTORDRIVER_VNH3SP30
-  #define Motor_IN_A 12
-  #define Motor_EN_A 11
-  #define Motor_EN_B 10
-  #define Motor_PWM 9
-  #define Motor_IN_B 8
+  #define Motor_IN_A_PIN 12
+  #define Motor_EN_A_PIN 11
+  #define Motor_EN_B_PIN 10
+  #define Motor_PWM_PIN 9
+  #define Motor_IN_B_PIN 8
   
   //SPI -> Fixed pins
   #define BME_SPI_SCK 52 // clk
   #define BME_SPI_MISO 50 // DO
   #define BME_SPI_MOSI 51 // DI
   #define BME_SPI_CS 19 // CS for external barometer
+
+  //  #define Speaker_PWM 5 // original pinout PCB
+  //  #define Light_PWM 4   // original pinout PCB
   
-  #define Speaker_PWM 5
-  #define Light_PWM 4
+  #define Speaker_PWM 4 // ADJUSTED
+  #define Light_PWM 5   // ADJUSTED
   #define Fan_PWM 3
-  #define main_supply_voltage A2 // ~batt voltage if no PSU [ANALOG]
-  #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
-  #define PSU_supply_voltage A3 // detect if PSU is unplugged [ANALOG OR DIGITAL]
-  #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
   #define fan_speed A4
+  
+  #define main_supply_voltage A3 // ~batt voltage if no PSU [ANALOG]
+  #define MainSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+  #define PSU_supply_voltage A2 // detect if PSU is unplugged [ANALOG OR DIGITAL]
+  #define PSUSupplyVoltageScaling 11 //Scaling factor for resistor divider 10K over 1K ==> *11
+
   // TX3 and RX3 to staggered debug header
   // (pinout debug header: 5V - TX - RX - GND, Square pad = pin1)
+  
   #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
 #endif
