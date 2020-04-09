@@ -66,7 +66,6 @@ bool flow_sens_init_ok = false;
 bool isFlow2PatientRead = false;
 bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
-bool isVolumeOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
 
@@ -166,10 +165,11 @@ void loop()
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
 
-  // update ambient pressure
+  // update ambient pressure and temperature
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
+  temperature_OK = BME_280_CHECK_TEMPERATURE();
   // check fan
-  FanPollingRoutine();
+  fan_OK = FanPollingRoutine();
   // delay loop to avoid full serial buffers
   delay(50); 
 }
@@ -187,16 +187,13 @@ void controller()
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
-  isVolumeOK = FLOW_SENSOR_getVolume(&CurrentVolumePatient);
   noInterrupts();
   
-  // Check power supply and minimal degraded mode
-  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  temperature_OK = FLOW_SENSOR_CHECK_TEMP();
-  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect, battery_above_25, temperature_OK);
-  
-  // update values 
+  // update volume 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
+  FLOW_SENSOR_getVolume(&CurrentVolumePatient);
+
+  // update python values
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
@@ -204,8 +201,12 @@ void controller()
   
   // read switches
   int END_SWITCH_VALUE_STOP = read_endswitch_stop();
-  int END_SWITCH_VALUE_START = read_endswitch_start();  
-
+  int END_SWITCH_VALUE_START = read_endswitch_start(); 
+   
+  // Check power supply and minimal degraded mode
+  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
+  min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect, battery_above_25, temperature_OK, fan_OK);
+  
   // check alarm
   checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
     isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 

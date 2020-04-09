@@ -425,6 +425,16 @@ float Adafruit_BME280::readTemperature(void) {
   return T / 100;
 }
 
+/*!  THOMASVDD
+ *   @brief  Returns the temperature from the sensor
+ *   @returns the temperature read from the device
+ */
+
+float Adafruit_BME280::getTemperature(void) {
+	float T = (t_fine * 5 + 128) >> 8;
+	return T / 100;
+}
+
 /*!
  *   @brief  Returns the pressure from the sensor
  *   @returns the pressure value (in Pascal) read from the device

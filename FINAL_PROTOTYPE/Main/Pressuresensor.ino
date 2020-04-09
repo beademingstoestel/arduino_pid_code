@@ -207,3 +207,16 @@ bool BME_280_UPDATE_AMBIENT(){
   
   return true;
 }
+
+//-----------------------------------------------------------------------------------------------
+bool BME_280_CHECK_TEMPERATURE(){
+  if(PRESSURE_SENSOR2_INITIALIZED){
+      if (bme2.getTemperature() > maxTemperature){
+        return false;
+      }
+      else{
+        return true;
+      }
+  }
+  return false;
+}
