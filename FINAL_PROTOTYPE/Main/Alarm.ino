@@ -147,10 +147,10 @@ void checkALARM(float pressure, int volume, controller_state_t state,
   
   if (pressure < comms_getPP() - comms_getADPP() && state != ini){
     // Peep deviation exceeded
-    setAlarmState(3);
+    //setAlarmState(3);
   }
   else{
-    resetAlarmState(3);
+    //resetAlarmState(3);
   }
 
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
