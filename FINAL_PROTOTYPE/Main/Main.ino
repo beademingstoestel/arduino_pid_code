@@ -170,6 +170,8 @@ void loop()
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   // check fan
   fan_OK = FanPollingRoutine();
+  // check buzzer
+  SpeakerTimingSupportRoutine();
   // delay loop to avoid full serial buffers
   delay(50); 
 }
@@ -219,7 +221,7 @@ void controller()
       // Check user input to start controller
       if (comms_getActive() == 1) {
         comms_resetActive(); // reset state to 0 (avoid buzzer resetting)
-        ALARM_Short_Beep(); // turn on BUZZER   
+        SpeakerBeep(500); // turn on BUZZER   
       }
       if (comms_getActive() == 2) {
         transientMute = transientMuteCycles;
