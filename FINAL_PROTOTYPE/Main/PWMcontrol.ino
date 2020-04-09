@@ -12,21 +12,24 @@ bool MOTOR_CONTROL_setup(int ENDSWITCH_PUSH, int ENDSWITCH_FULL){
   pinMode(ENDSWITCH_PUSH,INPUT_PULLUP);
   
   MOTOR_CONTROL_setp();
+
+  unsigned long starttime = millis();
+  unsigned long maxsetuptime = 10000;
  
   // if already at bottom: go up until we clear the switch
   if(digitalRead(ENDSWITCH_FULL)){
     MOTOR_CONTROL_setValue(50);
-    while(!digitalRead(ENDSWITCH_FULL)){}
+    while(!digitalRead(ENDSWITCH_FULL)){if(millis() - starttime > maxsetuptime) return false;}
     delay(100);
     MOTOR_CONTROL_setValue(0);
   }
   // Go down to bottom switch
   MOTOR_CONTROL_setValue(-80);
-  while(!digitalRead(ENDSWITCH_FULL)){}
+  while(!digitalRead(ENDSWITCH_FULL)){if(millis() - starttime > maxsetuptime) return false;}
   MOTOR_CONTROL_setValue(0);
   // Go up to top endswitch
   MOTOR_CONTROL_setValue(50);
-  while(!digitalRead(ENDSWITCH_PUSH)){}
+  while(!digitalRead(ENDSWITCH_PUSH)){if(millis() - starttime > maxsetuptime) return false;}
   MOTOR_CONTROL_setValue(0);
 
   return true;
@@ -81,22 +84,23 @@ bool MOTOR_CONTROL_setup(int ENDSWITCH_PUSH, int ENDSWITCH_FULL){
  // pinMode(Motor_EN_A, INPUT);  
  // pinMode(Motor_EN_B, INPUT);
 
-
+  unsigned long starttime = millis();
+  unsigned long maxsetuptime = 10000;
  
   // if already at bottom: go up until we clear the switch
   if(read_endswitch_stop()){
     MOTOR_CONTROL_setValue(50);
-    while(!read_endswitch_stop()){}
+    while(!read_endswitch_stop()){if(millis() - starttime > maxsetuptime) return false;}
     delay(100);
     MOTOR_CONTROL_setValue(0);
   }
   // Go down to bottom switch
   MOTOR_CONTROL_setValue(-80);
-  while(!read_endswitch_stop()){}
+  while(!read_endswitch_stop()){if(millis() - starttime > maxsetuptime) return false;}
   MOTOR_CONTROL_setValue(0);
   // Go up to top endswitch
   MOTOR_CONTROL_setValue(50);
-  while(!read_endswitch_start()){}
+  while(!read_endswitch_start()){if(millis() - starttime > maxsetuptime) return false;}
   MOTOR_CONTROL_setValue(0);
 
   return true;
