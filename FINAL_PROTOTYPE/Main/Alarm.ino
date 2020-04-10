@@ -17,7 +17,7 @@ unsigned long lastCpuTime = millis();
 
 float maxTemperature = 50;
 
-#define ON_REQUEST_DEBOUNCE_CYCLES 40  // alarm is accepted after 400ms or in case of intermittent error, 40 more errors than not errors 
+#define ON_REQUEST_DEBOUNCE_CYCLES 2  // alarm is accepted after 400ms or in case of intermittent error, 40 more errors than not errors 
 #define OFF_REQUEST_DEBOUNCE_CYCLES 50  // alarm is switched off  after 500ms without alarm request
 #define ALARM_OFF 0
 #define ALARM_ON 1
@@ -83,8 +83,10 @@ void ALARM_debounceAlarm()
   // Check if the buzzer should be triggered, based on input from Python
   alarmStatusFromPython = comms_getAlarmSatusFromPython() & PYTHONMASK;
 
+  resetAlarmStatePython(alarmStatusFromPython);
+
   // light purely determined by python
-  if (alarmStatusFromPython > 0){
+  if ((alarmStatusFromPython << 15) > 0){
     LightOn();
     DEBUGserial.println(ALARM, BIN);
   }
@@ -146,6 +148,18 @@ void resetAlarmState(unsigned int alarm) {
 }
 
 //-----------------------------------------------------
+// reset alarm state from python
+//-----------------------------------------------------
+void resetAlarmStatePython(unsigned int alarm) {
+
+  unsigned int alarmbyte = ALARM & alarm;
+  // BITWISE AND current alarm with new to RESET
+  ALARM ^= alarmbyte;
+
+  ALARM |= (alarmbyte & 0x0001);
+}
+
+//-----------------------------------------------------
 // get alarm state
 //-----------------------------------------------------
 unsigned int ALARM_getAlarmState(void) {
@@ -170,14 +184,14 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(5);
   }
   else{
-    resetAlarmState(5);
+    //resetAlarmState(5);
   }
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
     setAlarmState(7);
   }
   else{
-    resetAlarmState(7);
+    //resetAlarmState(7);
   }
 
    if (flow_sens_init_ok==false){
@@ -185,7 +199,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(8);
   }
   else{
-    resetAlarmState(8);
+    //resetAlarmState(8);
   }
   
    if (motor_sens_init_ok==false){
@@ -193,7 +207,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(9);
   }
   else{
-    resetAlarmState(9);
+    //resetAlarmState(9);
   }
   
    if (hall_sens_init_ok==false){
@@ -201,7 +215,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(10);
   }
   else{
-    resetAlarmState(10);
+    //resetAlarmState(10);
   }
 
   if (battery_powered){
@@ -209,7 +223,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(11);
   }
   else{
-    resetAlarmState(11);
+    //resetAlarmState(11);
   }
 
   if (battery_SoC<0.5){
@@ -217,7 +231,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(12);
   }
   else{
-    resetAlarmState(12);
+    //resetAlarmState(12);
   }
 
   if (battery_SoC<0.25){
@@ -225,7 +239,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
     setAlarmState(13);
   }
   else{
-    resetAlarmState(13);
+    //resetAlarmState(13);
   }
 }
 
@@ -238,15 +252,15 @@ void checkALARM(float pressure, int volume, controller_state_t state,
   setAlarmState(1);
   }
   else{
-    resetAlarmState(1);
+    //resetAlarmState(1);
   }
 
-  if (volume > comms_getVT() + comms_getADVT()){
+  if (abs(volume) > comms_getVT() + comms_getADVT()){
     // max volume exceeded
     setAlarmState(2);
   }
   else{
-    resetAlarmState(2);
+    //resetAlarmState(2);
   }
   
   if (pressure < comms_getPP() - comms_getADPP() && state != ini){
@@ -262,7 +276,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(4);
   }
   else{
-    resetAlarmState(4);
+    //resetAlarmState(4);
   }
   
   if (temperature_OK == false){
@@ -270,7 +284,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(5);
   }
   else{
-    resetAlarmState(5);
+    //resetAlarmState(5);
   }
 
   if (isFlow2PatientRead==false){
@@ -278,7 +292,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(6);
   }
   else{
-    resetAlarmState(6);
+    //resetAlarmState(6);
   }   
   // removed initialisation errors to function above
   if (battery_powered){
@@ -286,7 +300,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(11);
   }
   else{
-    resetAlarmState(11);
+    //resetAlarmState(11);
   }
 
   if (battery_SoC<0.5){
@@ -294,7 +308,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(12);
   }
   else{
-    resetAlarmState(12);
+    //resetAlarmState(12);
   }
 
   if (battery_SoC<0.25){
@@ -302,7 +316,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(13);
   }
   else{
-    resetAlarmState(13);
+    //resetAlarmState(13);
   }
 
   if (fan_OK==false){
@@ -310,7 +324,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(14);
   }
   else{
-    resetAlarmState(14);
+    //resetAlarmState(14);
   }
 
   if (isPythonOK==false){
@@ -318,7 +332,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     setAlarmState(15);
   }
   else{
-    resetAlarmState(15);
+    //resetAlarmState(15);
   }
 }
 

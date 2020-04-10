@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.38, false, 60, 0, 0}   // 16
+  {"FW", 2.39, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -315,7 +315,7 @@ void processSerialPort(String input) {
 
 int sendAlarmState(void) {
   strcpy(message, "");
-  sprintf(message, "ALARM=%d=%c=", ALARM_getAlarmState(), ++counter);
+  sprintf(message, "ALARM=%u=%c=", ALARM_getAlarmState(), ++counter);
   getCRC(message);
   Serial.println(message);
   settingarray[0].messageid = counter;     
