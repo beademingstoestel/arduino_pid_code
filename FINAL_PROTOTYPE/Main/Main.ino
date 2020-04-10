@@ -2,7 +2,7 @@
 #include "PINOUT.h"
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
-#define HARDWARE 1
+#define HARDWARE 0
 #define DEBUGserial Serial3
  
 //---------------------------------------------------------------
