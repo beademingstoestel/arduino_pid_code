@@ -96,7 +96,7 @@ void ALARM_debounceAlarm()
 
   // In ini state, the alarm should not sound (only for start beep)
   if(controller_state != ini){
-    if (alarmStatusFromPython > 0){
+    if ((alarmStatusFromPython << 15) > 0){
       if (!comms_getMT()){
         SpeakerOn();
       }
@@ -163,13 +163,7 @@ void resetAlarmStatePython(unsigned int alarm) {
 // get alarm state
 //-----------------------------------------------------
 unsigned int ALARM_getAlarmState(void) {
-  // return 0 if we are in startup transient
-  if (transientMute){
-    return 0;
-  }
-  else{
     return ALARM;
-  }
 }
 
 //-----------------------------------------------------
