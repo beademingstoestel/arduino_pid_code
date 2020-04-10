@@ -141,6 +141,7 @@ void setup()
   DEBUGserial.println("Setup done");
 
   //-- check alarms
+  temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   checkALARM_init(pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
                   fan_OK, battery_powered, battery_SoC, temperature_OK);
