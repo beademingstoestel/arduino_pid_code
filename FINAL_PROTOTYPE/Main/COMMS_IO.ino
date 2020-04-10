@@ -17,23 +17,23 @@ typedef struct{
 } SETTING;  
 
 SETTING settingarray[17]= {
-  {"ALARM", 0, false, 56, 0, 0},
-  {"RR", 20, false, 0, 0, 0},
-  {"VT", 400, false, 4, 0, 0},
-  {"PK", 35, false, 8, 0, 0},
-  {"PS", 25, false, 12, 0, 0},
-  {"PP", 20, false, 16, 0, 0},
-  {"IE", 0.3, false, 20, 0, 0},
-  {"RP", 0.5, false, 24, 0, 0},
-  {"TS", 10, false, 28, 0, 0},
-  {"TP", 2, false, 32, 0, 0},
-  {"ADPK", 10, false, 36, 0, 0},
-  {"ADVT", 10, false, 40, 0, 0},
-  {"ADPP", 15, false, 44, 0, 0},
-  {"MODE", 0, false, 48, 0, 0},
-  {"ACTIVE", 0, false, 52, 0, 0},
-  {"MT", 0, false, 52, 0, 0},
-  {"FW", 2.28, false, 52, 0, 0}
+  {"ALARM", 0, false, 64, 0, 0},  // 0
+  {"RR", 20, false, 0, 0, 0},     // 1
+  {"VT", 400, false, 4, 0, 0},    // 2
+  {"PK", 35, false, 8, 0, 0},     // 3
+  {"PS", 25, false, 12, 0, 0},    // 4
+  {"PP", 20, false, 16, 0, 0},    // 5
+  {"IE", 0.3, false, 20, 0, 0},   // 6
+  {"RP", 0.5, false, 24, 0, 0},   // 7
+  {"TS", 10, false, 28, 0, 0},    // 8
+  {"TP", 2, false, 32, 0, 0},     // 9
+  {"ADPK", 10, false, 36, 0, 0},  // 10
+  {"ADVT", 10, false, 40, 0, 0},  // 11
+  {"ADPP", 15, false, 44, 0, 0},  // 12
+  {"MODE", 0, false, 48, 0, 0},   // 13
+  {"ACTIVE", 0, false, 52, 0, 0}, // 14
+  {"MT", 0, false, 56, 0, 0},     // 15
+  {"FW", 2.29, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -83,21 +83,10 @@ unsigned long comms_getExhaleTime(){
   return target_exhale_duration_int;
 }
 
-float comms_getPressure(bool inhale_detected){
-  if(inhale_detected){
-    return settingarray[4].settingvalue;
-  }
-  else{
-    return settingarray[3].settingvalue;
-  }
-}
-
 unsigned int comms_getAlarmSatusFromPython() 
 {
    return settingarray[0].settingvalue;
 }
-
-
 unsigned int comms_getRR() {
   return settingarray[1].settingvalue;
 }
@@ -107,14 +96,40 @@ unsigned int comms_getVT() {
 unsigned int comms_getPK() {
   return settingarray[3].settingvalue;
 }
-int comms_getTS() {
-  return settingarray[8].settingvalue;
+float comms_getPressure(bool inhale_detected){
+  if(!inhale_detected){
+    return settingarray[3].settingvalue;
+  }
+  else{
+    return settingarray[4].settingvalue;
+  }
+}
+float comms_getPS() {
+  return settingarray[4].settingvalue;
+}
+unsigned int comms_getPP() {
+  return settingarray[5].settingvalue;
 }
 float comms_getIE() {
   return settingarray[6].settingvalue;
 }
-unsigned int comms_getPP() {
-  return settingarray[5].settingvalue;
+float comms_getRP() {
+  return settingarray[7].settingvalue*1000;
+}
+int comms_getTS() {
+  return settingarray[8].settingvalue;
+}
+float comms_getTP() {
+  return settingarray[9].settingvalue;
+}
+unsigned int comms_getADPK() {
+  return settingarray[10].settingvalue;
+}
+unsigned int comms_getADVT() {
+  return settingarray[11].settingvalue;
+}
+unsigned int comms_getADPP() {
+  return settingarray[12].settingvalue;
 }
 bool comms_getMode() {
   return settingarray[13].settingvalue;
@@ -129,24 +144,6 @@ int comms_getActive() {
 }
 bool comms_resetActive() {
     settingarray[14].settingvalue = 0;
-}
-unsigned int comms_getADPK() {
-  return settingarray[10].settingvalue;
-}
-unsigned int comms_getADVT() {
-  return settingarray[11].settingvalue;
-}
-unsigned int comms_getADPP() {
-  return settingarray[12].settingvalue;
-}
-float comms_getPS() {
-  return settingarray[4].settingvalue;
-}
-float comms_getRP() {
-  return settingarray[7].settingvalue*1000;
-}
-float comms_getTP() {
-  return settingarray[9].settingvalue;
 }
 float comms_getMT() {
   return settingarray[15].settingvalue;
@@ -213,10 +210,6 @@ void sendDataToPython() {
   sprintf(message, "TPRES=%d=1=", (int)(TPRES*100));
   getCRC(message);
   Serial.println(message); 
-}
-
-void sendInitToPython() {
-
 }
 
 //---------------------------------------------------------------

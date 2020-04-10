@@ -84,7 +84,7 @@ void debounceAlarm()
     
   if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
   {    
-    if (!comms_getMT() && !transientMute) SpeakerOn();
+    if (!(comms_getMT() || transientMute)) SpeakerOn();
     LightOn();
     DEBUGserial.println(ALARM, BIN);
   }
