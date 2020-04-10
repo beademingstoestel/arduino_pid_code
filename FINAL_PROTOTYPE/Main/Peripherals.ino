@@ -120,6 +120,7 @@ bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of t
   return FanState;
 }
 #else
+void initFan() { }
 void FanOn() { }
 void FanOnPWM(uint8_t intensity) { }
 void FanOff() { }

@@ -112,7 +112,7 @@
   
   #define Speaker_PWM 4 // ADJUSTED
   #define Light_PWM 5   // ADJUSTED
-  #define Fan_PWM 3
+  //#define Fan_PWM 3
   #define fan_speed A4
   
   #define main_supply_voltage A3 // ~batt voltage if no PSU [ANALOG]
