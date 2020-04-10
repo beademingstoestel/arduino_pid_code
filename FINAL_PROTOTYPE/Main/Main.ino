@@ -311,6 +311,7 @@ void controller()
       // Check user input to stop controller
       if (comms_getActive() == 0) { 
         controller_state = ini; // stop controller
+        SpeakerOff(); // turn off BUZZER
       }
     }break;
     default: controller_state = wait;

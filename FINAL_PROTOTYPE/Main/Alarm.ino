@@ -83,19 +83,28 @@ void ALARM_debounceAlarm()
   // Check if the buzzer should be triggered, based on input from Python
   alarmStatusFromPython = comms_getAlarmSatusFromPython() & PYTHONMASK;
 
+  // light purely determined by python
   if (alarmStatusFromPython > 0){
-    if (!comms_getMT()){
-      SpeakerOn();
-    }
-    else{
-      SpeakerOff();
-    }
     LightOn();
     DEBUGserial.println(ALARM, BIN);
   }
   else{
-    SpeakerOff();
     LightOff();
+  }
+
+  // In ini state, the alarm should not sound (only for start beep)
+  if(controller_state != ini){
+    if (alarmStatusFromPython > 0){
+      if (!comms_getMT()){
+        SpeakerOn();
+      }
+      else{
+        SpeakerOff();
+      }
+    }
+    else{
+      SpeakerOff();
+    }
   }
 
 // OLD CODE: back when arduino was boss over it's own buzzer, good times...    
