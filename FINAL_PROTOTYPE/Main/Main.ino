@@ -140,6 +140,12 @@ void setup()
   //-- setup done
   DEBUGserial.println("Setup done");
 
+  //-- check alarms
+  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
+  checkALARM_init(pressure_sens_init_ok, 
+    flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, fan_OK, 
+    battery_powered, battery_SoC, temperature_OK);
+    
   //-- set up communication with screen
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
@@ -212,7 +218,7 @@ void controller()
   // check alarm
   checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
     isFlow2PatientRead, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
-    fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect);
+    fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine
   switch (controller_state) {

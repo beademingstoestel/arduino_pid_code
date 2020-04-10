@@ -152,10 +152,78 @@ unsigned int ALARM_getAlarmState(void) {
 //-----------------------------------------------------
 // check alarm
 //-----------------------------------------------------
+void checkALARM_init( bool pressure_sens_init_ok, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
+    bool battery_powered, float battery_SOC, bool temperature_OK)
+    {
+  if (temperature_OK == false){
+    // check flow sensor temperature measurement
+    setAlarmState(5);
+  }
+  else{
+    resetAlarmState(5);
+  }
+  if (pressure_sens_init_ok==false){
+    // Sensor calibration failed pressure
+    setAlarmState(7);
+  }
+  else{
+    resetAlarmState(7);
+  }
+
+   if (flow_sens_init_ok==false){
+    // Sensor calibration failed flow
+    setAlarmState(8);
+  }
+  else{
+    resetAlarmState(8);
+  }
+  
+   if (motor_sens_init_ok==false){
+    // Motor limit switches check failed
+    setAlarmState(9);
+  }
+  else{
+    resetAlarmState(9);
+  }
+  
+   if (hall_sens_init_ok==false){
+    // hall sensor initialization failed
+    setAlarmState(10);
+  }
+  else{
+    resetAlarmState(10);
+  }
+
+  if (battery_powered){
+    // switched to battery --> check if externally powered
+    setAlarmState(11);
+  }
+  else{
+    resetAlarmState(11);
+  }
+
+  if (battery_SoC<0.5){
+    // SoC battery <50% -  low
+    setAlarmState(12);
+  }
+  else{
+    resetAlarmState(12);
+  }
+
+  if (battery_SoC<0.25){
+    // SoC battery <25% - critical
+    setAlarmState(13);
+  }
+  else{
+    resetAlarmState(13);
+  }
+}
+
 void checkALARM(float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool pressure_sens_init_ok, 
     bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
-    bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect)
+    bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
   if (pressure > comms_getPK() + comms_getADPK()){
   // max pressure exceeded
