@@ -311,6 +311,6 @@ void controller()
     default: controller_state = wait;
   }
       
-  debounceAlarm(); // take current alarms into account for debounce
+  ALARM_debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
 }

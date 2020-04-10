@@ -17,7 +17,7 @@ unsigned long lastCpuTime = millis();
 
 float maxTemperature = 50;
 
-#define ON_REQUEST_DEBOUNCE_CYCLES 10  // alarm is accepted after 100ms or in case of intermittent error, 10 more errors than not errors 
+#define ON_REQUEST_DEBOUNCE_CYCLES 40  // alarm is accepted after 400ms or in case of intermittent error, 40 more errors than not errors 
 #define OFF_REQUEST_DEBOUNCE_CYCLES 50  // alarm is switched off  after 500ms without alarm request
 #define ALARM_OFF 0
 #define ALARM_ON 1
@@ -40,7 +40,7 @@ void ALARM_init() {
 
 // debounceAlarm is to be called every 10ms,
 // it treats all alarms set the last 10ms and feeds it to the debounce filter
-void debounceAlarm()
+void ALARM_debounceAlarm()
 {
   unsigned int alarmRequested =  (ALARM & ALARMMASK);
   unsigned int alarmStatusFromPython = 0;
@@ -80,11 +80,11 @@ void debounceAlarm()
     }
   }
 
+  // Check if the buzzer should be triggered, based on input from Python
   alarmStatusFromPython = comms_getAlarmSatusFromPython() & PYTHONMASK;
-    
-  if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
-  {    
-    if (!(comms_getMT() || transientMute)){
+
+  if (alarmStatusFromPython > 0){
+    if (!comms_getMT()){
       SpeakerOn();
     }
     else{
@@ -93,11 +93,28 @@ void debounceAlarm()
     LightOn();
     DEBUGserial.println(ALARM, BIN);
   }
-  else
-  {
+  else{
     SpeakerOff();
     LightOff();
   }
+
+// OLD CODE: back when arduino was boss over it's own buzzer, good times...    
+//  if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
+//  {    
+//    if (!(comms_getMT() || transientMute)){
+//      SpeakerOn();
+//    }
+//    else{
+//      SpeakerOff();
+//    }
+//    LightOn();
+//    DEBUGserial.println(ALARM, BIN);
+//  }
+//  else
+//  {
+//    SpeakerOff();
+//    LightOff();
+//  }
 }
 
 //----------------------------------------------------------
@@ -122,8 +139,14 @@ void resetAlarmState(unsigned int alarm) {
 //-----------------------------------------------------
 // get alarm state
 //-----------------------------------------------------
-unsigned int getAlarmState(void) {
-  return ALARM;
+unsigned int ALARM_getAlarmState(void) {
+  // return 0 if we are in startup transient
+  if (transientMute){
+    return 0;
+  }
+  else{
+    return ALARM;
+  }
 }
 
 //-----------------------------------------------------
