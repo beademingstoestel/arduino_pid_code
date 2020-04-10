@@ -221,8 +221,7 @@ void checkALARM_init( bool pressure_sens_init_ok,
 }
 
 void checkALARM(float pressure, int volume, controller_state_t state,
-    bool isPatientPressureCorrect, bool isFlow2PatientRead, bool pressure_sens_init_ok, 
-    bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
+    bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
   if (pressure > comms_getPK() + comms_getADPK()){
@@ -272,39 +271,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
   else{
     resetAlarmState(6);
   }   
-
-  if (pressure_sens_init_ok==false){
-    // Sensor calibration failed pressure
-    setAlarmState(7);
-  }
-  else{
-    resetAlarmState(7);
-  }
-
-   if (flow_sens_init_ok==false){
-    // Sensor calibration failed flow
-    setAlarmState(8);
-  }
-  else{
-    resetAlarmState(8);
-  }
-  
-   if (motor_sens_init_ok==false){
-    // Motor limit switches check failed
-    setAlarmState(9);
-  }
-  else{
-    resetAlarmState(9);
-  }
-  
-   if (hall_sens_init_ok==false){
-    // hall sensor initialization failed
-    setAlarmState(10);
-  }
-  else{
-    resetAlarmState(10);
-  }
-
+  // removed initialisation errors to function above
   if (battery_powered){
     // switched to battery --> check if externally powered
     setAlarmState(11);
