@@ -37,6 +37,9 @@ void SpeakerTimingSupportRoutine(){
   if(millis()-SpeakerTimeStamp > SpeakerBeepLength){ //if time has elapsed, turn of the speaker
     SpeakerOff();
   }
+  else{
+    SpeakerOn();
+  }
 }
 #else
 void SpeakerOn() {}   //if no speakerpin defined do nothing
