@@ -79,6 +79,8 @@ void setup()
 {
   Serial.begin(115200);
   DEBUGserial.begin(115200); 
+
+  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
   
   DEBUGserial.println("=== TEST SCRIPT ===");
 
