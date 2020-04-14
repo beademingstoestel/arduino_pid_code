@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.46, false, 60, 0, 0}   // 16
+  {"FW", 2.47, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -72,13 +72,13 @@ void initEEPROM() {
 //---------------------------------------------------------------
 
 unsigned long comms_getInhaleTime(){
-  float target_inhale_duration = 1000.0 * 60.0 * settingarray[6].settingvalue / settingarray[1].settingvalue  ;   
+  float target_inhale_duration = 1000.0 * 60.0 * comms_getIE() / comms_getRR();   
   unsigned long target_inhale_duration_int = (unsigned long) target_inhale_duration;
   return target_inhale_duration_int;
 }
 
 unsigned long comms_getExhaleTime(){
-  float target_exhale_duration = 1000.0 * 60.0 * (1-settingarray[6].settingvalue) / settingarray[1].settingvalue  ;   
+  float target_exhale_duration = 1000.0 * 60.0 * (1-comms_getIE()) / comms_getRR();   
   unsigned long target_exhale_duration_int = (unsigned long) target_exhale_duration;
   return target_exhale_duration_int;
 }
@@ -87,7 +87,7 @@ unsigned int comms_getAlarmSatusFromPython()
 {
    return settingarray[0].settingvalue;
 }
-unsigned int comms_getRR() {
+float comms_getRR() {
   return settingarray[1].settingvalue;
 }
 unsigned int comms_getVT() {
