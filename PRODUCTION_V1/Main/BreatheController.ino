@@ -36,7 +36,7 @@ void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime, bool 
 {
   delta_time = millis() - inhale_start_time; // time since INTAKE state has started
   if (delta_time < risetime) {
-    PRESSURE_INHALE_SETPOINT = setting * delta_time / risetime;
+    PRESSURE_INHALE_SETPOINT = comms_getPP() + (setting - comms_getPP()) * delta_time / risetime;
   } else {
     PRESSURE_INHALE_SETPOINT = setting;
   }
