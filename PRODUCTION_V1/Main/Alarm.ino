@@ -385,7 +385,7 @@ void CPU_TIMER_stop(unsigned long stoptime) {
   }
 }
 
-unsigned long CPU_TIMER_get() {
+int CPU_TIMER_get() {
   return (100000 * maxinterrupttime / controllerTime);
 }
 
