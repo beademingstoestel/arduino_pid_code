@@ -83,6 +83,9 @@ void setup()
   DEBUGserial.print("FW version: ");
   DEBUGserial.println(comms_getFW());
 
+  //-- set up timer3
+  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
+
   //-- set up peripherals
   initPeripherals();
 
@@ -151,7 +154,6 @@ void setup()
   if (!PYTHON) isPythonOK = true;
 
   //-- set up interrupt
-  Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
   Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
 }
 
