@@ -19,21 +19,21 @@ typedef struct{
 SETTING settingarray[17]= {
   {"ALARM", 0, false, 64, 0, 0},  // 0
   {"RR", 20, false, 0, 0, 0},     // 1
-  {"VT", 400, false, 4, 0, 0},    // 2
-  {"PK", 35, false, 8, 0, 0},     // 3
+  {"VT", 800, false, 4, 0, 0},    // 2
+  {"PK", 30, false, 8, 0, 0},     // 3
   {"PS", 25, false, 12, 0, 0},    // 4
-  {"PP", 20, false, 16, 0, 0},    // 5
-  {"IE", 0.3, false, 20, 0, 0},   // 6
+  {"PP", 5, false, 16, 0, 0},     // 5
+  {"IE", 0.33, false, 20, 0, 0},  // 6
   {"RP", 0.5, false, 24, 0, 0},   // 7
   {"TS", 10, false, 28, 0, 0},    // 8
   {"TP", 2, false, 32, 0, 0},     // 9
   {"ADPK", 10, false, 36, 0, 0},  // 10
-  {"ADVT", 10, false, 40, 0, 0},  // 11
+  {"ADVT", 200, false, 40, 0, 0}, // 11
   {"ADPP", 15, false, 44, 0, 0},  // 12
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.43, false, 60, 0, 0}   // 16
+  {"FW", 2.44, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
