@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.49, false, 60, 0, 0}   // 16
+  {"FW", 2.50, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -50,7 +50,7 @@ boolean newData1 = false;
 // PYTHON VARIABLES
 //---------------------------------------------------------------
 
-unsigned int BPM = 10;      // Breaths per minute
+float BPM = 10;      // Breaths per minute
 float VOL = 20;               // volume
 unsigned int TRIG = 0;     // trigger
 float PRES = 40;              // pressure
@@ -163,7 +163,7 @@ float comms_getFW() {
 //---------------------------------------------------------------
 
 void comms_setBPM(unsigned long bpm_time) {
-  BPM = round(60000.0 / bpm_time);
+  BPM = 60000.0 / bpm_time;
 }
 void comms_setVOL(float vol) {
   VOL = vol;
