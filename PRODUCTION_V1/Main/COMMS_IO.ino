@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.48, false, 60, 0, 0}   // 16
+  {"FW", 2.49, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -146,7 +146,13 @@ bool comms_resetActive() {
     settingarray[14].settingvalue = 0;
 }
 float comms_getMT() {
-  return settingarray[15].settingvalue;
+  // only mute if python connection is OK
+  if(isPythonOK){
+    return settingarray[15].settingvalue;
+  }
+  else{
+    return 0;
+  }
 }
 float comms_getFW() {
   return settingarray[16].settingvalue;
