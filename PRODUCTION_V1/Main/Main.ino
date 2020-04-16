@@ -1,5 +1,6 @@
 #include "TimerThree.h"
 #include "PINOUT.h"
+#include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
 #define HARDWARE 0
@@ -153,6 +154,9 @@ void setup()
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
 
+  //-- configure watchdog
+  configure_wdt();
+  
   //-- set up interrupt
   Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
 }
@@ -318,7 +322,42 @@ void controller()
     default: controller_state = wait;
   }
       
-  ALARM_debounceAlarm(); // take current alarms into account for debounce
+  ALARM_debounceAlarm(); 
   CPU_TIMER_stop(millis());
   noInterrupts();
+  wdt_reset();
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// WATCHDOG
+// ---------------------------------------------------------------------------------------------------------
+
+void configure_wdt(void){
+  cli();                           // disable interrupts for changing the registers
+  MCUSR = 0;                       // reset status register flags
+                                   // Put timer in interrupt-only mode:                                       
+  WDTCSR |= 0b00011000;            // Set WDCE (5th from left) and WDE (4th from left) to enter config mode,
+                                   // using bitwise OR assignment (leaves other bits unchanged).
+  WDTCSR =  0b01000000 | 0b000000; // set WDIE: interrupt enabled
+                                   // clr WDE: reset disabled
+                                   // and set delay interval (right side of bar) to 8 seconds
+  sei();                           // re-enable interrupts
+}
+
+ISR(WDT_vect){
+  DEBUGserial.println("WDT");
+  // Disable motor, enable speaker
+  SpeakerOn();
+  digitalWrite(Motor_PWM_PIN, LOW);
+  // Only short delay microseconds work inside ISR
+  while(1){
+    for(int i=0; i<10000; i++){
+      delayMicroseconds(100);  
+    }
+    digitalWrite(Light_PWM, HIGH);
+    for(int i=0; i<10000; i++){
+      delayMicroseconds(100);  
+    }
+    digitalWrite(Light_PWM, LOW); 
+  }
 }
