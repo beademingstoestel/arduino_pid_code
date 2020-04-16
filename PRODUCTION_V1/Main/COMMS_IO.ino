@@ -17,23 +17,23 @@ typedef struct{
 } SETTING;  
 
 SETTING settingarray[17]= {
-  {"ALARM", 0, false, 64, 0, 0},  // 0
-  {"RR", 20, false, 0, 0, 0},     // 1
-  {"VT", 800, false, 4, 0, 0},    // 2
-  {"PK", 30, false, 8, 0, 0},     // 3
-  {"PS", 25, false, 12, 0, 0},    // 4
-  {"PP", 5, false, 16, 0, 0},     // 5
-  {"IE", 0.33, false, 20, 0, 0},  // 6
-  {"RP", 0.5, false, 24, 0, 0},   // 7
-  {"TS", 10, false, 28, 0, 0},    // 8
-  {"TP", 2, false, 32, 0, 0},     // 9
-  {"ADPK", 10, false, 36, 0, 0},  // 10
-  {"ADVT", 200, false, 40, 0, 0}, // 11
-  {"ADPP", 15, false, 44, 0, 0},  // 12
-  {"MODE", 0, false, 48, 0, 0},   // 13
-  {"ACTIVE", 0, false, 52, 0, 0}, // 14
-  {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 3.04, false, 60, 0, 0}   // 16
+  {"ALARM", 0, false, 64, 0, 0},  // 0  alarm state
+  {"RR", 20, false, 0, 0, 0},     // 1  respiratory rate
+  {"VT", 800, false, 4, 0, 0},    // 2  tidal volume
+  {"PK", 30, false, 8, 0, 0},     // 3  peak pressure
+  {"PS", 25, false, 12, 0, 0},    // 4  support pressure
+  {"PP", 5, false, 16, 0, 0},     // 5  peep
+  {"IE", 0.33, false, 20, 0, 0},  // 6  I/E as float ==> 1:2 = 0.33
+  {"RP", 0.5, false, 24, 0, 0},   // 7  Ramp time
+  {"TS", 10, false, 28, 0, 0},    // 8  Flow trigger
+  {"TP", 2, false, 32, 0, 0},     // 9  Pressure trigger
+  {"ADPK", 10, false, 36, 0, 0},  // 10 Peak pressure deviation
+  {"ADVT", 200, false, 40, 0, 0}, // 11 Tidal volume deviation
+  {"ADPP", 15, false, 44, 0, 0},  // 12 Peep pressure deviation
+  {"MODE", 0, false, 48, 0, 0},   // 13 Mode: 0 = pressure triggered, 1 = flow triggered
+  {"ACTIVE", 0, false, 52, 0, 0}, // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"MT", 0, false, 56, 0, 0},     // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
+  {"FW", 3.05, false, 60, 0, 0}   // 16 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -50,12 +50,12 @@ boolean newData1 = false;
 // PYTHON VARIABLES
 //---------------------------------------------------------------
 
-float BPM = 10;      // Breaths per minute
-float VOL = 20;               // volume
-unsigned int TRIG = 0;     // trigger
-float PRES = 40;              // pressure
-float FLOW = 50;              // flow
-float TPRES = 60;              // target pressure
+float BPM = 10;           // Breaths per minute
+float VOL = 20;           // volume
+unsigned int TRIG = 0;    // trigger
+float PRES = 40;          // pressure
+float FLOW = 50;          // flow
+float TPRES = 60;         // target pressure
 
 //---------------------------------------------------------------
 // EEPROM
