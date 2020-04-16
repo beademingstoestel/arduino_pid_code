@@ -42,12 +42,10 @@ bool FLOW_SENSOR_INIT()
     float sum = 0;
     float difference = 0;
     bool flowcalOK = true;
-//    float thresholdcalOK = 0.15;
     float thresholdcalOK = 0.3;
     float diff_error = 0;
     for(int i=0;i<100;i++)
     {
-//      FLOW_SENSOR_Measure(&currentVal);
       FLOW_SENSOR_Measure(&currentVal,1000.0,0.0);
       sum+=currentVal;
       delay(50);
@@ -63,11 +61,9 @@ bool FLOW_SENSOR_INIT()
     DEBUGserial.print("Flow sensor offset: ");
     DEBUGserial.println(calibration_offset);
     if(flowcalOK==false) {
-    DEBUGserial.print("Flow sensor difference: ");
-    DEBUGserial.println(diff_error);
+      DEBUGserial.print("Flow sensor difference: ");
+      DEBUGserial.println(diff_error);
     }
-    
-//    return true; // init successfull;
     return flowcalOK; // init successfull or not;
     
   } 

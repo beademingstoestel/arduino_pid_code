@@ -280,7 +280,7 @@ void controller()
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
       // Stop motor
-      Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON); 
+      Speed = Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP,min_degraded_mode_ON);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to inhale
       inhale_detected = BREATHE_CONTROL_CheckInhale();
