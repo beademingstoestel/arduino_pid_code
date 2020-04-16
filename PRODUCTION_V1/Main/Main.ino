@@ -322,7 +322,7 @@ void controller()
     default: controller_state = wait;
   }
       
-  ALARM_debounceAlarm(); 
+  ALARM_processAlarm(); 
   CPU_TIMER_stop(millis());
   noInterrupts();
   wdt_reset();
