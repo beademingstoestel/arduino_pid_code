@@ -4,7 +4,7 @@
 #include <EEPROM.h>
 
 char str[20] = {};
-char message[20] = {};
+char message[50] = {};
 char counter = 0;
 
 typedef struct{
@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 3.00, false, 60, 0, 0}   // 16
+  {"FW", 3.01, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -186,36 +186,32 @@ void comms_setTPRES(float tpres) {
 //---------------------------------------------------------------
 
 void sendDataToPython() {
+  int messagelength = 16;
+  unsigned long currenttime = millis();
   strcpy(message, "");
-  sprintf(message, "BPM=%d=1=", (int)(BPM*100));
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "VOL=%ld=1=", (long)(VOL*100));
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "TRIG=%d=1=", (int)(TRIG*100));
-  getCRC(message);
-  Serial.println(message);
-  comms_setTRIG(0);
-
-  strcpy(message, "");
-  sprintf(message, "PRES=%d=1=", (int)(PRES*100));
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "FLOW=%d=1=", (int)(FLOW*100));
-  getCRC(message);
-  Serial.println(message);  
-
-  strcpy(message, "");
-  sprintf(message, "TPRES=%d=1=", (int)(TPRES*100));
-  getCRC(message);
-  Serial.println(message); 
+  
+  message[0] = 0x02;
+  message[1] = 0x01;
+  message[2] = messagelength;
+  message[3] = (char)TRIG;
+  message[4] = (char)((int)(VOL*10));
+  message[5] = (char)((int)(VOL*10) >> 8);
+  message[6] = (char)((int)(PRES*100));
+  message[7] = (char)((int)(PRES*100) >> 8);
+  message[8] = (char)((int)(TPRES*100));
+  message[9] = (char)((int)(TPRES*100) >> 8);
+  message[10] = (char)((int)(BPM*100));
+  message[11] = (char)((int)(BPM*100) >> 8);
+  message[12] = (char)((int)(FLOW*100));
+  message[13] = (char)((int)(FLOW*100) >> 8);
+  message[14] = (char)(currenttime);
+  message[15] = (char)(currenttime >> 8);
+  message[16] = (char)(currenttime >> 16);
+  message[17] = (char)(currenttime >> 24);
+  message[18] = getCRCvalue(message, 18);
+  message[19] = 0x0A;
+  
+  Serial.write(message, 20);
 }
 
 //---------------------------------------------------------------
@@ -444,7 +440,6 @@ String getvalue(String data, char separator, int index)
 int getCRC(char* str) {
   char checksum = 0;
   char i;
-  int test = 500;
 
   // calculate CRC with bitwise XOR of each character
   for (i = 0; i < strlen(str); i++) {
@@ -454,6 +449,18 @@ int getCRC(char* str) {
   sprintf(str + strlen(str), "%c", checksum);
 
   return 1;
+}
+
+char getCRCvalue(char* str, int strlength) {
+  char checksum = 0;
+  char i;
+
+  // calculate CRC with bitwise XOR of each character
+  for (i = 0; i < strlength; i++) {
+    checksum ^= str[i];
+  }
+
+  return checksum;
 }
 
 int checkCRC(char* str) {
