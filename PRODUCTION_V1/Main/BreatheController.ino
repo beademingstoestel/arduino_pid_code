@@ -14,6 +14,10 @@ float min_degraded_mode_speed = -35;
 
 bool volumeTriggered = false;
 //----------------------------------
+bool endswitchFlag = false;
+float preloadspeed0 = -5;
+float preloadspeed1 = -20;
+//----------------------------------
 float Kp = 10;
 float Ki = 0.1;
 float Kd = 0;
@@ -132,17 +136,16 @@ bool BREATHE_CONTROL_CheckInhale() {
 //float BREATHE_CONTROL_Regulate()
 float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 {
-//  DEBUGserial.print(CurrentFlowPatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(CurrentVolumePatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(Volume2Patient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(CurrentPressurePatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
+  //  DEBUGserial.print(CurrentFlowPatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(CurrentVolumePatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(Volume2Patient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(CurrentPressurePatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
 
-//------------------------------------------------------------------------
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
   //DEBUGserial.println(diff);
   if (controller_state == inhale)
@@ -180,6 +183,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
   float Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON);
   
   if (controller_state == inhale ) {
+    endswitchFlag = false;
     if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume)  && min_degraded_mode_ON == false) {
       volumeTriggered = true;
       return hold_speed;
@@ -199,15 +203,24 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
     }
   }
 
-
   else if (controller_state == exhale) {
     volumeTriggered = false;
-    if (end_switch == 1) {
-      return hold_speed;
+    if (endswitchFlag == false){
+      if (end_switch == 1) {
+        endswitchFlag = true;
+        return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+      }
+      else{
+        return Speed;
+      }
     }
-    else {
-      return Speed;
+    else if (endswitchFlag == false){
+      return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
     }
+  }
+
+  else if (controller_state == wait) {
+    return hold_speed;
   }
 }
 #endif
