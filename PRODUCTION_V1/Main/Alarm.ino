@@ -110,6 +110,10 @@ void ALARM_debounceAlarm()
     }
   }
 
+  if(!isPythonOK){
+    SpeakerOn();
+  }
+
 // OLD CODE: back when arduino was boss over it's own buzzer, good times...    
 //  if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
 //  {    
