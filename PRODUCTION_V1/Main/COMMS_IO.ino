@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13
   {"ACTIVE", 0, false, 52, 0, 0}, // 14
   {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 3.03, false, 60, 0, 0}   // 16
+  {"FW", 3.04, false, 60, 0, 0}   // 16
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -252,7 +252,7 @@ bool getSettings() {
   else if(allsettingsok && settingarray[0].settingok == false){
     if((!settingarray[0].settingok) && (millis() - settingarray[0].messagetime > 1000)){
       strcpy(message, "");
-      sprintf(message, "%s=%d.%d=%c=", settingarray[0].settingname, int(settingarray[0].settingvalue), int(settingarray[0].settingvalue * 100) - int(settingarray[0].settingvalue) * 100, ++counter);
+      sprintf(message, "%s=%u=%c=", settingarray[0].settingname, unsigned int(settingarray[0].settingvalue), ++counter);
       getCRC(message);
       Serial.println(message);  
       settingarray[0].messageid = counter;     
