@@ -252,7 +252,7 @@ bool getSettings() {
   else if(allsettingsok && settingarray[0].settingok == false){
     if((!settingarray[0].settingok) && (millis() - settingarray[0].messagetime > 1000)){
       strcpy(message, "");
-      sprintf(message, "%s=%u=%c=", settingarray[0].settingname, unsigned int(settingarray[0].settingvalue), ++counter);
+      sprintf(message, "%s=%u=%c=", settingarray[0].settingname, (unsigned int)(settingarray[0].settingvalue), ++counter);
       getCRC(message);
       Serial.println(message);  
       settingarray[0].messageid = counter;     
