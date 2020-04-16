@@ -197,7 +197,6 @@ void controller()
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
-  noInterrupts();
   
   // update volume 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
@@ -321,4 +320,5 @@ void controller()
       
   ALARM_debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
+  noInterrupts();
 }
