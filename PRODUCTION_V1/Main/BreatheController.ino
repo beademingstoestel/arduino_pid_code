@@ -214,7 +214,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
         return Speed;
       }
     }
-    else if (endswitchFlag == false){
+    else if (endswitchFlag == true){
       return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
     }
   }
