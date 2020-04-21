@@ -96,7 +96,8 @@ void FanOff() {
 //  analogWrite(Fan_PWM, 0); //Turn set duty to 0;
 }
 bool FanState = true;
-int FanCounter = 10;
+int FanCounterLow = 10;
+int FanCounterHigh = 10;
 const int FanTimeout = 1000; //sampling period
 const int FanThreshold = 5; //minimum amount of counts over sampling period
 unsigned long FanTimeStamp = 0;
@@ -104,17 +105,21 @@ unsigned long FanTimeStamp = 0;
 
 bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of the fan
   //crude way of detecting fan is running. Sample RPM pin regularly, and if over a certain period amount of samples not reached, FAN is not running
-  if(analogRead(fan_speed) < 100){
-    FanCounter++;
+  if(digitalRead(fan_speed)){
+    FanCounterHigh++;
+  }
+  else{
+    FanCounterLow++;
   }
 
   if(millis()-FanTimeStamp > FanTimeout){ //if measuringperiod elapsed
-    if(FanCounter < FanThreshold){ //if required amount of counts not reached
-      FanState = false;
-    }else{
+    if(FanCounterLow > FanThreshold && FanCounterHigh > FanThreshold){ //if required amount of counts not reached
       FanState = true;
+    }else{
+      FanState = false;
     }
-    FanCounter = 0; //reset counter
+    FanCounterLow = 0; //reset counter
+    FanCounterHigh = 0;
     FanTimeStamp = millis(); //new timestamp
   }
   return FanState;

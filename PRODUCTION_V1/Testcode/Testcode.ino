@@ -126,6 +126,7 @@ void setup()
     FLOW_SENSOR_setDeltaT(controllerTime);
     DEBUGserial.println("  - FLOW SENSOR OK");
     DEBUGserial.println("  - MEASURING...");
+    starttime = millis();
     while(millis() - starttime < 2000){
       FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
       DEBUGserial.print("     - ");
@@ -146,6 +147,7 @@ void setup()
     pressure_sens_init_ok = true;
     DEBUGserial.println("  - PRESSURE SENSORS OK");
     DEBUGserial.println("  - MEASURING TUBE SENSOR...");
+    starttime = millis();
     while(millis() - starttime < 2000){
       BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
       DEBUGserial.print("     - ");
@@ -153,6 +155,7 @@ void setup()
       delay(100);
     }
     DEBUGserial.println("  - MEASURING AMBIENT SENSOR...");
+    starttime = millis();
     while(millis() - starttime < 2000){
       float ambientpressure = BME280_readPressureAmbient();
       DEBUGserial.print("     - ");
@@ -186,6 +189,7 @@ void setup()
   if(temperature_OK){
     DEBUGserial.println("  - TEMPERATURE OK");
     DEBUGserial.println("  - MEASURING...");
+    starttime = millis();
     while(millis() - starttime < 2000){
       DEBUGserial.print("     - ");
       DEBUGserial.println(BME_280_GET_TEMPERATURE());
@@ -203,6 +207,7 @@ void setup()
   DEBUGserial.println("7) FAN");
   // fan off!
   DEBUGserial.println("  - MEASURING SPEED 0...");
+  starttime = millis();
   while(millis() - starttime < 2000){
       fan_OK = FanPollingRoutine();
       delay(1);
@@ -217,6 +222,7 @@ void setup()
   delay(500);
   
   DEBUGserial.println("  - MEASURING SPEED 1...");
+  starttime = millis();
   while(millis() - starttime < 2000){
       fan_OK = FanPollingRoutine();
       delay(1);
@@ -230,6 +236,7 @@ void setup()
 
   FanOnPWM(200);
   DEBUGserial.println("  - MEASURING SPEED 2...");
+  starttime = millis();
   while(millis() - starttime < 2000){
       fan_OK = FanPollingRoutine();
       delay(1);
