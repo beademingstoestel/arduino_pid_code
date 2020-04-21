@@ -64,7 +64,7 @@ void ALARM_processAlarm()
   }
 
   // buzzer should always sound if PC is not connected
-  if(!isPythonOK){
+  if(!isPythonOK && comms_getActive()){
     SpeakerOn();
   }
 }

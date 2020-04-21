@@ -181,7 +181,7 @@ float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mode_ON) {
   float Dead_Time_Volume = 0.25; // td = (0.01^2*pi*1)/(100/60/1000)
   float Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON);
-  
+  // Return PID speed, unless max volume reached or minimal degraded mode
   if (controller_state == inhale ) {
     endswitchFlag = false;
     if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume)  && min_degraded_mode_ON == false) {
@@ -202,7 +202,8 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
       return Speed;
     }
   }
-
+  // 1) Move arm upward until endswitch
+  // 2) Move down a bit to touch ambubag
   else if (controller_state == exhale) {
     volumeTriggered = false;
     if (endswitchFlag == false){
@@ -218,7 +219,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
       return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
     }
   }
-
+  // Keep arm steady in wait
   else if (controller_state == wait) {
     return hold_speed;
   }

@@ -196,8 +196,9 @@ void controller()
 {
   CPU_TIMER_start(millis());
   
+  // Enable interrupts, because this ISR takes approx 5ms and we need millis() to update
+  interrupts(); 
   // readout sensors
-  interrupts();
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
