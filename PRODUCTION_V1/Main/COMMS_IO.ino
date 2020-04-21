@@ -28,12 +28,12 @@ SETTING settingarray[17]= {
   {"TS", 10, false, 28, 0, 0},    // 8  Flow trigger
   {"TP", 2, false, 32, 0, 0},     // 9  Pressure trigger
   {"ADPK", 10, false, 36, 0, 0},  // 10 Peak pressure deviation
-  {"ADVT", 200, false, 40, 0, 0}, // 11 Tidal volume deviation
+  {"ADVT", 750, false, 40, 0, 0}, // 11 Tidal volume deviation
   {"ADPP", 15, false, 44, 0, 0},  // 12 Peep pressure deviation
   {"MODE", 0, false, 48, 0, 0},   // 13 Mode: 0 = pressure triggered, 1 = flow triggered
   {"ACTIVE", 0, false, 52, 0, 0}, // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},     // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FW", 3.12, false, 60, 0, 0}   // 16 Firmware version
+  {"FW", 3.13, false, 60, 0, 0}   // 16 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
