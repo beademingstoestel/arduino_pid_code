@@ -37,8 +37,6 @@ void ALARM_processAlarm()
   if(!isPythonOK && comms_getActive()){
     LightOn();
     SpeakerOn();
-    
-    return;
   }
   
   // Get alarm status from python: 1 means we play the alarm, 0 we shut up
@@ -75,13 +73,15 @@ void ALARM_processAlarm()
 // alarm state
 //----------------------------------------------------------
 void setAlarmState(unsigned int alarm) {
-  ALARM = alarm;
+  unsigned int alarmbyte = (0x0001 << alarm);
+  // BITWISE OR current alarm with new to SET
+  ALARM |= alarmbyte;
 }
 
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
-void resetAlarmState(unsigned int alarm) {
+void resetAlarmState() {
   ALARM = 0;
 }
 
@@ -100,50 +100,40 @@ void checkALARM_init( bool pressure_sens_init_ok,
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
 
-  unsigned int alarm_value = 0;
+  resetAlarmState();
   
   if (temperature_OK == false){
     // check flow sensor temperature measurement
-    unsigned int alarmbyte = (0x0001 << 5);
-    alarm_value |= alarmbyte;
+    setAlarmState(5);
   }
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
-    unsigned int alarmbyte = (0x0001 << 7);
-    alarm_value |= alarmbyte;
+    setAlarmState(7);
   }
   if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
-    unsigned int alarmbyte = (0x0001 << 8);
-    alarm_value |= alarmbyte;
+    setAlarmState(8);
   }
    if (motor_sens_init_ok==false){
     // Motor limit switches check failed
-    unsigned int alarmbyte = (0x0001 << 9);
-    alarm_value |= alarmbyte;
+    setAlarmState(9);
   }
    if (hall_sens_init_ok==false){
     // hall sensor initialization failed
-    unsigned int alarmbyte = (0x0001 << 10);
-    alarm_value |= alarmbyte;
+    setAlarmState(10);
   }
   if (battery_powered){
     // switched to battery --> check if externally powered
-    unsigned int alarmbyte = (0x0001 << 11);
-    alarm_value |= alarmbyte;
+    setAlarmState(11);
   }
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    unsigned int alarmbyte = (0x0001 << 12);
-    alarm_value |= alarmbyte;
+    setAlarmState(12);
   }
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    unsigned int alarmbyte = (0x0001 << 13);
-    alarm_value |= alarmbyte;
+    setAlarmState(13);
   }
-
-  setAlarmState(alarm_value);
 }
 
 //-----------------------------------------------------
@@ -153,70 +143,55 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
-      
-  unsigned int alarm_value = 0;
+  resetAlarmState();
   
   if (pressure > comms_getPK() + comms_getADPK()){
     // max pressure exceeded
-    unsigned int alarmbyte = (0x0001 << 1);
-    alarm_value |= alarmbyte;
+    setAlarmState(1);
   }
   if (abs(volume) > comms_getVT() + comms_getADVT()){
     // max volume exceeded
-    unsigned int alarmbyte = (0x0001 << 2);
-    alarm_value |= alarmbyte;
+    setAlarmState(2);
   }
   if (pressure < comms_getPP() - comms_getADPP() && state != ini){
     // Peep deviation exceeded
-    unsigned int alarmbyte = (0x0001 << 3);
-    alarm_value |= alarmbyte;
+    //setAlarmState(3);
   }
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting
-    unsigned int alarmbyte = (0x0001 << 4);
-    alarm_value |= alarmbyte;
+    setAlarmState(4);
   }
   if (temperature_OK == false){
     // check flow sensor temperature measurement
-    unsigned int alarmbyte = (0x0001 << 5);
-    alarm_value |= alarmbyte;
+    setAlarmState(5);
   }
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
-    unsigned int alarmbyte = (0x0001 << 6);
-    alarm_value |= alarmbyte;
+    setAlarmState(6);
   }
    
   // removed initialisation errors to function above
   
   if (battery_powered){
     // switched to battery --> check if externally powered
-    unsigned int alarmbyte = (0x0001 << 11);
-    alarm_value |= alarmbyte;
+    setAlarmState(11);
   }
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    unsigned int alarmbyte = (0x0001 << 12);
-    alarm_value |= alarmbyte;
+    setAlarmState(12);
   }
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    unsigned int alarmbyte = (0x0001 << 13);
-    alarm_value |= alarmbyte;
+    setAlarmState(13);
   }
   if (fan_OK==false){
     // Fan not operational
-    unsigned int alarmbyte = (0x0001 << 14);
-    alarm_value |= alarmbyte;
+    setAlarmState(14);
   }
   if (isPythonOK==false){
     // Python not operational
-    unsigned int alarmbyte = (0x0001 << 15);
-    alarm_value |= alarmbyte;
+    setAlarmState(15);
   }
-
-  
-  setAlarmState(alarm_value);
 }
 
 //---------------------------------------------------------------
