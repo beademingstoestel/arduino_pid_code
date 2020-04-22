@@ -240,7 +240,7 @@ void doWatchdog(void) {
   }
 
   // if python communication is gone, send settings and check if OK
-  if (getSettings() && isPythonOK == false) {
+  else if (getSettings() && isPythonOK == false) {
     isPythonOK = true;   
   }
 

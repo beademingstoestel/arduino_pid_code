@@ -168,12 +168,12 @@ void setup()
 void loop()
 {
   // Handle uart send to PC
-  if (PYTHON) sendDataToPython();
+  if (PYTHON && isPythonOK) sendDataToPython();
   // Handle uart receive from PC
   recvWithEndMarkerSer0();
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
-  if (PYTHON) doCPU_TIMER();
+  if (PYTHON && isPythonOK) doCPU_TIMER();
   // Handle uart receive for debugging
   if (!PYTHON) recvWithEndMarkerSer1();
 
