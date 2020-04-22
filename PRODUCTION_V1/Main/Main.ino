@@ -154,11 +154,11 @@ void setup()
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
 
-  //-- configure watchdog
-  configure_wdt();
-  
-  //-- set up interrupt
-  Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
+  //-- set up interrupt and watchdog if no alarms during initialisation
+  if(!ALARM_getAlarmState()){
+    configure_wdt();                     // configures watchdog timer to 16 ms
+    Timer3.attachInterrupt(controller);  // attaches callback() as a timer overflow interrupt
+  }
 }
 
 //---------------------------------------------------------------
