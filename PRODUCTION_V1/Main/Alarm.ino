@@ -33,9 +33,16 @@ void ALARM_init() {
 
 void ALARM_processAlarm()
 {
-  // Get alarm status from python: alarms (bits) to be disabled are 1
+  // buzzer should always sound if PC is not connected
+  if(!isPythonOK && comms_getActive()){
+    LightOn();
+    SpeakerOn();
+    
+    return;
+  }
+  
+  // Get alarm status from python: 1 means we play the alarm, 0 we shut up
   unsigned int alarmStatusFromPython = comms_getAlarmSatusFromPython();
-  resetAlarmStatePython(alarmStatusFromPython);
   // Check if the buzzer should be triggered, based on bit 0 from python
   unsigned int buzzerStatusFromPython = alarmStatusFromPython << 15;
   
@@ -62,42 +69,20 @@ void ALARM_processAlarm()
       SpeakerOff();
     }
   }
-
-  // buzzer should always sound if PC is not connected
-  if(!isPythonOK && comms_getActive()){
-    SpeakerOn();
-  }
 }
 
 //----------------------------------------------------------
 // alarm state
 //----------------------------------------------------------
 void setAlarmState(unsigned int alarm) {
-  unsigned int alarmbyte = (0x0001 << alarm);
-  // BITWISE OR current alarm with new to SET
-  ALARM |= alarmbyte;
+  ALARM = alarm;
 }
 
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
 void resetAlarmState(unsigned int alarm) {
-  unsigned int alarmbyte = (0x0001 << alarm);
-  alarmbyte = 0xFFFF ^ alarmbyte;
-  // BITWISE AND current alarm with new to RESET
-  ALARM &= alarmbyte;
-}
-
-//-----------------------------------------------------
-// reset alarm state from python
-//-----------------------------------------------------
-void resetAlarmStatePython(unsigned int alarm) {
-  // BITWISE AND current ALARM with alarm from python
-  unsigned int alarmbyte = ALARM & alarm;
-  // BITWISE XOR current ALARM with new to RESET
-  ALARM ^= alarmbyte;
-  // ignore LSB
-  ALARM |= (alarmbyte & 0x0001);
+  ALARM = 0;
 }
 
 //-----------------------------------------------------
@@ -114,38 +99,51 @@ void checkALARM_init( bool pressure_sens_init_ok,
     bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
+
+  unsigned int alarm_value = 0;
+  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
-    setAlarmState(5);
+    unsigned int alarmbyte = (0x0001 << 5);
+    alarm_value |= alarmbyte;
   }
   if (pressure_sens_init_ok==false){
     // Sensor calibration failed pressure
-    setAlarmState(7);
+    unsigned int alarmbyte = (0x0001 << 7);
+    alarm_value |= alarmbyte;
   }
   if (flow_sens_init_ok==false){
     // Sensor calibration failed flow
-    setAlarmState(8);
+    unsigned int alarmbyte = (0x0001 << 8);
+    alarm_value |= alarmbyte;
   }
    if (motor_sens_init_ok==false){
     // Motor limit switches check failed
-    setAlarmState(9);
+    unsigned int alarmbyte = (0x0001 << 9);
+    alarm_value |= alarmbyte;
   }
    if (hall_sens_init_ok==false){
     // hall sensor initialization failed
-    setAlarmState(10);
+    unsigned int alarmbyte = (0x0001 << 10);
+    alarm_value |= alarmbyte;
   }
   if (battery_powered){
     // switched to battery --> check if externally powered
-    setAlarmState(11);
+    unsigned int alarmbyte = (0x0001 << 11);
+    alarm_value |= alarmbyte;
   }
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    setAlarmState(12);
+    unsigned int alarmbyte = (0x0001 << 12);
+    alarm_value |= alarmbyte;
   }
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    setAlarmState(13);
+    unsigned int alarmbyte = (0x0001 << 13);
+    alarm_value |= alarmbyte;
   }
+
+  setAlarmState(alarm_value);
 }
 
 //-----------------------------------------------------
@@ -155,53 +153,70 @@ void checkALARM(float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
+      
+  unsigned int alarm_value = 0;
+  
   if (pressure > comms_getPK() + comms_getADPK()){
     // max pressure exceeded
-    setAlarmState(1);
+    unsigned int alarmbyte = (0x0001 << 1);
+    alarm_value |= alarmbyte;
   }
   if (abs(volume) > comms_getVT() + comms_getADVT()){
     // max volume exceeded
-    setAlarmState(2);
+    unsigned int alarmbyte = (0x0001 << 2);
+    alarm_value |= alarmbyte;
   }
   if (pressure < comms_getPP() - comms_getADPP() && state != ini){
     // Peep deviation exceeded
-    //setAlarmState(3);
+    unsigned int alarmbyte = (0x0001 << 3);
+    alarm_value |= alarmbyte;
   }
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting
-    setAlarmState(4);
+    unsigned int alarmbyte = (0x0001 << 4);
+    alarm_value |= alarmbyte;
   }
   if (temperature_OK == false){
     // check flow sensor temperature measurement
-    setAlarmState(5);
+    unsigned int alarmbyte = (0x0001 << 5);
+    alarm_value |= alarmbyte;
   }
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
-    setAlarmState(6);
+    unsigned int alarmbyte = (0x0001 << 6);
+    alarm_value |= alarmbyte;
   }
    
   // removed initialisation errors to function above
   
   if (battery_powered){
     // switched to battery --> check if externally powered
-    setAlarmState(11);
+    unsigned int alarmbyte = (0x0001 << 11);
+    alarm_value |= alarmbyte;
   }
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
-    setAlarmState(12);
+    unsigned int alarmbyte = (0x0001 << 12);
+    alarm_value |= alarmbyte;
   }
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
-    setAlarmState(13);
+    unsigned int alarmbyte = (0x0001 << 13);
+    alarm_value |= alarmbyte;
   }
   if (fan_OK==false){
     // Fan not operational
-    setAlarmState(14);
+    unsigned int alarmbyte = (0x0001 << 14);
+    alarm_value |= alarmbyte;
   }
   if (isPythonOK==false){
     // Python not operational
-    setAlarmState(15);
+    unsigned int alarmbyte = (0x0001 << 15);
+    alarm_value |= alarmbyte;
   }
+
+  
+  setAlarmState(alarm_value);
 }
 
 //---------------------------------------------------------------

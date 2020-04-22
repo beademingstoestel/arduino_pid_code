@@ -33,7 +33,7 @@ SETTING settingarray[17]= {
   {"MODE", 0, false, 48, 0, 0},   // 13 Mode: 0 = pressure triggered, 1 = flow triggered
   {"ACTIVE", 0, false, 52, 0, 0}, // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},     // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FW", 3.13, false, 60, 0, 0}   // 16 Firmware version
+  {"FW", 3.14, false, 60, 0, 0}   // 16 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
