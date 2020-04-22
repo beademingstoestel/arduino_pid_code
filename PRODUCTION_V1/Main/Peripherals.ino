@@ -98,7 +98,7 @@ void FanOff() {
 bool FanState = true;
 int FanCounterLow = 10;
 int FanCounterHigh = 10;
-const int FanTimeout = 1000; //sampling period
+const int FanTimeout = 3000; //sampling period
 const int FanThreshold = 5; //minimum amount of counts over sampling period
 unsigned long FanTimeStamp = 0;
 

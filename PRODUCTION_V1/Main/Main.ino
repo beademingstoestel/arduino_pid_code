@@ -180,12 +180,14 @@ void loop()
   // update ambient pressure and temperature
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
-  // check fan
-  fan_OK = FanPollingRoutine();
   // check buzzer
   SpeakerTimingSupportRoutine();
   // delay loop to avoid full serial buffers
-  delay(50); 
+  unsigned long waitstarttime = millis();
+  while(millis() - waitstarttime < 50){
+    // check fan at high sample rate
+    fan_OK = FanPollingRoutine();
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------
