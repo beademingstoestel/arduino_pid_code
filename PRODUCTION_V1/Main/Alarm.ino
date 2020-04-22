@@ -37,6 +37,7 @@ void ALARM_processAlarm()
   if(!isPythonOK && comms_getActive()){
     LightOn();
     SpeakerOn();
+    return;
   }
   
   // Get alarm status from python: 1 means we play the alarm, 0 we shut up
@@ -89,7 +90,8 @@ void resetAlarmState() {
 // get alarm state
 //-----------------------------------------------------
 unsigned int ALARM_getAlarmState(void) {
-    return ALARM;
+    // return alarm value, ignore gui error
+    return (ALARM & 0x7FFF);
 }
 
 //-----------------------------------------------------
