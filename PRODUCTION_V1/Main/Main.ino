@@ -180,8 +180,6 @@ void loop()
   // update ambient pressure and temperature
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
-  // check buzzer
-  SpeakerTimingSupportRoutine();
   // delay loop to avoid full serial buffers
   unsigned long waitstarttime = millis();
   while(millis() - waitstarttime < 50){
@@ -326,6 +324,7 @@ void controller()
   }
       
   ALARM_processAlarm(); 
+  doBeepingAlarm();
   CPU_TIMER_stop(millis());
   noInterrupts();
   wdt_reset();

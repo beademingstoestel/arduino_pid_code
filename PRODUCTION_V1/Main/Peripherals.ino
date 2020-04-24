@@ -11,17 +11,20 @@ void initPeripherals(){
 unsigned long SpeakerTimeStamp;
 bool SpeakerBeepState = false;
 int SpeakerBeepLength;
+bool isSpeakerOn = false;
 
 void initSpeaker(){
   pinMode(Speaker_PWM, OUTPUT);
 }
 
 void SpeakerOn() {
-  analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  //analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  isSpeakerOn = true;
 }
 void SpeakerOff() {
   analogWrite(Speaker_PWM, 0); //Turn set duty to 0;
   SpeakerBeepState = false;
+  isSpeakerOn = false;
 }
 
 void SpeakerBeep(int lengthInMillis){
@@ -30,17 +33,25 @@ void SpeakerBeep(int lengthInMillis){
   SpeakerTimeStamp = millis(); //store timestamp
   SpeakerOn(); //set speaker ON
 }
-//Call this function regularly in MAIN
-void SpeakerTimingSupportRoutine(){
-  if(!SpeakerBeepState) return; //if not beeping return immidiately
 
-  if(millis()-SpeakerTimeStamp > SpeakerBeepLength){ //if time has elapsed, turn of the speaker
-    SpeakerOff();
+void doBeepingAlarm() { //added by Lieven 23-04 to implement beeps
+  if (SpeakerBeepState == true) {
+    analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+    if(millis()-SpeakerTimeStamp > SpeakerBeepLength){
+      SpeakerOff();
+    }
+    return;
   }
-  else{
-    SpeakerOn();
+
+  if (isSpeakerOn == true && (millis() % 2000 < 60 || (millis() % 2000 > 120 && millis() % 2000 < 180) || (millis() % 2000 > 300 && millis() % 2000 < 330))) {
+    analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  }
+  else {
+    analogWrite(Speaker_PWM, 0); //Turn off
+
   }
 }
+
 #else
 void SpeakerOn() {}   //if no speakerpin defined do nothing
 void SpeakerOff() {}   //if no speakerpin defined do nothing
