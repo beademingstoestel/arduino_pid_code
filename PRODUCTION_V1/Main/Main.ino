@@ -181,11 +181,7 @@ void loop()
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   // delay loop to avoid full serial buffers
-  unsigned long waitstarttime = millis();
-  while(millis() - waitstarttime < 50){
-    // check fan at high sample rate
-    fan_OK = FanPollingRoutine();
-  }
+  delay(50);
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -199,9 +195,13 @@ void controller()
   // Enable interrupts, because this ISR takes approx 5ms and we need millis() to update
   interrupts(); 
   // readout sensors
+  fan_OK = FanPollingRoutine();
   isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
+  fan_OK = FanPollingRoutine();
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
+  fan_OK = FanPollingRoutine();
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
+  fan_OK = FanPollingRoutine();
   
   // update volume 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
