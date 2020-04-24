@@ -307,13 +307,20 @@ void FLOW_SENSOR_setK_O2(float k_O2){
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
-  return K_O2 * maxvolumepatient * (fio2-0.2)/0.8;
+  float valvetime = K_O2 * maxvolumepatient * (fio2-0.2)/0.8;
+  if (valvetime < 0){
+    valvetime = 0;
+  }
+  return valvetime;
 }
 
 void FLOW_SENSOR_updateK_O2(){
 //  float error = (maxvolumeoxygen + peakoffset) - (maxvolumepatient * (fio2-0.2)/0.8);
   float error = (maxvolumeoxygen) - (maxvolumepatient * (fio2-0.2)/0.8);
   K_O2 = K_O2 - PID_K_O2 * error;
+  if(K_O2 < 0){
+    K_O2 = 0;
+  }
   DEBUGserial.print("error: ");
   DEBUGserial.println(error);
   DEBUGserial.print("K: ");

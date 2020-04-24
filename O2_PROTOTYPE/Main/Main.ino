@@ -33,7 +33,7 @@ int transientMute = 0;
 int transientMuteCycles = 5;
 
 // oxygen variables
-float fio2 = 0.4; //TODO put in comms
+float fio2 = 0.5; //TODO put in comms
 int peakoffset = 100; // offset to compensate for peak flow, which the slow sensor can't detect!
 
 float target_risetime = 500;           
