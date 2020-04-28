@@ -94,9 +94,7 @@ void setup()
   initPeripherals();
 
   //--- check mains supply and battery voltage
-  main_supply = MainSupplyVoltage()/1000;
-  batt_supply = PSUSupplyVoltage()/1000;
-  battery_SoC = batt_supply/25;
+  checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   
   //-- set up hall sensor
   DEBUGserial.println("Setting up HALL sensor: ");
