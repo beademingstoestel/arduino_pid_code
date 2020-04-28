@@ -438,15 +438,22 @@ float PID_K_O2 = 0.0004;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
 float fio2max = 0.98;
+float valvetime;
 
 void FLOW_SENSOR_setK_O2(float k_O2){
   K_O2 = k_O2;
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
-  if(fio2 > fio2max) wantedoxygenvolume = maxvolumepatient * fio2max;
-  else wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air)/ densityCorrection;
-  float valvetime = K_O2 * wantedoxygenvolume;
+  // prevent inflation of bag
+  if(fio2 > fio2max){
+    fio2 = fio2max;
+  }
+  // calculate wanted oxygen volume
+  wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air)/ densityCorrection;
+  // calulate corresponding time to open valve
+  valvetime = K_O2 * wantedoxygenvolume;
+  // don't return negative valve time
   if (valvetime < 0){
     valvetime = 0;
   }
@@ -459,16 +466,25 @@ void FLOW_SENSOR_updateK_O2(){
   if(K_O2 < 0){
     K_O2 = 0;
   }
-  /*DEBUGserial.print("error: ");
-  DEBUGserial.println(error);
-  DEBUGserial.print("K: ");
-  DEBUGserial.println(K_O2);
-  DEBUGserial.print("Vwanted: ");
-  DEBUGserial.println(wantedoxygenvolume);
-  DEBUGserial.print("V02: ");
-  DEBUGserial.println(maxvolumeoxygen);/**/
+//  DEBUGserial.print("error: ");
+//  DEBUGserial.println(error);
+//  DEBUGserial.print("K: ");
+//  DEBUGserial.println(K_O2);
+//  DEBUGserial.print("Vwanted: ");
+//  DEBUGserial.println(wantedoxygenvolume);
+//  DEBUGserial.print("V02: ");
+//  DEBUGserial.println(maxvolumeoxygen);
+//  DEBUGserial.print("FIO2: ");
+//  DEBUGserial.println(FLOW_SENSOR_getFIO2());
 }
 
 float FLOW_SENSOR_getFIO2(){
-  return (maxvolumeoxygen / densityCorrection)/wantedoxygenvolume;
+  float fio2measured = ((1.0-o2air)*maxvolumeoxygen/maxvolumepatient)+o2air;
+  if(fio2measured>1){
+    fio2measured = 1;
+  }
+  if(fio2measured<0){
+    fio2measured = 0;
+  }
+  return fio2measured;
 }

@@ -260,7 +260,6 @@ void controller()
   comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
   comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
-  comms_setFIO2(FLOW_SENSOR_getFIO2());
   
   // read switches
   int END_SWITCH_VALUE_STOP = read_endswitch_stop();
@@ -357,6 +356,7 @@ void controller()
         target_fio2 = comms_getFIO2();
 
         // oxygen control   
+        comms_setFIO2(FLOW_SENSOR_getFIO2());
         FLOW_SENSOR_updateK_O2();
         FLOW_SENSOR_resetVolumeO2();
         ValveOn(FLOW_SENSOR_getTime(target_fio2));

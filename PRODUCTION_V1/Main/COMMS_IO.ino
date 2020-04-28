@@ -33,7 +33,7 @@ SETTING settingarray[19]= {
   {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
   {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FIO2", 0.2, false, 60, 0, 0},   // 16 Oxygen level
+  {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
   {"FW", 3.28, false, 68, 0, 0}     // 18 Firmware version
 };
@@ -52,13 +52,13 @@ boolean newData1 = false;
 // PYTHON VARIABLES
 //---------------------------------------------------------------
 
-float BPM = 10;           // Breaths per minute
+float BPM = 0;            // Breaths per minute
 float VOL = 20;           // volume
 unsigned int TRIG = 0;    // trigger
 float PRES = 40;          // pressure
 float FLOW = 50;          // flow
 float TPRES = 60;         // target pressure
-float FIO2 = 70;          // oxygen percentage
+float FIO2 = 0.21;        // oxygen percentage
 
 //---------------------------------------------------------------
 // EEPROM
@@ -221,8 +221,8 @@ void sendDataToPython() {
   message[11] = (char)((int)(BPM*100) >> 8);
   message[12] = (char)((int)(FLOW*100));
   message[13] = (char)((int)(FLOW*100) >> 8);
-  message[14] = (char)((int)(comms_getFIO2()*100));
-  message[15] = (char)((int)(comms_getFIO2()*100) >> 8);
+  message[14] = (char)((int)(FIO2*100));
+  message[15] = (char)((int)(FIO2*100) >> 8);
   message[16] = (char)(currenttime);
   message[17] = (char)(currenttime >> 8);
   message[18] = (char)(currenttime >> 16);
