@@ -18,6 +18,8 @@ volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
 volatile float CurrentVolumePatient = 0;
 
+float fio2 = 0.2;
+
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
 
@@ -69,6 +71,7 @@ bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
+bool oxygen_init_ok = false;
 
 //---------------------------------------------------------------
 // SETUP
@@ -141,14 +144,18 @@ void setup()
     if(HARDWARE)ALARM_init();
   }
 
+  //-- set up oxygen control
+  oxygen_init_ok = true;
+
   //-- setup done
   DEBUGserial.println("Setup done");
 
   //-- check alarms
+  isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  checkALARM_init(pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
-                  fan_OK, battery_powered, battery_SoC, temperature_OK);
+  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  hall_sens_init_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
     
   //-- set up communication with screen
   if(PYTHON) initCOMM();
@@ -222,7 +229,7 @@ void controller()
   min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect);
   
   // check alarm
-  checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
+  checkALARM(fio2, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
              isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine

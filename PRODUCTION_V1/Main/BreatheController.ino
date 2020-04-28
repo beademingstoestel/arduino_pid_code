@@ -120,12 +120,12 @@ controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 bool BREATHE_CONTROL_CheckInhale() {
   bool inhale_detected = 0;
   // check negative flow
-  if (CurrentFlowPatient > comms_getTS() && trigger_mode == 0) {
+  if (CurrentFlowPatient > comms_getTS() && trigger_mode == 1) {
     inhale_detected = 1;
     comms_setTRIG(1);
   }
   // check underpressure
-  if (CurrentPressurePatient < comms_getTP() && trigger_mode == 1) {
+  if (CurrentPressurePatient < comms_getTP() && trigger_mode == 0) {
     inhale_detected = 1;
     comms_setTRIG(1);
   }
@@ -184,7 +184,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
   // Return PID speed, unless max volume reached or minimal degraded mode
   if (controller_state == inhale ) {
     endswitchFlag = false;
-    if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume)  && min_degraded_mode_ON == false) {
+    if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume) && comms_getVolumeLimitControl() && min_degraded_mode_ON == false) {
       volumeTriggered = true;
       return hold_speed;
     }

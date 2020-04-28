@@ -16,24 +16,26 @@ typedef struct{
    unsigned long messagetime;
 } SETTING;  
 
-SETTING settingarray[17]= {
-  {"ALARM", 0, false, 64, 0, 0},  // 0  alarm state
-  {"RR", 20, false, 0, 0, 0},     // 1  respiratory rate
-  {"VT", 10000, false, 4, 0, 0},    // 2  tidal volume
-  {"PK", 30, false, 8, 0, 0},     // 3  peak pressure
-  {"PS", 25, false, 12, 0, 0},    // 4  support pressure
-  {"PP", 20, false, 16, 0, 0},     // 5  peep
-  {"IE", 0.33, false, 20, 0, 0},  // 6  I/E as float ==> 1:2 = 0.33
-  {"RP", 0.5, false, 24, 0, 0},   // 7  Ramp time
-  {"TS", 10, false, 28, 0, 0},    // 8  Flow trigger
-  {"TP", 2, false, 32, 0, 0},     // 9  Pressure trigger
-  {"ADPK", 10, false, 36, 0, 0},  // 10 Peak pressure deviation
-  {"ADVT", 9930, false, 40, 0, 0}, // 11 Tidal volume deviation
-  {"ADPP", 5, false, 44, 0, 0},  // 12 Peep pressure deviation
-  {"MODE", 0, false, 48, 0, 0},   // 13 Mode: 0 = pressure triggered, 1 = flow triggered
-  {"ACTIVE", 0, false, 52, 0, 0}, // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
-  {"MT", 0, false, 56, 0, 0},     // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FW", 3.24, false, 60, 0, 0}   // 16 Firmware version
+SETTING settingarray[19]= {
+  {"ALARM", 0, false, 64, 0, 0},    // 0  alarm state
+  {"RR", 20, false, 0, 0, 0},       // 1  respiratory rate
+  {"VT", 400, false, 4, 0, 0},      // 2  tidal volume
+  {"PK", 30, false, 8, 0, 0},       // 3  peak pressure
+  {"PS", 25, false, 12, 0, 0},      // 4  support pressure
+  {"PP", 20, false, 16, 0, 0},      // 5  peep
+  {"IE", 0.33, false, 20, 0, 0},    // 6  I/E as float ==> 1:2 = 0.33
+  {"RP", 0.5, false, 24, 0, 0},     // 7  Ramp time
+  {"TS", 10, false, 28, 0, 0},      // 8  Flow trigger
+  {"TP", 2, false, 32, 0, 0},       // 9  Pressure trigger
+  {"ADPK", 10, false, 36, 0, 0},    // 10 Peak pressure deviation
+  {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
+  {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
+  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
+  {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
+  {"FIO2", 0.2, false, 60, 0, 0},   // 16 Oxygen level
+  {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
+  {"FW", 3.27, false, 68, 0, 0}     // 18 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -56,6 +58,7 @@ unsigned int TRIG = 0;    // trigger
 float PRES = 40;          // pressure
 float FLOW = 50;          // flow
 float TPRES = 60;         // target pressure
+float FIO2 = 70;          // oxygen percentage
 
 //---------------------------------------------------------------
 // EEPROM
@@ -131,8 +134,19 @@ unsigned int comms_getADVT() {
 unsigned int comms_getADPP() {
   return settingarray[12].settingvalue;
 }
-bool comms_getMode() {
-  return settingarray[13].settingvalue;
+int comms_getMode() {
+  if (comms_getTrigger()){
+    return (((int) settingarray[13].settingvalue) & 0x01);
+  }
+  else{
+    return 2;
+  }
+}
+bool comms_getTrigger() {
+  return (((int) settingarray[13].settingvalue) >> 1 & 0x01);
+}
+bool comms_getVolumeLimitControl() {
+  return (((int) settingarray[13].settingvalue) >> 2 & 0x01);
 }
 int comms_getActive() {
   if (PYTHON){
@@ -148,8 +162,14 @@ bool comms_resetActive() {
 float comms_getMT() {
   return settingarray[15].settingvalue;
 }
-float comms_getFW() {
+float comms_getFIO2() {
   return settingarray[16].settingvalue;
+}
+float comms_getADFIO2() {
+  return settingarray[17].settingvalue;
+}
+float comms_getFW() {
+  return settingarray[18].settingvalue;
 }
 
 //---------------------------------------------------------------
@@ -174,13 +194,16 @@ void comms_setFLOW(float flow) {
 void comms_setTPRES(float tpres) {
   TPRES = tpres;
 }
+void comms_setFIO2(float fio2) {
+  FIO2 = fio2;
+}
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
 //---------------------------------------------------------------
 
 void sendDataToPython() {
-  int messagelength = 16;
+  int messagelength = 18;
   unsigned long currenttime = millis();
   strcpy(message, "");
   
@@ -198,15 +221,17 @@ void sendDataToPython() {
   message[11] = (char)((int)(BPM*100) >> 8);
   message[12] = (char)((int)(FLOW*100));
   message[13] = (char)((int)(FLOW*100) >> 8);
-  message[14] = (char)(currenttime);
-  message[15] = (char)(currenttime >> 8);
-  message[16] = (char)(currenttime >> 16);
-  message[17] = (char)(currenttime >> 24);
-  message[18] = getCRCvalue(message, 18);
-  message[19] = 0x0A;
+  message[14] = (char)((int)(comms_getFIO2()*100));
+  message[15] = (char)((int)(comms_getFIO2()*100) >> 8);
+  message[16] = (char)(currenttime);
+  message[17] = (char)(currenttime >> 8);
+  message[18] = (char)(currenttime >> 16);
+  message[19] = (char)(currenttime >> 24);
+  message[20] = getCRCvalue(message, messagelength + 2);
+  message[21] = 0x0A;
 
   comms_setTRIG(0);
-  Serial.write(message, 20);
+  Serial.write(message, 22);
 }
 
 //---------------------------------------------------------------

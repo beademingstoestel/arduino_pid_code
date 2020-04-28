@@ -97,13 +97,17 @@ unsigned int ALARM_getAlarmState(void) {
 //-----------------------------------------------------
 // check alarm init
 //-----------------------------------------------------
-void checkALARM_init( bool pressure_sens_init_ok, 
+void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok, 
     bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
 
   resetAlarmState();
   
+  if (oxygen_init_ok==false){
+    // Oxygen supply not connected
+    setAlarmState(3);
+  }  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
@@ -141,17 +145,21 @@ void checkALARM_init( bool pressure_sens_init_ok,
 //-----------------------------------------------------
 // check alarm loop
 //-----------------------------------------------------
-void checkALARM(float pressure, int volume, controller_state_t state,
+void checkALARM(float fio2, float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
   resetAlarmState();
-  
+
+  if ((fio2 > comms_getFIO2() + comms_getADFIO2()) || (fio2 < comms_getFIO2() - comms_getADFIO2())){
+    // fio2 out of bounds
+    setAlarmState(0);
+  }
   if (pressure > comms_getPK() + comms_getADPK()){
     // max pressure exceeded
     setAlarmState(1);
   }
-  if (abs(volume) > comms_getVT() + comms_getADVT()){
+  if (abs(volume) > comms_getVT() + comms_getADVT() && comms_getVolumeLimitControl()){
     // max volume exceeded
     setAlarmState(2);
   }
