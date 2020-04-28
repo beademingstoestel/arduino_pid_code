@@ -433,7 +433,6 @@ bool FLOW_SENSOR_CHECK_TEMP(){
 //----------------------------------------------------------------------------------------------------------------
 // OXYGEN PID
 //----------------------------------------------------------------------------------------------------------------
-float densityCorrection = 1.1868; // at 20°C ρO2 = 1.429 kg/m3 ; ρAir = 1.2041 kg/m3
 float PID_K_O2 = 0.0004;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
@@ -450,7 +449,7 @@ unsigned long FLOW_SENSOR_getTime(float fio2){
     fio2 = fio2max;
   }
   // calculate wanted oxygen volume
-  wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air)/ densityCorrection;
+  wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air);
   // calulate corresponding time to open valve
   valvetime = K_O2 * wantedoxygenvolume;
   // don't return negative valve time
@@ -461,7 +460,7 @@ unsigned long FLOW_SENSOR_getTime(float fio2){
 }
 
 void FLOW_SENSOR_updateK_O2(){
-  float error = (maxvolumeoxygen / densityCorrection) - wantedoxygenvolume;
+  float error = maxvolumeoxygen - wantedoxygenvolume;
   K_O2 = K_O2 - PID_K_O2 * error;
   if(K_O2 < 0){
     K_O2 = 0;
