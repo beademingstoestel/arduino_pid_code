@@ -25,8 +25,8 @@ SETTING settingarray[19]= {
   {"PP", 20, false, 16, 0, 0},      // 5  peep
   {"IE", 0.33, false, 20, 0, 0},    // 6  I/E as float ==> 1:2 = 0.33
   {"RP", 0.5, false, 24, 0, 0},     // 7  Ramp time
-  {"TS", 10, false, 28, 0, 0},      // 8  Flow trigger
-  {"TP", 2, false, 32, 0, 0},       // 9  Pressure trigger
+  {"TS", 1, false, 28, 0, 0},      	// 8  Flow trigger
+  {"TP", 15, false, 32, 0, 0},      // 9  Pressure trigger
   {"ADPK", 10, false, 36, 0, 0},    // 10 Peak pressure deviation
   {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
   {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
@@ -35,7 +35,7 @@ SETTING settingarray[19]= {
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
-  {"FW", 3.28, false, 68, 0, 0}     // 18 Firmware version
+  {"FW", 3.29, false, 68, 0, 0}     // 18 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
