@@ -5,7 +5,7 @@
 #define PYTHON 1
 #define HARDWARE 0
 #define DEBUGserial Serial3
-     //test
+
 //---------------------------------------------------------------
 // VARIABLES
 //---------------------------------------------------------------
@@ -18,7 +18,10 @@ volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
 volatile float CurrentVolumePatient = 0;
 
-float fio2 = 0.2;
+volatile float CurrentFlowOxygen = 0;
+volatile float CurrentVolumeOxygen = 0;
+
+float target_fio2 = 0.2;
 
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
@@ -71,6 +74,7 @@ bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
+bool isFlowOfOxygenRead = false;
 bool oxygen_init_ok = false;
 
 //---------------------------------------------------------------
@@ -144,8 +148,44 @@ void setup()
     if(HARDWARE)ALARM_init();
   }
 
-  //-- set up oxygen control
-  oxygen_init_ok = true;
+  // empty oxygen bag
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+  delay(500);
+
+  //-- set up oxygen
+  DEBUGserial.println("Setting up Oxygen supply: ");
+  
+  ValveOn();
+  unsigned long valvestarttime = millis();
+  unsigned long valveinittime = 600;
+  int mincalibrationvolume = 100;
+  int counter = 0;
+  while(millis() - valvestarttime < valveinittime){
+    FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
+    FLOW_SENSOR_updateVolumeO2init(CurrentFlowOxygen);
+    counter++;
+  }
+  ValveOff();
+  
+  // calculate K_O2
+  float sampletime = valveinittime / counter;
+  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
+  float ratio = valveinittime/calibrationvolume;
+  FLOW_SENSOR_setK_O2(ratio);
+  FLOW_SENSOR_resetVolumeO2();
+
+  if (calibrationvolume > mincalibrationvolume) {
+    oxygen_init_ok = true; 
+    DEBUGserial.println("OXYGEN SUPPLY OK");
+  }
+  else {
+    DEBUGserial.println("OXYGEN SUPPLY Failed");
+    if(HARDWARE)ALARM_init();
+  }
+
+  // empty oxygen bag
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
 
   //-- setup done
   DEBUGserial.println("Setup done");
@@ -203,22 +243,26 @@ void controller()
   interrupts(); 
   // readout sensors
   fan_OK = FanPollingRoutine();
-  isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
+  isFlow2PatientRead = FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   fan_OK = FanPollingRoutine();
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   fan_OK = FanPollingRoutine();
-  isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
+  isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
+  //isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   fan_OK = FanPollingRoutine();
   
   // update volume 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
   FLOW_SENSOR_getVolume(&CurrentVolumePatient);
+  FLOW_SENSOR_updateVolumeO2(CurrentFlowOxygen);
+  FLOW_SENSOR_getVolumeO2(&CurrentVolumeOxygen);
 
   // update python values
   comms_setFLOW(CurrentFlowPatient);
   comms_setVOL(CurrentVolumePatient);
   comms_setPRES(CurrentPressurePatient);
   comms_setTPRES(BREATHE_CONTROL_getPointInhalePressure());
+  comms_setFIO2(FLOW_SENSOR_getFIO2());
   
   // read switches
   int END_SWITCH_VALUE_STOP = read_endswitch_stop();
@@ -229,7 +273,7 @@ void controller()
   min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect);
   
   // check alarm
-  checkALARM(fio2, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
+  checkALARM(target_fio2, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
              isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine
@@ -247,6 +291,7 @@ void controller()
       }
     }break;
     case inhale:{ 
+      ValveCheck();
       // Reset volume to zero when flow detected
       FLOW_SENSOR_resetVolume_flowtriggered();
       // Call PID for inhale
@@ -270,6 +315,7 @@ void controller()
       
     }break;
     case exhale: {
+      ValveOff();
       // Call PID for exhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
@@ -282,6 +328,7 @@ void controller()
       // Check alarm ==> setAlarm() in PID!
     }break;
     case wait: {
+      ValveOff();
       // Reset trigger for flow detection
       FLOW_SENSOR_resetVolume();
       // Call PID for wait
@@ -309,6 +356,12 @@ void controller()
         trigger_mode = comms_getMode();
         target_risetime = comms_getRP();
         target_pressure = comms_getPressure(inhale_detected);
+        target_fio2 = comms_getFIO2();
+
+        // oxygen control   
+        FLOW_SENSOR_updateK_O2();
+        FLOW_SENSOR_resetVolumeO2();
+        ValveOn(FLOW_SENSOR_getTime(target_fio2));
 
         // reset pressure and volume sensor check values
         maxpressureinhale=maxpressure;   // initialize low negative--> no error on start-up

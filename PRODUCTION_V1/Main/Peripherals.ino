@@ -2,6 +2,7 @@ void initPeripherals(){
   initFan();
   initLight();
   initSpeaker();
+  initValve();
 }
 
 
@@ -198,3 +199,34 @@ bool read_endswitch_start() {
   return digitalRead(ENDSWITCH_PUSH_PIN);
 }
 #endif
+
+// ---------- Valves
+unsigned long ValveTime = 0;
+unsigned long ValveStartTime = 0;
+
+bool initValve(){
+  pinMode(O2_valve, OUTPUT);
+  digitalWrite(O2_valve, LOW);
+}
+
+bool ValveOn(){
+  digitalWrite(O2_valve, HIGH);
+}
+
+bool ValveOn(unsigned long valvetime){
+  ValveTime = valvetime;
+  ValveStartTime = millis();
+  ValveOn();
+}
+
+bool ValveOff(){
+  digitalWrite(O2_valve, LOW);
+}
+
+// check if we need to turn off
+// keep track of max volume to patient
+void ValveCheck(){
+  if (millis() - ValveStartTime > ValveTime){ 
+    ValveOff();
+  }
+}

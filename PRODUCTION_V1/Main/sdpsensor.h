@@ -40,6 +40,9 @@ public:
 
   SDPSensor(uint8_t i2cAddr) : mI2CAddress(i2cAddr) {}
 
+  // THOMASVDD: Reset I2C
+  int resetI2C();
+
   /**
    * initialize the sensor
    * @return 0 on sucess, error code otherwise
