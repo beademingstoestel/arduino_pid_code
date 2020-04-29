@@ -298,7 +298,7 @@ void controller()
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP,min_degraded_mode_ON);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
-      controller_state = BREATHE_setToEXHALE();  
+      controller_state = BREATHE_setToEXHALE(target_pressure);  
 
       //safety  pressure & flow sensor check
       if (maxpressure<CurrentPressurePatient)

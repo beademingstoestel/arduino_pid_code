@@ -73,9 +73,9 @@ float BREATHE_getPID()
 }
 
 //------------------------------------------------------------------------------
-controller_state_t BREATHE_setToEXHALE()
+controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 {
-  if ((millis() - inhale_start_time) > target_inhale_time) //   || Hall_position>=Hall_position_ref
+  if ((millis() - inhale_start_time) > target_inhale_time || CurrentPressurePatient > target_pressure + comms_getADPK())
   {
     PID_value_I = 0;
     PID_value_P = 0;
