@@ -367,7 +367,7 @@ void FLOW_SENSOR_resetVolumeO2(){
 void FLOW_SENSOR_updateVolumeO2(float flow_O2){ //flow = liter/min
   totalFlow_O2 += flow_O2;
   Volume_l_O2 = totalFlow_O2 * ((float)deltaT / 60000);
-  Volume_ml_O2 = (int)(Volume_l_O2*1000);
+  Volume_ml_O2 = (int)(Volume_l_O2*1000*1.16); // TODO: CHECK IF THIS WORKS! DENSITY CORRECTION
   if (Volume_ml_O2 > maxvolumeoxygen){
     maxvolumeoxygen = Volume_ml_O2; 
   }
@@ -436,8 +436,14 @@ bool FLOW_SENSOR_CHECK_TEMP(){
 float PID_K_O2 = 0.0004;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
+float maxvolumeoxygenaveraged = 0;
 float fio2max = 0.98;
 float valvetime;
+
+const int numReadingsO2 = 5;
+float readingsO2[numReadingsO2] = {0,0,0,0,0};      
+int readIndexO2 = 0;               
+float totalO2 = 0;                  
 
 void FLOW_SENSOR_setK_O2(float k_O2){
   K_O2 = k_O2;
@@ -460,25 +466,36 @@ unsigned long FLOW_SENSOR_getTime(float fio2){
 }
 
 void FLOW_SENSOR_updateK_O2(){
-  float error = maxvolumeoxygen - wantedoxygenvolume;
+  // calculate running average of supplied oxygen volume
+  totalO2 = totalO2 - readingsO2[readIndexO2];
+  readingsO2[readIndexO2] = maxvolumeoxygen;
+  totalO2 = totalO2 + readingsO2[readIndexO2];
+  readIndexO2 = readIndexO2 + 1;
+  if (readIndexO2 >= numReadingsO2) readIndexO2 = 0;
+  maxvolumeoxygenaveraged = totalO2 / numReadingsO2;
+
+  // calculate error and update K_O2
+  float error = maxvolumeoxygenaveraged - wantedoxygenvolume;
   K_O2 = K_O2 - PID_K_O2 * error;
   if(K_O2 < 0){
     K_O2 = 0;
   }
-//  DEBUGserial.print("error: ");
-//  DEBUGserial.println(error);
-//  DEBUGserial.print("K: ");
-//  DEBUGserial.println(K_O2);
-//  DEBUGserial.print("Vwanted: ");
-//  DEBUGserial.println(wantedoxygenvolume);
-//  DEBUGserial.print("V02: ");
-//  DEBUGserial.println(maxvolumeoxygen);
-//  DEBUGserial.print("FIO2: ");
-//  DEBUGserial.println(FLOW_SENSOR_getFIO2());
+  DEBUGserial.print("error: ");
+  DEBUGserial.println(error);
+  DEBUGserial.print("K: ");
+  DEBUGserial.println(K_O2);
+  DEBUGserial.print("Vwanted: ");
+  DEBUGserial.println(wantedoxygenvolume);
+  DEBUGserial.print("V02: ");
+  DEBUGserial.println(maxvolumeoxygen);
+  DEBUGserial.print("FIO2: ");
+  DEBUGserial.println(FLOW_SENSOR_getFIO2());
 }
 
 float FLOW_SENSOR_getFIO2(){
-  float fio2measured = ((1.0-o2air)*maxvolumeoxygen/maxvolumepatient)+o2air;
+  if (maxvolumepatient == 0) maxvolumepatient = 10; // avoid divide by zero
+  float fio2measured = ((1.0-o2air)*maxvolumeoxygenaveraged/maxvolumepatient)+o2air;
+
   if(fio2measured>1){
     fio2measured = 1;
   }

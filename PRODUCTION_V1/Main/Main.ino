@@ -2,9 +2,9 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
+#define PYTHON 0
 #define HARDWARE 0
-#define DEBUGserial Serial3
+#define DEBUGserial Serial
 
 //---------------------------------------------------------------
 // VARIABLES
@@ -152,11 +152,11 @@ void setup()
 
   //-- set up oxygen
   DEBUGserial.println("Setting up Oxygen supply: ");
-  
+
   ValveOn();
   unsigned long valvestarttime = millis();
-  unsigned long valveinittime = 600;
-  int mincalibrationvolume = 100;
+  unsigned int valveinittime = 100;
+  int mincalibrationvolume = 50;
   int counter = 0;
   while(millis() - valvestarttime < valveinittime){
     FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
@@ -166,7 +166,7 @@ void setup()
   ValveOff();
   
   // calculate K_O2
-  float sampletime = valveinittime / counter;
+  float sampletime = (float) valveinittime / counter;
   float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
   float ratio = valveinittime/calibrationvolume;
   FLOW_SENSOR_setK_O2(ratio);
