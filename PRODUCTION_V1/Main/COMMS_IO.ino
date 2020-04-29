@@ -35,7 +35,7 @@ SETTING settingarray[19]= {
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
-  {"FW", 3.29, false, 68, 0, 0}     // 18 Firmware version
+  {"FW", 3.30, false, 68, 0, 0}     // 18 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
