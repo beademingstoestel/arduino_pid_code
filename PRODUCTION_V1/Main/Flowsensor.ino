@@ -11,6 +11,21 @@ unsigned long deltaT;
 bool resetAllowed = true;
 float K_O2;
 
+float PID_K_O2 = 0.0004;
+float o2air = 0.20;
+float wantedoxygenvolume = 0;
+float maxvolumeoxygenaveraged = 0;
+float fio2max = 0.98;
+float valvetime;
+
+const int numReadingsO2 = 5;
+float readingsO2[numReadingsO2] = {0,0,0,0,0};      
+int readIndexO2 = 0;               
+float totalO2 = 0;  
+
+float density_air = 1.225; //kg/m3
+float density_o2 = 1.429; //kg/m3
+
 int flowsensordirection_tube = -1;
 int flowsensordirection_O2 = -1;
 float calibration_offset_tube = 0;
@@ -331,7 +346,8 @@ void FLOW_SENSOR_resetVolume_flowtriggered(){
 void FLOW_SENSOR_updateVolume(float flow){ //flow = liter/min
   totalFlow += flow;
   Volume_l = totalFlow * ((float)deltaT / 60000);
-  Volume_ml = (int)(Volume_l*1000);
+  float densitycorrection = 1;//density_air/((FLOW_SENSOR_getFIO2()*density_o2)+((1-FLOW_SENSOR_getFIO2())*density_air));
+  Volume_ml = (int)(Volume_l*1000.0/densitycorrection);
   if (Volume_ml > maxvolumepatient){
     maxvolumepatient = Volume_ml; 
   }  
@@ -367,7 +383,8 @@ void FLOW_SENSOR_resetVolumeO2(){
 void FLOW_SENSOR_updateVolumeO2(float flow_O2){ //flow = liter/min
   totalFlow_O2 += flow_O2;
   Volume_l_O2 = totalFlow_O2 * ((float)deltaT / 60000);
-  Volume_ml_O2 = (int)(Volume_l_O2*1000*1.16); // TODO: CHECK IF THIS WORKS! DENSITY CORRECTION
+  float densitycorrection = 1;//density_air/density_o2;
+  Volume_ml_O2 = (int)(Volume_l_O2*1000.0/densitycorrection); // TODO: CHECK IF THIS WORKS! DENSITY CORRECTION
   if (Volume_ml_O2 > maxvolumeoxygen){
     maxvolumeoxygen = Volume_ml_O2; 
   }
@@ -432,18 +449,7 @@ bool FLOW_SENSOR_CHECK_TEMP(){
 
 //----------------------------------------------------------------------------------------------------------------
 // OXYGEN PID
-//----------------------------------------------------------------------------------------------------------------
-float PID_K_O2 = 0.0004;
-float o2air = 0.20;
-float wantedoxygenvolume = 0;
-float maxvolumeoxygenaveraged = 0;
-float fio2max = 0.98;
-float valvetime;
-
-const int numReadingsO2 = 5;
-float readingsO2[numReadingsO2] = {0,0,0,0,0};      
-int readIndexO2 = 0;               
-float totalO2 = 0;                  
+//----------------------------------------------------------------------------------------------------------------               
 
 void FLOW_SENSOR_setK_O2(float k_O2){
   K_O2 = k_O2;
@@ -484,6 +490,10 @@ void FLOW_SENSOR_updateK_O2(){
   DEBUGserial.println(error);
   DEBUGserial.print("K: ");
   DEBUGserial.println(K_O2);
+  DEBUGserial.print("Time: ");
+  DEBUGserial.println(valvetime);
+  DEBUGserial.print("Vpatient: ");
+  DEBUGserial.println(maxvolumepatient);
   DEBUGserial.print("Vwanted: ");
   DEBUGserial.println(wantedoxygenvolume);
   DEBUGserial.print("V02: ");

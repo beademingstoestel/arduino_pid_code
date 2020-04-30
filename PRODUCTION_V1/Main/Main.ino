@@ -2,9 +2,9 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
-#define DEBUGserial Serial
+#define DEBUGserial Serial3
 
 //---------------------------------------------------------------
 // VARIABLES
@@ -171,6 +171,7 @@ void setup()
   float ratio = valveinittime/calibrationvolume;
   FLOW_SENSOR_setK_O2(ratio);
   FLOW_SENSOR_resetVolumeO2();
+  FLOW_SENSOR_setK_O2(0.15);
 
   if (calibrationvolume > mincalibrationvolume) {
     oxygen_init_ok = true; 
@@ -241,13 +242,17 @@ void controller()
   interrupts(); 
   // readout sensors
   fan_OK = FanPollingRoutine();
+  ValveCheck();
   isFlow2PatientRead = FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   fan_OK = FanPollingRoutine();
+  ValveCheck();
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   fan_OK = FanPollingRoutine();
+  ValveCheck();
   isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
   //isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   fan_OK = FanPollingRoutine();
+  ValveCheck();
   
   // update volume 
   FLOW_SENSOR_updateVolume(CurrentFlowPatient);
@@ -288,7 +293,6 @@ void controller()
       }
     }break;
     case inhale:{ 
-      ValveCheck();
       // Reset volume to zero when flow detected
       FLOW_SENSOR_resetVolume_flowtriggered();
       // Call PID for inhale
@@ -312,7 +316,6 @@ void controller()
       
     }break;
     case exhale: {
-      ValveOff();
       // Call PID for exhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
@@ -325,7 +328,6 @@ void controller()
       // Check alarm ==> setAlarm() in PID!
     }break;
     case wait: {
-      ValveOff();
       // Reset trigger for flow detection
       FLOW_SENSOR_resetVolume();
       // Call PID for wait
