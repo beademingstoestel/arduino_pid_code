@@ -11,7 +11,7 @@ unsigned long deltaT;
 bool resetAllowed = true;
 float K_O2;
 
-float PID_K_O2 = 0.0004;
+float PID_K_O2 = 0.04;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
@@ -453,6 +453,8 @@ bool FLOW_SENSOR_CHECK_TEMP(){
 
 void FLOW_SENSOR_setK_O2(float k_O2){
   K_O2 = k_O2;
+  Serial.print("K_O2_init: ");
+  Serial.println(K_O2);
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
@@ -481,7 +483,8 @@ void FLOW_SENSOR_updateK_O2(){
   maxvolumeoxygenaveraged = totalO2 / numReadingsO2;
 
   // calculate error and update K_O2
-  float error = maxvolumeoxygenaveraged - wantedoxygenvolume;
+  if(wantedoxygenvolume == 0) wantedoxygenvolume = 1;
+  float error = (maxvolumeoxygenaveraged - wantedoxygenvolume)/wantedoxygenvolume;
   K_O2 = K_O2 - PID_K_O2 * error;
   if(K_O2 < 0){
     K_O2 = 0;

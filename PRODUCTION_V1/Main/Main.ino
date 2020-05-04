@@ -2,9 +2,9 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
+#define PYTHON 0
 #define HARDWARE 0
-#define DEBUGserial Serial3
+#define DEBUGserial Serial
 
 //---------------------------------------------------------------
 // VARIABLES
@@ -171,7 +171,6 @@ void setup()
   float ratio = valveinittime/calibrationvolume;
   FLOW_SENSOR_setK_O2(ratio);
   FLOW_SENSOR_resetVolumeO2();
-  FLOW_SENSOR_setK_O2(0.15);
 
   if (calibrationvolume > mincalibrationvolume) {
     oxygen_init_ok = true; 
