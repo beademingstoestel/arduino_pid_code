@@ -75,6 +75,7 @@ float BREATHE_getPID()
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 {
+  // check if inhale time has passed OR if patient coughs (overpressure trigger)
   if ((millis() - inhale_start_time) > target_inhale_time || CurrentPressurePatient > target_pressure + comms_getADPK())
   {
     PID_value_I = 0;
@@ -82,6 +83,7 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
     exhale_start_time = millis();
     return exhale;
   }
+  // Otherwise, stay in inhale
   else {
     return inhale;
   }
@@ -90,10 +92,12 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToWAIT(int end_switch)
 {
-  if (((millis() - inhale_start_time) > 2 * target_inhale_time))
+  // exhale time should be at least equal to exhale time except if we are in APRV mode
+  if (((millis() - inhale_start_time) > 2 * target_inhale_time) || comms_getAPRV())
   {
     return wait;
   }
+  // Otherwise, stay in exhale
   else {
     return exhale;
   }
@@ -102,16 +106,12 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 {
-  bool timepassed = 0;
-  // check timer
-  if (millis() - exhale_start_time > target_exhale_time) {
-    timepassed = 1;
-  }
-
-  if (timepassed || inhale_detected)
+  // Check if time has passed, or patient triggered an inhale
+  if ((millis() - exhale_start_time) > target_exhale_time || inhale_detected)
   {
     return inhale;
   }
+  // Otherwise, stay in wait
   else {
     return wait;
   }
