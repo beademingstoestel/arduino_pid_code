@@ -316,6 +316,7 @@ void controller()
         target_volume = comms_getVT();
         trigger_mode = comms_getMode();
         target_risetime = comms_getRP();
+        target_risetime = updateAutoFlow(target_risetime, target_inhale_time);
         target_pressure = comms_getPressure(inhale_detected);
 
         // reset pressure and volume sensor check values
