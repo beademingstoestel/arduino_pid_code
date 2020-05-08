@@ -16,7 +16,7 @@ unsigned long interrupttime;
 volatile float CurrentPressurePatient = 0;
 volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
-volatile float CurrentVolumePatient = 0;
+volatile float CurrentVolumePatient = 0;  
 
 volatile float CurrentFlowOxygen = 0;
 volatile float CurrentVolumeOxygen = 0;
@@ -166,10 +166,11 @@ void setup()
   ValveOff();
   
   // calculate K_O2
-  float sampletime = (float) valveinittime / counter;
-  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
-  float ratio = valveinittime/calibrationvolume;
-  FLOW_SENSOR_setK_O2(ratio);
+//  float sampletime = (float) valveinittime / counter;
+//  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
+//  float ratio = valveinittime/calibrationvolume;
+
+  FLOW_SENSOR_setK_O2(0.0); 
   FLOW_SENSOR_resetVolumeO2();
 
   if (calibrationvolume > mincalibrationvolume) {

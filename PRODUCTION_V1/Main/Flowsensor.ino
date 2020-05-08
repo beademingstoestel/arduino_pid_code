@@ -11,12 +11,15 @@ unsigned long deltaT;
 bool resetAllowed = true;
 float K_O2;
 
-float PID_K_O2 = 0.04;
+float Cp_O2 = 5.0/25;
+float Ci_O2 = 0.0/25;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
 float fio2max = 0.98;
 float valvetime;
+float Vo2_error = 0;
+float Vo2_cum_error = 0;
 
 const int numReadingsO2 = 5;
 float readingsO2[numReadingsO2] = {0,0,0,0,0};      
@@ -466,6 +469,7 @@ unsigned long FLOW_SENSOR_getTime(float fio2){
   wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air);
   // calulate corresponding time to open valve
   valvetime = K_O2 * wantedoxygenvolume;
+  
   // don't return negative valve time
   if (valvetime < 0){
     valvetime = 0;
@@ -484,23 +488,27 @@ void FLOW_SENSOR_updateK_O2(){
 
   // calculate error and update K_O2
   if(wantedoxygenvolume == 0) wantedoxygenvolume = 1;
-  float error = (maxvolumeoxygenaveraged - wantedoxygenvolume)/wantedoxygenvolume;
-  K_O2 = K_O2 - PID_K_O2 * error;
+  Vo2_cum_error += Vo2_error;
+  Vo2_error = (wantedoxygenvolume - maxvolumeoxygenaveraged)/wantedoxygenvolume;
+  K_O2 = K_O2 + Cp_O2 * Vo2_error + Ci_O2 * Vo2_cum_error;
   if(K_O2 < 0){
     K_O2 = 0;
   }
+  
   DEBUGserial.print("error: ");
-  DEBUGserial.println(error);
+  DEBUGserial.println(Vo2_error*wantedoxygenvolume);
+//  DEBUGserial.print("cumulative error: ");
+//  DEBUGserial.println(Vo2_cum_error*wantedoxygenvolume);
   DEBUGserial.print("K: ");
   DEBUGserial.println(K_O2);
-  DEBUGserial.print("Time: ");
+  DEBUGserial.print("valveTime: ");
   DEBUGserial.println(valvetime);
-  DEBUGserial.print("Vpatient: ");
-  DEBUGserial.println(maxvolumepatient);
-  DEBUGserial.print("Vwanted: ");
+//  DEBUGserial.print("Vpatient: ");
+//  DEBUGserial.println(maxvolumepatient);
+  DEBUGserial.print("Voxygenwanted: ");
   DEBUGserial.println(wantedoxygenvolume);
-  DEBUGserial.print("V02: ");
-  DEBUGserial.println(maxvolumeoxygen);
+//  DEBUGserial.print("V02: ");
+//  DEBUGserial.println(maxvolumeoxygen);
   DEBUGserial.print("FIO2: ");
   DEBUGserial.println(FLOW_SENSOR_getFIO2());
 }

@@ -18,9 +18,9 @@ typedef struct{
 
 SETTING settingarray[22]= {
   {"ALARM", 0, false, 64, 0, 0},    // 0  alarm state
-  {"RR", 20, false, 0, 0, 0},       // 1  respiratory rate
-  {"VT", 200, false, 4, 0, 0},      // 2  tidal volume
-  {"PK", 30, false, 8, 0, 0},       // 3  peak pressure
+  {"RR", 35, false, 0, 0, 0},       // 1  respiratory rate
+  {"VT", 150, false, 4, 0, 0},      // 2  tidal volume
+  {"PK", 15, false, 8, 0, 0},       // 3  peak pressure
   {"PS", 25, false, 12, 0, 0},      // 4  support pressure
   {"PP", 0, false, 16, 0, 0},      // 5  peep
   {"IE", 0.33, false, 20, 0, 0},    // 6  I/E as float ==> 1:2 = 0.33
@@ -33,7 +33,7 @@ SETTING settingarray[22]= {
   {"MODE", 4, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
   {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FIO2", 0.31, false, 60, 0, 0},  // 16 Oxygen level
+  {"FIO2", 0.55, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
