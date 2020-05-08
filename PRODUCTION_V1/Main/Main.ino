@@ -63,7 +63,7 @@ bool battery_above_25 = false;
 bool fan_OK = true;   
 bool battery_powered = false;
 bool motor_sens_init_ok = false;
-bool hall_sens_init_ok = false;
+bool sensor_calibration_ok = false;
 bool pressure_sens_init_ok = false;
 bool flow_sens_init_ok = false;
 bool isFlow2PatientRead = false;
@@ -95,24 +95,11 @@ void setup()
 
   //--- check mains supply and battery voltage
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  
-  //-- set up hall sensor
-  DEBUGserial.println("Setting up HALL sensor: ");
-  if (HALL_SENSOR_INIT()) {
-    hall_sens_init_ok = true;
-    HALL_SENSOR_calibrateHall();
-    DEBUGserial.println("HALL SENSOR OK");
-  }
-  else {
-    DEBUGserial.println("HALL SENSOR Failed");
-    if(HARDWARE)ALARM_init();
-  }
-  
+   
   //--- set up flow sensor
   DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
     flow_sens_init_ok = true;
-    FLOW_SENSOR_setDeltaT(controllerTime);
     DEBUGserial.println("FLOW SENSOR OK");
   }
   else {
@@ -153,12 +140,35 @@ void setup()
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  hall_sens_init_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
     
   //-- set up communication with screen
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
 
+  //-- wait for calibration of flow and pressure sensors
+  flow_sens_init_ok = false;
+  pressure_sens_init_ok = false;
+  DEBUGserial.println("WAIT FOR CALIBRATION");
+  while(!pressure_sens_init_ok || !flow_sens_init_ok){
+    recvWithEndMarkerSer0();
+    if (PYTHON) doWatchdog();
+    
+    if (comms_getActive() == -1) {
+      comms_resetActive();
+      analogWrite(Speaker_PWM, 127);
+      delay(200);
+      analogWrite(Speaker_PWM, 0);
+  
+      flow_sens_init_ok = FLOW_SENSOR_CALIBRATE();
+      pressure_sens_init_ok = PRESSURE_SENSOR_CALIBRATE();
+    }
+  }
+  DEBUGserial.println("CALIBRATION OK");
+  sensor_calibration_ok = true;
+  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  
   //-- set up interrupt and watchdog if no alarms during initialisation
   if(!ALARM_getAlarmState()){
     configure_wdt();                     // configures watchdog timer to 16 ms

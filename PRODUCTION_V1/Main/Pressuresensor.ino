@@ -31,16 +31,16 @@ float readings[numReadings];      // the readings from the analog input
 int readIndex = 0;                // the index of the current reading
 float total = 0;                  // the running total
 //-----------------------------------------------------------------------------------------------
+bool PRESSURE_SENSOR_CALIBRATE(){
+  bool bme1ok = BME1_Calibrate();
+  bool bme2ok = BME2_Calibrate();
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) );
+}
+
 bool PRESSURE_SENSOR_INIT(){
-  bool bme1ok = 0;
-  bool bme2ok = 0;
-  bool mplok = 0;
-
-  bme1ok = BME1_Setup();
-  bme2ok = BME2_Setup();
-  mplok = MPL_Setup();
-
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) && (mplok || !MPL_tube));
+  bool bme1ok = BME1_Setup();
+  bool bme2ok = BME2_Setup();
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) );
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -59,17 +59,20 @@ bool BME1_Setup()
                      Adafruit_BME280::SAMPLING_NONE,     /* Hum. oversampling */
                      Adafruit_BME280::FILTER_OFF,      /* Filtering. */
                      Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
-    // calibrate
-    delay(50);
-    sum = 0;
-    for (int i = 0; i < 50; i++)
-    {
-      sum += BME280_readpressure_cmH2O();
-    }
-    PRESSURE_INIT_VALUE_BME = sum / 50;
   }
   return true;
 }
+bool BME1_Calibrate()
+{
+  sum = 0;
+  for (int i = 0; i < 50; i++)
+  {
+    sum += BME280_readpressure_cmH2O();
+  }
+  PRESSURE_INIT_VALUE_BME = sum / 50;
+  return true;
+}
+
 bool BME2_Setup()
 {
   if (!bme2.begin())
@@ -86,35 +89,19 @@ bool BME2_Setup()
                      Adafruit_BME280::SAMPLING_NONE,     /* Hum. oversampling */
                      Adafruit_BME280::FILTER_OFF,      /* Filtering. */
                      Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
-    // calibrate
-    delay(50);
-    for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-      readings[thisReading] = BME280_readPressureAmbient();
-      total += readings[thisReading];
-    }
-    PRESSURE_INIT_VALUE_AMBIENT = total / numReadings;
   }
   return true;
 }
-bool MPL_Setup()
+bool BME2_Calibrate()
 {
-  if (! mpl3115a2.begin()) {
-    DEBUGserial.println("MPL sensor for tube pressure not found");
-    return false;
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = BME280_readPressureAmbient();
+    total += readings[thisReading];
   }
-  else {
-    delay(100);
-    PRESSURE_SENSOR3_INITIALIZED = true;
-    sum = 0;
-    for (int i = 0; i < 50; i++)
-    {
-      sum += MPL3115A2_readpressure_cmH2O();
-      delay(40); // add small delay: this sensor has long sampling time!
-    }
-    PRESSURE_INIT_VALUE_MPL = sum / 50;
-  }
+  PRESSURE_INIT_VALUE_AMBIENT = total / numReadings;
   return true;
 }
+
 //-----------------------------------------------------------------------------------------------
 float BME280_readpressure_cmH2O()
 {
@@ -142,19 +129,7 @@ float BME280_readPressureAmbient()
   }
   return 0;
 }
-//-----------------------------------------------------------------------------------------------
-float MPL3115A2_readpressure_cmH2O() {
-  if (PRESSURE_SENSOR3_INITIALIZED)
-  {
-    if(PRESSURE_SENSOR2_INITIALIZED){
-      return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_AMBIENT;
-    }
-    else{
-      return (mpl3115a2.getPressureTHOMASVDD() * Pa2cmh2o_scale) - PRESSURE_INIT_VALUE_MPL;
-    }
-  }
-  return 0;
-}
+
 //-----------------------------------------------------------------------------------------------
 bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minpressureinhale)
 {
