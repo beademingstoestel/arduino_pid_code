@@ -29,19 +29,28 @@ char SLM[10];
 //----------------------------------------------------------------------------------------------------------------
 bool FLOW_SENSOR_INIT()
 {
+  FLOW_SENSOR_setDeltaT(controllerTime);
   Wire.begin();  
   delay(1000); // let serial console settle
   int returnCode = sdp.init();
   if (returnCode == 0) 
   {
     IS_FLOW_SENSOR_INITIALIZED=true;
+    return true;
+  } 
+  else 
+  {
+    return false;
+  }  
+}
 
-    // calibration
-    delay(100);
+//----------------------------------------------------------------------------------------------------------------
+bool FLOW_SENSOR_CALIBRATE()
+{
+    bool flowcalOK = true;
     float currentVal;
     float sum = 0;
     float difference = 0;
-    bool flowcalOK = true;
     float thresholdcalOK = 0.3;
     float diff_error = 0;
     for(int i=0;i<100;i++)
@@ -51,13 +60,15 @@ bool FLOW_SENSOR_INIT()
       delay(50);
       // additional check based on differences
       difference = currentVal-(sum/(i+1));
-      if (abs(difference)>thresholdcalOK) // returns false value if current flow sensor readout deviates from average by set threshold
+      // returns false value if current flow sensor readout deviates from average by set threshold
+      if (abs(difference)>thresholdcalOK && i>10) 
       {
          diff_error = difference;
          flowcalOK=false;
       }
     }    
-    calibration_offset =sum/100.0;    
+    calibration_offset =sum/100.0;
+        
     DEBUGserial.print("Flow sensor offset: ");
     DEBUGserial.println(calibration_offset);
     if(flowcalOK==false) {
@@ -65,12 +76,6 @@ bool FLOW_SENSOR_INIT()
       DEBUGserial.println(diff_error);
     }
     return flowcalOK; // init successfull or not;
-    
-  } 
-  else 
-  {
-    return false; // init failed;
-  }  
 }
 //----------------------------------------------------------------------------------------------------------------
 //bool FLOW_SENSOR_Measure(float* value)

@@ -98,7 +98,7 @@ unsigned int ALARM_getAlarmState(void) {
 // check alarm init
 //-----------------------------------------------------
 void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok, 
-    bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool sensor_calibration_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
 
@@ -124,8 +124,8 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
     // Motor limit switches check failed
     setAlarmState(9);
   }
-   if (hall_sens_init_ok==false){
-    // hall sensor initialization failed
+   if (sensor_calibration_ok==false){
+    // flow and pressure sensors not calibrated
     setAlarmState(10);
   }
   if (battery_powered){
