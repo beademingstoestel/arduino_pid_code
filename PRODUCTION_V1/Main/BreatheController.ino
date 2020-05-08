@@ -7,6 +7,7 @@ float offset = 50;
 float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
+float flow_at_switching = 0;
 
 //---------------------------------
 // this is used in degraded mode with a linear scaling on the pressure setpoint
@@ -75,9 +76,18 @@ float BREATHE_getPID()
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 {
-  // check if inhale time has passed OR if patient coughs (overpressure trigger)
-  if ((millis() - inhale_start_time) > target_inhale_time || CurrentPressurePatient > target_pressure + comms_getADPK())
+  // check if inhale time has passed 
+  if ((millis() - inhale_start_time) > target_inhale_time)
   {
+    flow_at_switching = CurrentFlowPatient;
+    
+    PID_value_I = 0;
+    PID_value_P = 0;
+    exhale_start_time = millis();
+    return exhale;
+  }
+  //OR if patient coughs (overpressure trigger)
+  else if(CurrentPressurePatient > target_pressure + comms_getADPK()){
     PID_value_I = 0;
     PID_value_P = 0;
     exhale_start_time = millis();
@@ -92,8 +102,13 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToWAIT(int end_switch)
 {
-  // exhale time should be at least equal to exhale time except if we are in APRV mode
-  if (((millis() - inhale_start_time) > 2 * target_inhale_time) || comms_getAPRV())
+  // exhale time should be at least equal to exhale time ...
+  if (((millis() - inhale_start_time) > 2 * target_inhale_time))
+  {
+    return wait;
+  }
+  // ... except if we are in APRV mode
+  else if(comms_getAPRV())
   {
     return wait;
   }
@@ -223,5 +238,25 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
   else if (controller_state == wait) {
     return hold_speed;
   }
+}
+
+//------------------------------------------------------------------------
+float updateAutoFlow(float risetime, unsigned long target_inhale_time){
+  // In autoflow: adjust risetime
+  if (comms_getAutoFlow()){
+    float delta = 0.1;
+    // if the flow was zero too soon: slow down
+    if(flow_at_switching < 2){
+      risetime += delta;
+      if (risetime > target_inhale_time) risetime = target_inhale_time;
+    }
+    // if the flow is not yet sufficiently LOW: speed up
+    else if(flow_at_switching > 10){
+      risetime -= delta;
+      if (risetime < 0) risetime = 0;
+    }
+  }
+  // Otherwise, don't change risetime
+  return risetime;
 }
 #endif
