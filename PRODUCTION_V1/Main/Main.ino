@@ -131,6 +131,7 @@ void setup()
 
   //-- set up oxygen control
   oxygen_init_ok = true;
+  sensor_calibration_ok = true; // TODO: REMOVE - only temporary  
 
   //-- setup done
   DEBUGserial.println("Setup done");
@@ -141,7 +142,7 @@ void setup()
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
-    
+  
   //-- set up communication with screen
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
@@ -154,7 +155,8 @@ void setup()
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
     
-    if (comms_getActive() == -1) {
+    //if (comms_getActive() == -1) { 
+    if (comms_getActive() == 1) {  // TODO: REMOVE - only temporary
       comms_resetActive();
       analogWrite(Speaker_PWM, 127);
       delay(200);
