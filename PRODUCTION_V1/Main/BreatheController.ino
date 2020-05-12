@@ -108,7 +108,7 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
     return wait;
   }
   // ... except if we are in APRV mode
-  else if(comms_getAPRV())
+  else if(comms_getAPRV() && (millis() - exhale_start_time) > target_exhale_time)
   {
     return wait;
   }

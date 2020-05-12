@@ -155,8 +155,8 @@ void setup()
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
     
-    //if (comms_getActive() == -1) { 
-    if (comms_getActive() == 1) {  // TODO: REMOVE - only temporary
+    //if (comms_getActive() == -1 || !PYTHON) { 
+    if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
       comms_resetActive();
       analogWrite(Speaker_PWM, 127);
       delay(200);
