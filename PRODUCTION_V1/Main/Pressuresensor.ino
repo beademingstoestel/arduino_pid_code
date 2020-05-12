@@ -32,16 +32,16 @@ int readIndex = 0;                // the index of the current reading
 float total = 0;                  // the running total
 //-----------------------------------------------------------------------------------------------
 bool PRESSURE_SENSOR_CALIBRATE(){
-  // calibrate ambient first: tube pressure sensor uses its offset
-  bool bme2ok = BME2_Calibrate();
-  bool bme1ok = BME1_Calibrate(); 
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) );
+  // calibrate (and reinitialise) tube sensor
+  bool bme1ok = BME1_Setup() && BME1_Calibrate(); 
+  return ((bme1ok || !BME_tube));
 }
 
 bool PRESSURE_SENSOR_INIT(){
+  // initialise both sensors + calibrate ambient sensor
   bool bme1ok = BME1_Setup();
-  bool bme2ok = BME2_Setup();
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) );
+  bool bme2ok = BME2_Setup() && BME2_Calibrate();
+  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient));
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -65,13 +65,16 @@ bool BME1_Setup()
 }
 bool BME1_Calibrate()
 {
+  BME280_readpressure_cmH2O();
   sum = 0;
   for (int i = 0; i < 50; i++)
   {
-    sum += BME280_readpressure_cmH2O();
+    sum += BME280_readpressure_cmH2O(); 
   }
   PRESSURE_INIT_VALUE_BME = sum / 50;
-  if (PRESSURE_INIT_VALUE_BME > 0.1){
+  DEBUGserial.print("PRESSURE_INIT_VALUE_BME: ");
+  DEBUGserial.println(PRESSURE_INIT_VALUE_BME);
+  if (abs(BME280_readpressure_cmH2O()) > 0.5){
     return false;
   }
   return true;
@@ -98,11 +101,14 @@ bool BME2_Setup()
 }
 bool BME2_Calibrate()
 {
+  total = 0;
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
     readings[thisReading] = BME280_readPressureAmbient();
     total += readings[thisReading];
   }
   PRESSURE_INIT_VALUE_AMBIENT = total / numReadings;
+  DEBUGserial.print("PRESSURE_INIT_VALUE_AMBIENT: ");
+  DEBUGserial.println(PRESSURE_INIT_VALUE_AMBIENT);
   return true;
 }
 

@@ -30,6 +30,7 @@ float Speed;
 bool inhale_detected = 0;
 int transientMute = 0;
 int transientMuteCycles = 5;
+int numberofretries = 0;
 
 float target_risetime = 500;           
 unsigned int target_pressure = 20; 
@@ -158,6 +159,12 @@ void setup()
     //if (comms_getActive() == -1 || !PYTHON) { 
     if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
       comms_resetActive();
+      numberofretries = 5;
+    }
+
+    if (numberofretries > 0){
+      numberofretries--;
+      
       analogWrite(Speaker_PWM, 127);
       delay(200);
       analogWrite(Speaker_PWM, 0);
