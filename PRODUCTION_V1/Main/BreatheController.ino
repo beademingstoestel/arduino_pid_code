@@ -73,13 +73,25 @@ float BREATHE_getPID()
   return PID_value;
 }
 
+const int numReadingsAutoFlow = 10;
+float readingsAutoFlow[numReadingsAutoFlow];  // the readings from the analog input
+int readIndexAutoFlow = 0;                    // the index of the current reading
+float totalAutoFlow = 0;                      // the running total
+
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 {
+  // keep running average of flow during inhale: for autoflow
+  totalAutoFlow = totalAutoFlow - readingsAutoFlow[readIndexAutoFlow];
+  readingsAutoFlow[readIndexAutoFlow] = CurrentFlowPatient;
+  totalAutoFlow = totalAutoFlow + readingsAutoFlow[readIndexAutoFlow];
+  readIndexAutoFlow = readIndexAutoFlow + 1;
+  if (readIndexAutoFlow >= numReadingsAutoFlow) readIndexAutoFlow = 0;
+  
   // check if inhale time has passed 
   if ((millis() - inhale_start_time) > target_inhale_time)
   {
-    flow_at_switching = CurrentFlowPatient;
+    flow_at_switching = totalAutoFlow / numReadingsAutoFlow;
     
     PID_value_I = 0;
     PID_value_P = 0;
@@ -244,18 +256,23 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
 float updateAutoFlow(float risetime, unsigned long target_inhale_time){
   // In autoflow: adjust risetime
   if (comms_getAutoFlow()){
-    float delta = 0.1;
+    float delta = 50;
+    
     // if the flow was zero too soon: slow down
     if(flow_at_switching < 2){
       risetime += delta;
       if (risetime > target_inhale_time) risetime = target_inhale_time;
     }
     // if the flow is not yet sufficiently LOW: speed up
-    else if(flow_at_switching > 10){
+    else if(flow_at_switching > 5){
       risetime -= delta;
-      if (risetime < 0) risetime = 0;
+      if (risetime < 200) risetime = 200;
     }
   }
+  else{
+    risetime = comms_getRP();
+  }
+
   // Otherwise, don't change risetime
   return risetime;
 }
