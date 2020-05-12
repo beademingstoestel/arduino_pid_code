@@ -261,7 +261,7 @@ float updateAutoFlow(float risetime, unsigned long target_inhale_time){
     // if the flow was zero too soon: slow down
     if(flow_at_switching < 2){
       risetime += delta;
-      if (risetime > target_inhale_time) risetime = target_inhale_time;
+      if (risetime > target_inhale_time - 200) risetime = target_inhale_time - 200;
     }
     // if the flow is not yet sufficiently LOW: speed up
     else if(flow_at_switching > 5){
