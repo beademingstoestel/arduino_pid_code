@@ -32,8 +32,9 @@ int readIndex = 0;                // the index of the current reading
 float total = 0;                  // the running total
 //-----------------------------------------------------------------------------------------------
 bool PRESSURE_SENSOR_CALIBRATE(){
-  bool bme1ok = BME1_Calibrate();
+  // calibrate ambient first: tube pressure sensor uses its offset
   bool bme2ok = BME2_Calibrate();
+  bool bme1ok = BME1_Calibrate(); 
   return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient) );
 }
 
@@ -70,6 +71,9 @@ bool BME1_Calibrate()
     sum += BME280_readpressure_cmH2O();
   }
   PRESSURE_INIT_VALUE_BME = sum / 50;
+  if (PRESSURE_INIT_VALUE_BME > 0.1){
+    return false;
+  }
   return true;
 }
 
