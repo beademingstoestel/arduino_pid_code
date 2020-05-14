@@ -9,6 +9,8 @@ Adafruit_BME280 bme1;//(0x77: Tube sensor);
 Adafruit_BME280 bme2(BME_SPI_CS);  //(Ambient sensor over SPI);
 Adafruit_Sensor *bme_pressure_patient1 = bme1.getPressureSensor();
 Adafruit_Sensor *bme_pressure_ambient = bme2.getPressureSensor();
+Adafruit_Sensor *bme_humidity_patient = bme1.getHumiditySensor();
+Adafruit_Sensor *bme_humidity_ambient = bme2.getHumiditySensor();
 Adafruit_MPL3115A2 mpl3115a2 = Adafruit_MPL3115A2();
 
 bool PRESSURE_SENSOR1_INITIALIZED = false;
@@ -54,9 +56,9 @@ bool BME1_Setup()
   {
     PRESSURE_SENSOR1_INITIALIZED = true;
     bme1.setSampling(Adafruit_BME280::MODE_NORMAL,     /* Operating Mode. */
-                     Adafruit_BME280::SAMPLING_NONE,     /* Temp. oversampling */
+                     Adafruit_BME280::SAMPLING_X1,     /* Temp. oversampling */
                      Adafruit_BME280::SAMPLING_X1,    /* Pressure oversampling */
-                     Adafruit_BME280::SAMPLING_NONE,     /* Hum. oversampling */
+                     Adafruit_BME280::SAMPLING_X1,     /* Hum. oversampling */
                      Adafruit_BME280::FILTER_OFF,      /* Filtering. */
                      Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
     // calibrate
@@ -81,9 +83,9 @@ bool BME2_Setup()
   {
     PRESSURE_SENSOR2_INITIALIZED = true;
     bme2.setSampling(Adafruit_BME280::MODE_NORMAL,     /* Operating Mode. */
-                     Adafruit_BME280::SAMPLING_NONE,     /* Temp. oversampling */
+                     Adafruit_BME280::SAMPLING_X1,     /* Temp. oversampling */
                      Adafruit_BME280::SAMPLING_X1,    /* Pressure oversampling */
-                     Adafruit_BME280::SAMPLING_NONE,     /* Hum. oversampling */
+                     Adafruit_BME280::SAMPLING_X1,     /* Hum. oversampling */
                      Adafruit_BME280::FILTER_OFF,      /* Filtering. */
                      Adafruit_BME280::STANDBY_MS_0_5); /* Standby time. */
     // calibrate
@@ -219,4 +221,18 @@ bool BME_280_CHECK_TEMPERATURE(){
       }
   }
   return false;
+}
+
+float BME_280_GET_HUMIDTY_PATIENT(){
+  Serial.print("Humidty patient = ");
+  Serial.print(bme1.readHumidity());
+  Serial.println(" %");
+  return bme1.readHumidity();
+}
+
+float BME_280_GET_HUMIDTY_AMBIENT(){
+  Serial.print("Humidty ambient = ");
+  Serial.print(bme2.readHumidity());
+  Serial.println(" %");
+  return bme2.readHumidity();
 }

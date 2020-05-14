@@ -111,6 +111,17 @@ void setup()
     DEBUGserial.println("HALL SENSOR Failed");
     if(HARDWARE)ALARM_init();
   }
+
+  //-- set up oxygen sensor
+  DEBUGserial.println("Setting up OXYGEN sensor: ");
+  if (OXYGEN_SENSOR_INIT()) {
+    //hall_sens_init_ok = true; //TODO: add 
+    DEBUGserial.println("OXYGEN SENSOR OK");
+  }
+  else {
+    DEBUGserial.println("OXYGEN SENSOR Failed");
+    if(HARDWARE)ALARM_init();
+  }
   
   //--- set up flow sensor
   DEBUGserial.println("Setting up flow sensor: ");
@@ -166,8 +177,8 @@ void setup()
   ValveOff();
   
   // calculate K_O2
-//  float sampletime = (float) valveinittime / counter;
-//  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
+  float sampletime = (float) valveinittime / counter;
+  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
 //  float ratio = valveinittime/calibrationvolume;
 
   FLOW_SENSOR_setK_O2(0.0); 
@@ -228,6 +239,9 @@ void loop()
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   // delay loop to avoid full serial buffers
   delay(50);
+
+  // Measure oxygen each second
+  OXYGEN_SENSOR_MEASURE();
 }
 
 // ---------------------------------------------------------------------------------------------------------
