@@ -204,6 +204,8 @@ void loop()
   // update ambient pressure and temperature
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
+  // check the motor to regulate PEEP
+  PEEP_check_motor();
   // delay loop to avoid full serial buffers
   delay(50);
 }
