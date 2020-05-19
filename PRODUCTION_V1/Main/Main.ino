@@ -79,7 +79,7 @@ bool oxygen_init_ok = false;
 //---------------------------------------------------------------
 
 void setup()
-{
+{     
   Serial.begin(115200);
   DEBUGserial.begin(115200); 
   
@@ -194,7 +194,7 @@ void loop()
   // Handle uart send to PC
   if (PYTHON && isPythonOK) sendDataToPython();
   // Handle uart receive from PC
-  recvWithEndMarkerSer0();
+  if (PYTHON) recvWithEndMarkerSer0();
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
   if (PYTHON && isPythonOK) doCPU_TIMER();
