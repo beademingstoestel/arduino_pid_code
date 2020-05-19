@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.31, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.41, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -150,6 +150,12 @@ bool comms_getTrigger() {
 }
 bool comms_getVolumeLimitControl() {
   return (((int) settingarray[13].settingvalue) >> 2 & 0x01);
+}
+bool comms_getAPRV() {
+  return (((int) settingarray[13].settingvalue) >> 3 & 0x01);
+}
+bool comms_getAutoFlow() {
+  return (((int) settingarray[13].settingvalue) >> 4 & 0x01);
 }
 int comms_getActive() {
   if (PYTHON){
@@ -325,6 +331,11 @@ void processSerialPort(String input) {
   
   if (input.startsWith("ALARM")) {
     updateWatchdog(millis());
+  }
+
+  // Get measured PEEP and update PEEP valve if necessary
+  if (input.startsWith("PEEP")) {
+    PEEP_update(value0.toFloat());
   }
   
   if (input.startsWith("ACK")) {

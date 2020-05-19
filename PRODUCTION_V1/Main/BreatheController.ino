@@ -7,6 +7,7 @@ float offset = 50;
 float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
+float flow_at_switching = 0;
 
 //---------------------------------
 // this is used in degraded mode with a linear scaling on the pressure setpoint
@@ -72,16 +73,39 @@ float BREATHE_getPID()
   return PID_value;
 }
 
+const int numReadingsAutoFlow = 10;
+float readingsAutoFlow[numReadingsAutoFlow];  // the readings from the analog input
+int readIndexAutoFlow = 0;                    // the index of the current reading
+float totalAutoFlow = 0;                      // the running total
+
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 {
-  if ((millis() - inhale_start_time) > target_inhale_time || CurrentPressurePatient > target_pressure + comms_getADPK())
+  // keep running average of flow during inhale: for autoflow
+  totalAutoFlow = totalAutoFlow - readingsAutoFlow[readIndexAutoFlow];
+  readingsAutoFlow[readIndexAutoFlow] = CurrentFlowPatient;
+  totalAutoFlow = totalAutoFlow + readingsAutoFlow[readIndexAutoFlow];
+  readIndexAutoFlow = readIndexAutoFlow + 1;
+  if (readIndexAutoFlow >= numReadingsAutoFlow) readIndexAutoFlow = 0;
+  
+  // check if inhale time has passed 
+  if ((millis() - inhale_start_time) > target_inhale_time)
   {
+    flow_at_switching = totalAutoFlow / numReadingsAutoFlow;
+    
     PID_value_I = 0;
     PID_value_P = 0;
     exhale_start_time = millis();
     return exhale;
   }
+  //OR if patient coughs (overpressure trigger)
+  else if(CurrentPressurePatient > target_pressure + comms_getADPK()){
+    PID_value_I = 0;
+    PID_value_P = 0;
+    exhale_start_time = millis();
+    return exhale;
+  }
+  // Otherwise, stay in inhale
   else {
     return inhale;
   }
@@ -90,10 +114,17 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToWAIT(int end_switch)
 {
+  // exhale time should be at least equal to exhale time ...
   if (((millis() - inhale_start_time) > 2 * target_inhale_time))
   {
     return wait;
   }
+  // ... except if we are in APRV mode
+  else if(comms_getAPRV() && (millis() - exhale_start_time) > target_exhale_time)
+  {
+    return wait;
+  }
+  // Otherwise, stay in exhale
   else {
     return exhale;
   }
@@ -102,16 +133,12 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 {
-  bool timepassed = 0;
-  // check timer
-  if (millis() - exhale_start_time > target_exhale_time) {
-    timepassed = 1;
-  }
-
-  if (timepassed || inhale_detected)
+  // Check if time has passed, or patient triggered an inhale
+  if ((millis() - exhale_start_time) > target_exhale_time || inhale_detected)
   {
     return inhale;
   }
+  // Otherwise, stay in wait
   else {
     return wait;
   }
@@ -223,5 +250,30 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
   else if (controller_state == wait) {
     return hold_speed;
   }
+}
+
+//------------------------------------------------------------------------
+float updateAutoFlow(float risetime, unsigned long target_inhale_time){
+  // In autoflow: adjust risetime
+  if (comms_getAutoFlow()){
+    float delta = 50;
+    
+    // if the flow was zero too soon: slow down
+    if(flow_at_switching < 2){
+      risetime += delta;
+      if (risetime > target_inhale_time - 200) risetime = target_inhale_time - 200;
+    }
+    // if the flow is not yet sufficiently LOW: speed up
+    else if(flow_at_switching > 5){
+      risetime -= delta;
+      if (risetime < 200) risetime = 200;
+    }
+  }
+  else{
+    risetime = comms_getRP();
+  }
+
+  // Otherwise, don't change risetime
+  return risetime;
 }
 #endif

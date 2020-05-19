@@ -2,10 +2,10 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
-#define DEBUGserial Serial
-
+#define DEBUGserial Serial3
+ 
 //---------------------------------------------------------------
 // VARIABLES
 //---------------------------------------------------------------
@@ -16,7 +16,7 @@ unsigned long interrupttime;
 volatile float CurrentPressurePatient = 0;
 volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
-volatile float CurrentVolumePatient = 0;  
+volatile float CurrentVolumePatient = 0;
 
 volatile float CurrentFlowOxygen = 0;
 volatile float CurrentVolumeOxygen = 0;
@@ -33,6 +33,7 @@ float Speed;
 bool inhale_detected = 0;
 int transientMute = 0;
 int transientMuteCycles = 5;
+int numberofretries = 0;
 
 float target_risetime = 500;           
 unsigned int target_pressure = 20; 
@@ -66,7 +67,7 @@ bool battery_above_25 = false;
 bool fan_OK = true;   
 bool battery_powered = false;
 bool motor_sens_init_ok = false;
-bool hall_sens_init_ok = false;
+bool sensor_calibration_ok = false;
 bool pressure_sens_init_ok = false;
 bool flow_sens_init_ok = false;
 bool isFlow2PatientRead = false;
@@ -74,7 +75,6 @@ bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
-bool isFlowOfOxygenRead = false;
 bool oxygen_init_ok = false;
 
 //---------------------------------------------------------------
@@ -99,35 +99,11 @@ void setup()
 
   //--- check mains supply and battery voltage
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  
-  //-- set up hall sensor
-  DEBUGserial.println("Setting up HALL sensor: ");
-  if (HALL_SENSOR_INIT()) {
-    hall_sens_init_ok = true;
-    HALL_SENSOR_calibrateHall();
-    DEBUGserial.println("HALL SENSOR OK");
-  }
-  else {
-    DEBUGserial.println("HALL SENSOR Failed");
-    if(HARDWARE)ALARM_init();
-  }
-
-  //-- set up oxygen sensor
-  DEBUGserial.println("Setting up OXYGEN sensor: ");
-  if (OXYGEN_SENSOR_INIT()) {
-    //hall_sens_init_ok = true; //TODO: add 
-    DEBUGserial.println("OXYGEN SENSOR OK");
-  }
-  else {
-    DEBUGserial.println("OXYGEN SENSOR Failed");
-    if(HARDWARE)ALARM_init();
-  }
-  
+   
   //--- set up flow sensor
   DEBUGserial.println("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
     flow_sens_init_ok = true;
-    FLOW_SENSOR_setDeltaT(controllerTime);
     DEBUGserial.println("FLOW SENSOR OK");
   }
   else {
@@ -205,12 +181,42 @@ void setup()
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  hall_sens_init_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
-    
+                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  
   //-- set up communication with screen
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
 
+  //-- wait for calibration of flow and pressure sensors
+  flow_sens_init_ok = false;
+  pressure_sens_init_ok = false;
+  DEBUGserial.println("WAIT FOR CALIBRATION");
+  while(!pressure_sens_init_ok || !flow_sens_init_ok){
+    recvWithEndMarkerSer0();
+    if (PYTHON) doWatchdog();
+    
+    //if (comms_getActive() == -1 || !PYTHON) { 
+    if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
+      comms_resetActive();
+      numberofretries = 5;
+    }
+
+    if (numberofretries > 0){
+      numberofretries--;
+      
+      analogWrite(Speaker_PWM, 127);
+      delay(200);
+      analogWrite(Speaker_PWM, 0);
+  
+      flow_sens_init_ok = FLOW_SENSOR_CALIBRATE();
+      pressure_sens_init_ok = PRESSURE_SENSOR_CALIBRATE();
+    }
+  }
+  DEBUGserial.println("CALIBRATION OK");
+  sensor_calibration_ok = true;
+  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  
   //-- set up interrupt and watchdog if no alarms during initialisation
   if(!ALARM_getAlarmState()){
     configure_wdt();                     // configures watchdog timer to 16 ms
@@ -237,11 +243,10 @@ void loop()
   // update ambient pressure and temperature
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
+  // check the motor to regulate PEEP
+  PEEP_check_motor();
   // delay loop to avoid full serial buffers
   delay(50);
-
-  // Measure oxygen each second
-  OXYGEN_SENSOR_MEASURE();
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -263,8 +268,7 @@ void controller()
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   fan_OK = FanPollingRoutine();
   ValveCheck();
-  isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
-  //isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
+  isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   fan_OK = FanPollingRoutine();
   ValveCheck();
   
@@ -367,7 +371,7 @@ void controller()
         target_exhale_time = comms_getExhaleTime();
         target_volume = comms_getVT();
         trigger_mode = comms_getMode();
-        target_risetime = comms_getRP();
+        target_risetime = updateAutoFlow(target_risetime, target_inhale_time);
         target_pressure = comms_getPressure(inhale_detected);
         target_fio2 = comms_getFIO2();
 

@@ -3,6 +3,7 @@ void initPeripherals(){
   initLight();
   initSpeaker();
   initValve();
+  PEEP_motor_init();
 }
 
 
@@ -199,6 +200,60 @@ bool read_endswitch_start() {
   return digitalRead(ENDSWITCH_PUSH_PIN);
 }
 #endif
+
+// ###################################################################
+int turn_time_total = 0;
+int turn_time_start = 0;
+
+float PEEP_error = 0;
+float PEEP_error_int = 0;
+float PEEP_Kp = 1;
+float PEEP_Ki = 0;
+
+void PEEP_motor_init(){
+  //pinMode();
+  // TODO
+}
+
+void PEEP_turn_motor(int turn_direction, int turn_time){
+  if(turn_time > 100){
+    if(turn_direction){
+      // start motor cw
+      // TODO
+      // analogWrite();
+    }
+    else{
+      // start motor ccw
+      // TODO
+      // analogWrite();
+    }
+    turn_time_total = turn_time;
+    turn_time_start = millis();
+  }
+}
+
+void PEEP_check_motor(){
+  if(millis() - turn_time_start > turn_time_total){
+     // stop motor
+  }
+}
+
+void PEEP_update(float PEEP){
+    PEEP_error = PEEP - comms_getPP();
+    PEEP_error_int += PEEP_error;
+    int PEEP_turn_direction = sgn(PEEP_error);
+    int PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
+    PEEP_turn_motor(PEEP_turn_direction, PEEP_turn_time);
+}
+
+static inline int8_t sgn(int val) {
+ if (val < 0) return -1;
+ if (val==0) return 0;
+ return 1;
+}
+
+// valves
+
 
 // ---------- Valves
 unsigned long ValveTime = 0;

@@ -182,33 +182,37 @@ const double DP_vs_SLM[][2] =
   {461.5  ,198.5},
   {484.33 ,203.9},
   {507.99 ,209.3}};
-
 //----------------------------------------------------------------------------------------------------------------
 char SLM[10];
 //----------------------------------------------------------------------------------------------------------------
-// CALIBRATION
-//----------------------------------------------------------------------------------------------------------------
 bool FLOW_SENSOR_INIT()
 {
+  FLOW_SENSOR_setDeltaT(controllerTime);
   Wire.begin();  
   delay(1000); // let serial console settle
-  // reset the i2c communication
-  int returnCode_reset = sdp_tube.resetI2C();
-  // initialize sensors
   int returnCode = sdp_tube.init();
   int returnCode_O2 = sdp_O2.init();
-  // check if sensor initalisation OK & start calibration
-  if (returnCode_reset == 0 && returnCode == 0 && returnCode_O2 == 0) 
+  if (returnCode == 0 && returnCode_O2 == 0) 
   {
     IS_FLOW_SENSOR_INITIALIZED=true;
-    delay(100);
-    float currentVal;
-    float sum;
-    float difference = 0;
+    return true;
+  } 
+  else 
+  {
+    return false;
+  }  
+}
+
+//----------------------------------------------------------------------------------------------------------------
+bool FLOW_SENSOR_CALIBRATE()
+{
     bool flowcalOK = true;
+    float currentVal;
+    float sum = 0;
+    float difference = 0;
     float thresholdcalOK = 0.3;
     float diff_error = 0;
-
+    
     // calibrate tube flow sensor
     sum = 0;
     for(int i=0;i<100;i++)
@@ -218,14 +222,16 @@ bool FLOW_SENSOR_INIT()
       delay(50);
       // additional check based on differences
       difference = currentVal-(sum/(i+1));
-      if (abs(difference)>thresholdcalOK) // returns false value if current flow sensor readout deviates from average by set threshold
+      // returns false value if current flow sensor readout deviates from average by set threshold
+      if (abs(difference)>thresholdcalOK && i>10) 
       {
          diff_error = difference;
          flowcalOK=false;
       }
     }    
-    calibration_offset_tube =sum/100.0;    
-    DEBUGserial.print("Tube Flow sensor offset: ");
+    calibration_offset_tube =sum/100.0;
+        
+    DEBUGserial.print("Flow sensor offset: ");
     DEBUGserial.println(calibration_offset_tube);
 
     // calibrate O2 flow sensor
@@ -246,13 +252,8 @@ bool FLOW_SENSOR_INIT()
     calibration_offset_O2 =sum/100.0;    
     DEBUGserial.print("Oxygen Flow sensor offset: ");
     DEBUGserial.println(calibration_offset_O2);
-    
+ 
     return flowcalOK; // init successfull or not;
-  } 
-  else 
-  {
-    return false; // init failed;
-  }  
 }
 //----------------------------------------------------------------------------------------------------------------
 // MEASURE
@@ -305,7 +306,6 @@ bool FLOW_SENSOR_Measure(bool sensortype, float* value)
   } 
   return SensorHealthy;
 }
-
 
 bool FLOW_SENSOR_MeasurePatient(float *value, float maxflowinhale, float minflowinhale){
   bool SensorHealthy = FLOW_SENSOR_Measure(0, value);
