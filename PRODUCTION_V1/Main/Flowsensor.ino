@@ -190,6 +190,9 @@ bool FLOW_SENSOR_INIT()
   FLOW_SENSOR_setDeltaT(controllerTime);
   Wire.begin();  
   delay(1000); // let serial console settle
+  // reset the i2c communication
+  int returnCode_reset = sdp_tube.resetI2C();
+  // initialize sensors
   int returnCode = sdp_tube.init();
   int returnCode_O2 = sdp_O2.init();
   if (returnCode == 0 && returnCode_O2 == 0) 
