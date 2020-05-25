@@ -74,7 +74,7 @@ bool BME1_Calibrate()
   PRESSURE_INIT_VALUE_BME = sum / 50;
   DEBUGserial.print("PRESSURE_INIT_VALUE_BME: ");
   DEBUGserial.println(PRESSURE_INIT_VALUE_BME);
-  if (abs(BME280_readpressure_cmH2O()) > 0.5){
+  if (abs(BME280_readpressure_cmH2O()) > 1.5){
     return false;
   }
   return true;
