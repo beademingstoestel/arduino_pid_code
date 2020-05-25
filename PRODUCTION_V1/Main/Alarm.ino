@@ -145,7 +145,7 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
 //-----------------------------------------------------
 // check alarm loop
 //-----------------------------------------------------
-void checkALARM(float fio2, float pressure, int volume, controller_state_t state,
+void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
@@ -163,9 +163,9 @@ void checkALARM(float fio2, float pressure, int volume, controller_state_t state
     // max volume exceeded
     setAlarmState(2);
   }
-  if (pressure < comms_getPP() - comms_getADPP() && state != ini){
-    // Peep deviation exceeded
-    //setAlarmState(3);
+  if (!isFlowOfOxygenRead){
+    // one of the valves failed
+    setAlarmState(3);
   }
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting

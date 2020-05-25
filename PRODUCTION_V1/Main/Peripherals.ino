@@ -262,10 +262,16 @@ unsigned long ValveStartTime = 0;
 bool initValve(){
   pinMode(O2_valve, OUTPUT);
   digitalWrite(O2_valve, LOW);
+  pinMode(O2_safety_valve, OUTPUT);
+  digitalWrite(O2_safety_valve, HIGH);
 }
 
 bool ValveOn(){
   digitalWrite(O2_valve, HIGH);
+}
+
+bool safetyValveOn(){
+  digitalWrite(O2_safety_valve, HIGH);
 }
 
 bool ValveOn(unsigned long valvetime){
@@ -276,6 +282,14 @@ bool ValveOn(unsigned long valvetime){
 
 bool ValveOff(){
   digitalWrite(O2_valve, LOW);
+}
+
+bool safetyValveOff(){
+  digitalWrite(O2_safety_valve, LOW);
+}
+
+bool safetyValveState(){
+  return digitalRead(O2_safety_valve);
 }
 
 // check if we need to turn off

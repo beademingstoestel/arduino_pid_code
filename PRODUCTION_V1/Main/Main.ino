@@ -156,7 +156,6 @@ void setup()
   // calculate K_O2
   float sampletime = (float) valveinittime / counter;
   float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
-//  float ratio = valveinittime/calibrationvolume;
 
   FLOW_SENSOR_setK_O2(0.0); 
   FLOW_SENSOR_resetVolumeO2();
@@ -295,7 +294,7 @@ void controller()
   min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect);
   
   // check alarm
-  checkALARM(target_fio2, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
+  checkALARM(target_fio2, isFlowOfOxygenRead, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
              isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine
