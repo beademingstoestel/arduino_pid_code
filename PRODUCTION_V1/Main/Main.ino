@@ -76,6 +76,7 @@ bool isAngleOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
 bool oxygen_init_ok = false;
+bool isFlowOfOxygenRead = false;
 
 //---------------------------------------------------------------
 // SETUP
@@ -260,6 +261,7 @@ void controller()
   // Enable interrupts, because this ISR takes approx 5ms and we need millis() to update
   interrupts(); 
   // readout sensors
+  isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
   fan_OK = FanPollingRoutine();
   ValveCheck();
   isFlow2PatientRead = FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);

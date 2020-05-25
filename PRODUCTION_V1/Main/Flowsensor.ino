@@ -498,22 +498,22 @@ void FLOW_SENSOR_updateK_O2(){
     K_O2 = 0;
   }
   
-  DEBUGserial.print("error: ");
-  DEBUGserial.println(Vo2_error*wantedoxygenvolume);
+//  DEBUGserial.print("error: ");
+//  DEBUGserial.println(Vo2_error);
 //  DEBUGserial.print("cumulative error: ");
 //  DEBUGserial.println(Vo2_cum_error*wantedoxygenvolume);
-  DEBUGserial.print("K: ");
-  DEBUGserial.println(K_O2);
-  DEBUGserial.print("valveTime: ");
-  DEBUGserial.println(valvetime);
+//  DEBUGserial.print("K: ");
+//  DEBUGserial.println(K_O2);
+//  DEBUGserial.print("valveTime: ");
+//  DEBUGserial.println(valvetime);
 //  DEBUGserial.print("Vpatient: ");
 //  DEBUGserial.println(maxvolumepatient);
-  DEBUGserial.print("Voxygenwanted: ");
-  DEBUGserial.println(wantedoxygenvolume);
+//  DEBUGserial.print("Voxygenwanted: ");
+//  DEBUGserial.println(wantedoxygenvolume);
 //  DEBUGserial.print("V02: ");
 //  DEBUGserial.println(maxvolumeoxygen);
-  DEBUGserial.print("FIO2: ");
-  DEBUGserial.println(FLOW_SENSOR_getFIO2());
+//  DEBUGserial.print("FIO2: ");
+//  DEBUGserial.println(FLOW_SENSOR_getFIO2());
 }
 
 float FLOW_SENSOR_getFIO2(){
