@@ -79,7 +79,7 @@ int readIndexAutoFlow = 0;                    // the index of the current readin
 float totalAutoFlow = 0;                      // the running total
 
 //------------------------------------------------------------------------------
-controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
+controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure, bool min_degraded_mode_ON)
 {
   // keep running average of flow during inhale: for autoflow
   totalAutoFlow = totalAutoFlow - readingsAutoFlow[readIndexAutoFlow];
@@ -99,7 +99,7 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure)
     return exhale;
   }
   //OR if patient coughs (overpressure trigger)
-  else if(CurrentPressurePatient > target_pressure + comms_getADPK()){
+  else if(CurrentPressurePatient > target_pressure + comms_getADPK() && !min_degraded_mode_ON){
     PID_value_I = 0;
     PID_value_P = 0;
     exhale_start_time = millis();

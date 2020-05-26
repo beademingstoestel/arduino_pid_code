@@ -463,8 +463,6 @@ bool FLOW_SENSOR_CHECK_TEMP(){
 
 void FLOW_SENSOR_setK_O2(float k_O2){
   K_O2 = k_O2;
-  Serial.print("K_O2_init: ");
-  Serial.println(K_O2);
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
