@@ -210,7 +210,7 @@ void checkALARM(float fio2, float pressure, int volume, controller_state_t state
 
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool isAmbientPressureCorrect){
   // if i2c sensors fail ==> disable i2c bus!
-  if (!FLOW_SENSOR_CHECK_I2C()){
+  if (!FLOW_SENSOR_CHECK_I2C() || !PRESSURE_SENSOR_CHECK_I2C()){
     DEBUGserial.println("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
     FLOW_SENSOR_DISABLE();
     BME280_DISABLE();

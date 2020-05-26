@@ -149,7 +149,12 @@ bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minp
   //DEBUGserial.println(sensor1);
 
   *value = sensor1;
-
+  
+  // check connection to sensor!
+  if(sensor1>100){
+    PRESSURE_SENSOR1_INITIALIZED = 0;
+  }
+  
   if (abs(maxpressureinhale-minpressureinhale)>0.01){
       SensorHealthy= true;
   }
@@ -165,35 +170,41 @@ void BME280_DISABLE(){
 
 //-----------------------------------------------------------------------------------------------
 bool BME_280_UPDATE_AMBIENT(){
-  // don't recalculate every loop
-  if (updatecounter == updaterate){
-    updatecounter = 0;
-
-    // subtract the last reading:
-    total = total - readings[readIndex];
-    // read from the sensor:
-    readings[readIndex] = BME280_readPressureAmbient();
-    // check if the value is reasonable: between 650 and 1150 cmH2O
-    if(readings[readIndex] > 1150 || readings[readIndex] < 650){
-      return false;
+  if (PRESSURE_SENSOR2_INITIALIZED)
+  {
+    // don't recalculate every loop
+    if (updatecounter == updaterate){
+      updatecounter = 0;
+  
+      // subtract the last reading:
+      total = total - readings[readIndex];
+      // read from the sensor:
+      readings[readIndex] = BME280_readPressureAmbient();
+      // check if the value is reasonable: between 650 and 1150 cmH2O
+      if(readings[readIndex] > 1150 || readings[readIndex] < 650){
+        return false;
+      }
+      // add the reading to the total:
+      total = total + readings[readIndex];
+      // advance to the next position in the array:
+      readIndex = readIndex + 1;
+    
+      // if we're at the end of the array wrap around to the beginning:
+      if (readIndex >= numReadings) readIndex = 0;
+    
+      // calculate the average:
+      PRESSURE_INIT_VALUE_AMBIENT = (total / numReadings);
     }
-    // add the reading to the total:
-    total = total + readings[readIndex];
-    // advance to the next position in the array:
-    readIndex = readIndex + 1;
-  
-    // if we're at the end of the array wrap around to the beginning:
-    if (readIndex >= numReadings) readIndex = 0;
-  
-    // calculate the average:
-    PRESSURE_INIT_VALUE_AMBIENT = (total / numReadings);
+    updatecounter++;
   }
-  updatecounter++;
-  
   return true;
 }
 
 //-----------------------------------------------------------------------------------------------
+bool PRESSURE_SENSOR_CHECK_I2C(){
+  return PRESSURE_SENSOR1_INITIALIZED;
+}
+
 bool BME_280_CHECK_TEMPERATURE(){
   if(PRESSURE_SENSOR2_INITIALIZED){
       if (bme2.getTemperature() > maxTemperature){
