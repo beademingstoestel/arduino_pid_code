@@ -329,6 +329,9 @@ void controller()
         target_risetime = updateAutoFlow(target_risetime, target_inhale_time);
         target_pressure = comms_getPressure(inhale_detected);
 
+        // adjust PEEP valve
+        PEEP_update();
+
         // reset pressure and volume sensor check values
         maxpressureinhale=maxpressure;   // initialize low negative--> no error on start-up
         minpressureinhale=minpressure;    // initialize high positive --> no error on start-up

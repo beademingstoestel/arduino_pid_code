@@ -204,11 +204,6 @@ bool read_endswitch_start() {
 unsigned long turn_time_total = 0;
 unsigned long turn_time_start = 0;
 
-float PEEP_error = 0;
-float PEEP_error_int = 0;
-float PEEP_Kp = 1;
-float PEEP_Ki = 0;
-
 void PEEP_motor_init(){
   pinMode(44, OUTPUT);
   pinMode(46, OUTPUT);
@@ -239,20 +234,6 @@ void PEEP_check_motor(){
     analogWrite(46, LOW);
     Serial.println("stop motor");
   }
-}
-
-void PEEP_update(float PEEP){
-    PEEP_error = PEEP - comms_getPP();
-    PEEP_error_int += PEEP_error;
-    int PEEP_turn_direction = sgn(PEEP_error);
-    int PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
-    PEEP_turn_motor(PEEP_turn_direction, abs(PEEP_turn_time*1000));
-    Serial.print("error: ");
-    Serial.println(PEEP_error);
-    Serial.print("time: ");
-    Serial.println(abs(PEEP_turn_time*100));
-    Serial.print("Direction: ");
-    Serial.println(PEEP_turn_direction);
 }
 
 static inline int8_t sgn(int val) {

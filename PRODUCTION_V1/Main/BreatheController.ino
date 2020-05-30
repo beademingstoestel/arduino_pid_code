@@ -8,6 +8,7 @@ float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
 float flow_at_switching = 0;
+float peep_at_switching = 0;
 
 //---------------------------------
 // this is used in degraded mode with a linear scaling on the pressure setpoint
@@ -78,6 +79,10 @@ float readingsAutoFlow[numReadingsAutoFlow];  // the readings from the analog in
 int readIndexAutoFlow = 0;                    // the index of the current reading
 float totalAutoFlow = 0;                      // the running total
 
+const int numReadingsPEEP = 10;
+float readingsPEEP[numReadingsPEEP];      // the readings from the analog input
+int readIndexPEEP = 0;                    // the index of the current reading
+float totalPEEP = 0;                      // the running total
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure, bool min_degraded_mode_ON)
 {
@@ -114,6 +119,13 @@ controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure, bool min_de
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToWAIT(int end_switch)
 {
+  // keep running average of pressure during exhale: for peep adjust
+  totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
+  readingsPEEP[readIndexPEEP] = CurrentFlowPatient;
+  totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
+  readIndexPEEP = readIndexPEEP + 1;
+  if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
+  
   // exhale time should be at least equal to exhale time ...
   if (((millis() - inhale_start_time) > 2 * target_inhale_time))
   {
@@ -133,9 +145,17 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 {
+  // keep running average of pressure during wait: for peep adjust
+  totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
+  readingsPEEP[readIndexPEEP] = CurrentFlowPatient;
+  totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
+  readIndexPEEP = readIndexPEEP + 1;
+  if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
+  
   // Check if time has passed, or patient triggered an inhale
   if ((millis() - exhale_start_time) > target_exhale_time || inhale_detected)
   {
+    peep_at_switching = totalPEEP / numReadingsPEEP;
     return inhale;
   }
   // Otherwise, stay in wait
@@ -276,4 +296,25 @@ float updateAutoFlow(float risetime, unsigned long target_inhale_time){
   // Otherwise, don't change risetime
   return risetime;
 }
+
+//------------------------------------------------------------------------
+float PEEP_error = 0;
+float PEEP_error_int = 0;
+float PEEP_Kp = 1;
+float PEEP_Ki = 0;
+
+void PEEP_update(){
+    PEEP_error = peep_at_switching - comms_getPP();
+    PEEP_error_int += PEEP_error;
+    int PEEP_turn_direction = sgn(PEEP_error);
+    int PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
+    PEEP_turn_motor(PEEP_turn_direction, abs(PEEP_turn_time*1000));
+    Serial.print("error: ");
+    Serial.println(PEEP_error);
+    Serial.print("time: ");
+    Serial.println(abs(PEEP_turn_time*100));
+    Serial.print("Direction: ");
+    Serial.println(PEEP_turn_direction);
+}
+
 #endif
