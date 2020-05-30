@@ -203,6 +203,10 @@ bool BME_280_UPDATE_AMBIENT(){
 }
 
 //-----------------------------------------------------------------------------------------------
+bool PRESSURE_SENSOR_CHECK_I2C(){
+  return PRESSURE_SENSOR1_INITIALIZED;
+}
+
 bool BME_280_CHECK_TEMPERATURE(){
   if(PRESSURE_SENSOR2_INITIALIZED){
       if (bme2.getTemperature() > maxTemperature){
@@ -213,10 +217,6 @@ bool BME_280_CHECK_TEMPERATURE(){
       }
   }
   return false;
-}
-
-bool PRESSURE_SENSOR_CHECK_I2C(){
-  return PRESSURE_SENSOR1_INITIALIZED;
 }
 
 float BME_280_GET_HUMIDTY_PATIENT(){

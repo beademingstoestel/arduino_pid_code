@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.43, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.45, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -335,7 +335,7 @@ void processSerialPort(String input) {
 
   // Get measured PEEP and update PEEP valve if necessary
   if (input.startsWith("PEEP")) {
-    PEEP_update(value0.toFloat());
+    //PEEP_update(value0.toFloat());
   }
   
   if (input.startsWith("ACK")) {

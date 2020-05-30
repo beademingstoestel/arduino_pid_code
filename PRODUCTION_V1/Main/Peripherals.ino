@@ -202,30 +202,26 @@ bool read_endswitch_start() {
 #endif
 
 // ###################################################################
-int turn_time_total = 0;
-int turn_time_start = 0;
-
-float PEEP_error = 0;
-float PEEP_error_int = 0;
-float PEEP_Kp = 1;
-float PEEP_Ki = 0;
+unsigned long turn_time_total = 0;
+unsigned long turn_time_start = 0;
 
 void PEEP_motor_init(){
-  //pinMode();
-  // TODO
+  pinMode(44, OUTPUT);
+  pinMode(46, OUTPUT);
+  // TODO: place in pinout.h
 }
 
 void PEEP_turn_motor(int turn_direction, int turn_time){
   if(turn_time > 100){
-    if(turn_direction){
+    if(turn_direction == 1){
       // start motor cw
-      // TODO
-      // analogWrite();
+      analogWrite(46, LOW);
+      analogWrite(44, 50);       
     }
     else{
       // start motor ccw
-      // TODO
-      // analogWrite();
+      analogWrite(44, LOW);
+      analogWrite(46, 50);
     }
     turn_time_total = turn_time;
     turn_time_start = millis();
@@ -235,15 +231,10 @@ void PEEP_turn_motor(int turn_direction, int turn_time){
 void PEEP_check_motor(){
   if(millis() - turn_time_start > turn_time_total){
      // stop motor
+    analogWrite(44, LOW);
+    analogWrite(46, LOW);
+    Serial.println("stop motor");
   }
-}
-
-void PEEP_update(float PEEP){
-    PEEP_error = PEEP - comms_getPP();
-    PEEP_error_int += PEEP_error;
-    int PEEP_turn_direction = sgn(PEEP_error);
-    int PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
-    PEEP_turn_motor(PEEP_turn_direction, PEEP_turn_time);
 }
 
 static inline int8_t sgn(int val) {

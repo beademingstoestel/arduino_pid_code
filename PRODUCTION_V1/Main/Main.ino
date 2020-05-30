@@ -382,6 +382,9 @@ void controller()
         FLOW_SENSOR_resetVolumeO2();
         ValveOn(FLOW_SENSOR_getTime(target_fio2));
 
+        // adjust PEEP valve
+        PEEP_update();
+
         // reset pressure and volume sensor check values
         maxpressureinhale=maxpressure;   // initialize low negative--> no error on start-up
         minpressureinhale=minpressure;    // initialize high positive --> no error on start-up
