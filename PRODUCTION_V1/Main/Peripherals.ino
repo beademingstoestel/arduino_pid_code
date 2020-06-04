@@ -205,9 +205,20 @@ bool read_endswitch_start() {
 unsigned long turn_time_total = 0;
 unsigned long turn_time_start = 0;
 
+#ifdef automatic_peep
 void PEEP_motor_init(){
   pinMode(44, OUTPUT);
   pinMode(46, OUTPUT);
+  
+  analogWrite(46, LOW);
+  analogWrite(44, 50); 
+  delay(500);
+  analogWrite(44, LOW);
+  analogWrite(46, 50); 
+  delay(500);
+  analogWrite(46, LOW);
+  analogWrite(44, LOW); 
+  
   // TODO: place in pinout.h
 }
 
@@ -215,13 +226,13 @@ void PEEP_turn_motor(int turn_direction, int turn_time){
   if(turn_time > 100){
     if(turn_direction == 1){
       // start motor cw
-      analogWrite(46, LOW);
-      analogWrite(44, 50);       
+      analogWrite(44, LOW);
+      analogWrite(46, 50);       
     }
     else{
       // start motor ccw
-      analogWrite(44, LOW);
-      analogWrite(46, 50);
+      analogWrite(46, LOW);
+      analogWrite(44, 50);
     }
     turn_time_total = turn_time;
     turn_time_start = millis();
@@ -233,10 +244,15 @@ void PEEP_check_motor(){
      // stop motor
     analogWrite(44, LOW);
     analogWrite(46, LOW);
-    Serial.println("stop motor");
   }
 }
+#else
 
+void PEEP_motor_init(){}
+void PEEP_turn_motor(int turn_direction, int turn_time){}
+void PEEP_check_motor(){}
+
+#endif
 static inline int8_t sgn(int val) {
  if (val < 0) return -1;
  if (val==0) return 0;

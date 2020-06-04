@@ -121,7 +121,7 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
 {
   // keep running average of pressure during exhale: for peep adjust
   totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
-  readingsPEEP[readIndexPEEP] = CurrentFlowPatient;
+  readingsPEEP[readIndexPEEP] = CurrentPressurePatient;
   totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
   readIndexPEEP = readIndexPEEP + 1;
   if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
@@ -129,11 +129,13 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
   // exhale time should be at least equal to exhale time ...
   if (((millis() - inhale_start_time) > 2 * target_inhale_time))
   {
+    //peep_at_switching = totalPEEP / numReadingsPEEP;
     return wait;
   }
   // ... except if we are in APRV mode
   else if(comms_getAPRV() && (millis() - exhale_start_time) > target_exhale_time)
   {
+    //peep_at_switching = totalPEEP / numReadingsPEEP;
     return wait;
   }
   // Otherwise, stay in exhale
@@ -147,7 +149,7 @@ controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 {
   // keep running average of pressure during wait: for peep adjust
   totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
-  readingsPEEP[readIndexPEEP] = CurrentFlowPatient;
+  readingsPEEP[readIndexPEEP] = CurrentPressurePatient;
   totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
   readIndexPEEP = readIndexPEEP + 1;
   if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
@@ -307,14 +309,28 @@ void PEEP_update(){
     PEEP_error = peep_at_switching - comms_getPP();
     PEEP_error_int += PEEP_error;
     int PEEP_turn_direction = sgn(PEEP_error);
-    int PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
+    float PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
     PEEP_turn_motor(PEEP_turn_direction, abs(PEEP_turn_time*1000));
-    Serial.print("error: ");
-    Serial.println(PEEP_error);
-    Serial.print("time: ");
-    Serial.println(abs(PEEP_turn_time*100));
-    Serial.print("Direction: ");
-    Serial.println(PEEP_turn_direction);
+
+//    Plot 
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+}
+
+static inline int8_t sgn(float val) {
+ if (val < 0) return -1;
+ if (val==0) return 0;
+ return 1;
 }
 
 #endif

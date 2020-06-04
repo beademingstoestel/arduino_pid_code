@@ -22,7 +22,7 @@ SETTING settingarray[22]= {
   {"VT", 400, false, 4, 0, 0},      // 2  tidal volume
   {"PK", 30, false, 8, 0, 0},       // 3  peak pressure
   {"PS", 25, false, 12, 0, 0},      // 4  support pressure
-  {"PP", 20, false, 16, 0, 0},      // 5  peep
+  {"PP", 10, false, 16, 0, 0},      // 5  peep
   {"IE", 0.33, false, 20, 0, 0},    // 6  I/E as float ==> 1:2 = 0.33
   {"RP", 0.5, false, 24, 0, 0},     // 7  Ramp time
   {"TS", 1, false, 28, 0, 0},        // 8  Flow trigger
@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.45, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.46, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
