@@ -207,6 +207,16 @@ unsigned long turn_time_start = 0;
 void PEEP_motor_init(){
   pinMode(44, OUTPUT);
   pinMode(46, OUTPUT);
+  
+  analogWrite(46, LOW);
+  analogWrite(44, 120); 
+  delay(2000);
+  analogWrite(44, LOW);
+  analogWrite(46, 120); 
+  delay(2000);
+  analogWrite(46, LOW);
+  analogWrite(44, LOW); 
+  
   // TODO: place in pinout.h
 }
 

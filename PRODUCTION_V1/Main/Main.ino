@@ -2,9 +2,9 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
+#define PYTHON 0
 #define HARDWARE 0
-#define DEBUGserial Serial3
+#define DEBUGserial Serial
  
 //---------------------------------------------------------------
 // VARIABLES
