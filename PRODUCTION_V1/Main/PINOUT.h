@@ -125,4 +125,6 @@
   
   #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
+
+  #define automatic_peep
 #endif
