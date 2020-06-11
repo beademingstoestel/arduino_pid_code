@@ -4,7 +4,7 @@
 #include <EEPROM.h>
 
 char str[20] = {};
-char message[20] = {};
+char message[50] = {};
 char counter = 0;
 
 typedef struct{
@@ -16,24 +16,29 @@ typedef struct{
    unsigned long messagetime;
 } SETTING;  
 
-SETTING settingarray[17]= {
-  {"ALARM", 0, false, 64, 0, 0},  // 0
-  {"RR", 20, false, 0, 0, 0},     // 1
-  {"VT", 400, false, 4, 0, 0},    // 2
-  {"PK", 35, false, 8, 0, 0},     // 3
-  {"PS", 25, false, 12, 0, 0},    // 4
-  {"PP", 20, false, 16, 0, 0},    // 5
-  {"IE", 0.3, false, 20, 0, 0},   // 6
-  {"RP", 0.5, false, 24, 0, 0},   // 7
-  {"TS", 10, false, 28, 0, 0},    // 8
-  {"TP", 2, false, 32, 0, 0},     // 9
-  {"ADPK", 10, false, 36, 0, 0},  // 10
-  {"ADVT", 10, false, 40, 0, 0},  // 11
-  {"ADPP", 15, false, 44, 0, 0},  // 12
-  {"MODE", 0, false, 48, 0, 0},   // 13
-  {"ACTIVE", 0, false, 52, 0, 0}, // 14
-  {"MT", 0, false, 56, 0, 0},     // 15
-  {"FW", 2.40, false, 60, 0, 0}   // 16
+SETTING settingarray[22]= {
+  {"ALARM", 0, false, 64, 0, 0},    // 0  alarm state
+  {"RR", 20, false, 0, 0, 0},       // 1  respiratory rate
+  {"VT", 400, false, 4, 0, 0},      // 2  tidal volume
+  {"PK", 30, false, 8, 0, 0},       // 3  peak pressure
+  {"PS", 25, false, 12, 0, 0},      // 4  support pressure
+  {"PP", 10, false, 16, 0, 0},      // 5  peep
+  {"IE", 0.33, false, 20, 0, 0},    // 6  I/E as float ==> 1:2 = 0.33
+  {"RP", 0.5, false, 24, 0, 0},     // 7  Ramp time
+  {"TS", 1, false, 28, 0, 0},        // 8  Flow trigger
+  {"TP", 15, false, 32, 0, 0},      // 9  Pressure trigger
+  {"ADPK", 10, false, 36, 0, 0},    // 10 Peak pressure deviation
+  {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
+  {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
+  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
+  {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
+  {"FIO2", 0.51, false, 60, 0, 0},  // 16 Oxygen level
+  {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
+  {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
+  {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
+  {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
+  {"FW", 3.46, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -50,12 +55,13 @@ boolean newData1 = false;
 // PYTHON VARIABLES
 //---------------------------------------------------------------
 
-unsigned int BPM = 10;      // Breaths per minute
-float VOL = 20;               // volume
-unsigned int TRIG = 0;     // trigger
-float PRES = 40;              // pressure
-float FLOW = 50;              // flow
-float TPRES = 60;              // target pressure
+float BPM = 0;            // Breaths per minute
+float VOL = 20;           // volume
+unsigned int TRIG = 0;    // trigger
+float PRES = 40;          // pressure
+float FLOW = 50;          // flow
+float TPRES = 60;         // target pressure
+float FIO2 = 0.21;        // oxygen percentage
 
 //---------------------------------------------------------------
 // EEPROM
@@ -72,13 +78,13 @@ void initEEPROM() {
 //---------------------------------------------------------------
 
 unsigned long comms_getInhaleTime(){
-  float target_inhale_duration = 1000.0 * 60.0 * settingarray[6].settingvalue / settingarray[1].settingvalue  ;   
+  float target_inhale_duration = 1000.0 * 60.0 * comms_getIE() / comms_getRR();   
   unsigned long target_inhale_duration_int = (unsigned long) target_inhale_duration;
   return target_inhale_duration_int;
 }
 
 unsigned long comms_getExhaleTime(){
-  float target_exhale_duration = 1000.0 * 60.0 * (1-settingarray[6].settingvalue) / settingarray[1].settingvalue  ;   
+  float target_exhale_duration = 1000.0 * 60.0 * (1-comms_getIE()) / comms_getRR();   
   unsigned long target_exhale_duration_int = (unsigned long) target_exhale_duration;
   return target_exhale_duration_int;
 }
@@ -87,7 +93,7 @@ unsigned int comms_getAlarmSatusFromPython()
 {
    return settingarray[0].settingvalue;
 }
-unsigned int comms_getRR() {
+float comms_getRR() {
   return settingarray[1].settingvalue;
 }
 unsigned int comms_getVT() {
@@ -131,8 +137,25 @@ unsigned int comms_getADVT() {
 unsigned int comms_getADPP() {
   return settingarray[12].settingvalue;
 }
-bool comms_getMode() {
-  return settingarray[13].settingvalue;
+int comms_getMode() {
+  if (comms_getTrigger()){
+    return (((int) settingarray[13].settingvalue) & 0x01);
+  }
+  else{
+    return 2;
+  }
+}
+bool comms_getTrigger() {
+  return (((int) settingarray[13].settingvalue) >> 1 & 0x01);
+}
+bool comms_getVolumeLimitControl() {
+  return (((int) settingarray[13].settingvalue) >> 2 & 0x01);
+}
+bool comms_getAPRV() {
+  return (((int) settingarray[13].settingvalue) >> 3 & 0x01);
+}
+bool comms_getAutoFlow() {
+  return (((int) settingarray[13].settingvalue) >> 4 & 0x01);
 }
 int comms_getActive() {
   if (PYTHON){
@@ -143,13 +166,19 @@ int comms_getActive() {
   }  
 }
 bool comms_resetActive() {
-    settingarray[14].settingvalue = 0;
+  settingarray[14].settingvalue = 0;
 }
 float comms_getMT() {
   return settingarray[15].settingvalue;
 }
-float comms_getFW() {
+float comms_getFIO2() {
   return settingarray[16].settingvalue;
+}
+float comms_getADFIO2() {
+  return settingarray[17].settingvalue;
+}
+float comms_getFW() {
+  return settingarray[arr_size-1].settingvalue;
 }
 
 //---------------------------------------------------------------
@@ -157,7 +186,7 @@ float comms_getFW() {
 //---------------------------------------------------------------
 
 void comms_setBPM(unsigned long bpm_time) {
-  BPM = round(60000.0 / bpm_time);
+  BPM = 60000.0 / bpm_time;
 }
 void comms_setVOL(float vol) {
   VOL = vol;
@@ -174,42 +203,44 @@ void comms_setFLOW(float flow) {
 void comms_setTPRES(float tpres) {
   TPRES = tpres;
 }
+void comms_setFIO2(float fio2) {
+  FIO2 = fio2;
+}
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
 //---------------------------------------------------------------
 
 void sendDataToPython() {
+  int messagelength = 18;
+  unsigned long currenttime = millis();
   strcpy(message, "");
-  sprintf(message, "BPM=%d=1=", (int)(BPM*100));
-  getCRC(message);
-  Serial.println(message);
+  
+  message[0] = 0x02;
+  message[1] = 0x01;
+  message[2] = messagelength;
+  message[3] = (char)TRIG;
+  message[4] = (char)((int)(VOL*10));
+  message[5] = (char)((int)(VOL*10) >> 8);
+  message[6] = (char)((int)(PRES*100));
+  message[7] = (char)((int)(PRES*100) >> 8);
+  message[8] = (char)((int)(TPRES*100));
+  message[9] = (char)((int)(TPRES*100) >> 8);
+  message[10] = (char)((int)(BPM*100));
+  message[11] = (char)((int)(BPM*100) >> 8);
+  message[12] = (char)((int)(FLOW*100));
+  message[13] = (char)((int)(FLOW*100) >> 8);
+  message[14] = (char)((int)(FIO2*100));
+  message[15] = (char)((int)(FIO2*100) >> 8);
+  message[16] = (char)(currenttime);
+  message[17] = (char)(currenttime >> 8);
+  message[18] = (char)(currenttime >> 16);
+  message[19] = (char)(currenttime >> 24);
+  message[20] = getCRCvalue(message, messagelength + 2);
+  message[21] = 0x0A;
 
-  strcpy(message, "");
-  sprintf(message, "VOL=%ld=1=", (long)(VOL*100));
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "TRIG=%d=1=", (int)(TRIG*100));
-  getCRC(message);
-  Serial.println(message);
   comms_setTRIG(0);
-
-  strcpy(message, "");
-  sprintf(message, "PRES=%d=1=", (int)(PRES*100));
-  getCRC(message);
-  Serial.println(message);
-
-  strcpy(message, "");
-  sprintf(message, "FLOW=%d=1=", (int)(FLOW*100));
-  getCRC(message);
-  Serial.println(message);  
-
-  strcpy(message, "");
-  sprintf(message, "TPRES=%d=1=", (int)(TPRES*100));
-  getCRC(message);
-  Serial.println(message); 
+  Serial.write(message, 22);
 }
 
 //---------------------------------------------------------------
@@ -250,13 +281,15 @@ bool getSettings() {
   else if(allsettingsok && settingarray[0].settingok == false){
     if((!settingarray[0].settingok) && (millis() - settingarray[0].messagetime > 1000)){
       strcpy(message, "");
-      sprintf(message, "%s=%d.%d=%c=", settingarray[0].settingname, int(settingarray[0].settingvalue), int(settingarray[0].settingvalue * 100) - int(settingarray[0].settingvalue) * 100, ++counter);
+      sprintf(message, "%s=%u=%c=", settingarray[0].settingname, (unsigned int)(settingarray[0].settingvalue), ++counter);
       getCRC(message);
       Serial.println(message);  
       settingarray[0].messageid = counter;     
       settingarray[0].messagetime = millis();
     }
     recvWithEndMarkerSer0();
+    // update watchdog: communication OK
+    updateWatchdog(millis());
     return false;
   }
   // if all settings and alarm are OK, return true
@@ -298,6 +331,11 @@ void processSerialPort(String input) {
   
   if (input.startsWith("ALARM")) {
     updateWatchdog(millis());
+  }
+
+  // Get measured PEEP and update PEEP valve if necessary
+  if (input.startsWith("PEEP")) {
+    //PEEP_update(value0.toFloat());
   }
   
   if (input.startsWith("ACK")) {
@@ -438,7 +476,6 @@ String getvalue(String data, char separator, int index)
 int getCRC(char* str) {
   char checksum = 0;
   char i;
-  int test = 500;
 
   // calculate CRC with bitwise XOR of each character
   for (i = 0; i < strlen(str); i++) {
@@ -448,6 +485,18 @@ int getCRC(char* str) {
   sprintf(str + strlen(str), "%c", checksum);
 
   return 1;
+}
+
+char getCRCvalue(char* str, int strlength) {
+  char checksum = 0;
+  char i;
+
+  // calculate CRC with bitwise XOR of each character
+  for (i = 0; i < strlength; i++) {
+    checksum ^= str[i];
+  }
+
+  return checksum;
 }
 
 int checkCRC(char* str) {

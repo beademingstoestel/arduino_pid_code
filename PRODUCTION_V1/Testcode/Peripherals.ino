@@ -2,6 +2,8 @@ void initPeripherals(){
   initFan();
   initLight();
   initSpeaker();
+  initValve();
+  PEEP_motor_init();
 }
 
 
@@ -11,17 +13,20 @@ void initPeripherals(){
 unsigned long SpeakerTimeStamp;
 bool SpeakerBeepState = false;
 int SpeakerBeepLength;
+bool isSpeakerOn = false;
 
 void initSpeaker(){
   pinMode(Speaker_PWM, OUTPUT);
 }
 
 void SpeakerOn() {
-  analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  //analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  isSpeakerOn = true;
 }
 void SpeakerOff() {
   analogWrite(Speaker_PWM, 0); //Turn set duty to 0;
   SpeakerBeepState = false;
+  isSpeakerOn = false;
 }
 
 void SpeakerBeep(int lengthInMillis){
@@ -30,17 +35,25 @@ void SpeakerBeep(int lengthInMillis){
   SpeakerTimeStamp = millis(); //store timestamp
   SpeakerOn(); //set speaker ON
 }
-//Call this function regularly in MAIN
-void SpeakerTimingSupportRoutine(){
-  if(!SpeakerBeepState) return; //if not beeping return immidiately
 
-  if(millis()-SpeakerTimeStamp > SpeakerBeepLength){ //if time has elapsed, turn of the speaker
-    SpeakerOff();
+void doBeepingAlarm() { //added by Lieven 23-04 to implement beeps
+  if (SpeakerBeepState == true) {
+    analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+    if(millis()-SpeakerTimeStamp > SpeakerBeepLength){
+      SpeakerOff();
+    }
+    return;
   }
-  else{
-    SpeakerOn();
+
+  if (isSpeakerOn == true && (millis() % 2000 < 60 || (millis() % 2000 > 120 && millis() % 2000 < 180) || (millis() % 2000 > 300 && millis() % 2000 < 330))) {
+    analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  }
+  else {
+    analogWrite(Speaker_PWM, 0); //Turn off
+
   }
 }
+
 #else
 void SpeakerOn() {}   //if no speakerpin defined do nothing
 void SpeakerOff() {}   //if no speakerpin defined do nothing
@@ -98,7 +111,7 @@ void FanOff() {
 bool FanState = true;
 int FanCounterLow = 10;
 int FanCounterHigh = 10;
-const int FanTimeout = 1000; //sampling period
+const int FanTimeout = 3000; //sampling period
 const int FanThreshold = 5; //minimum amount of counts over sampling period
 unsigned long FanTimeStamp = 0;
 
@@ -187,3 +200,109 @@ bool read_endswitch_start() {
   return digitalRead(ENDSWITCH_PUSH_PIN);
 }
 #endif
+
+// ###################################################################
+unsigned long turn_time_total = 0;
+unsigned long turn_time_start = 0;
+
+#ifdef automatic_peep
+void PEEP_motor_init(){
+  pinMode(44, OUTPUT);
+  pinMode(46, OUTPUT);
+  
+  analogWrite(46, LOW);
+  analogWrite(44, 50); 
+  delay(500);
+  analogWrite(44, LOW);
+  analogWrite(46, 50); 
+  delay(500);
+  analogWrite(46, LOW);
+  analogWrite(44, LOW); 
+  
+  // TODO: place in pinout.h
+}
+
+void PEEP_turn_motor(int turn_direction, int turn_time){
+  if(turn_time > 100){
+    if(turn_direction == 1){
+      // start motor cw
+      analogWrite(44, LOW);
+      analogWrite(46, 50);       
+    }
+    else{
+      // start motor ccw
+      analogWrite(46, LOW);
+      analogWrite(44, 50);
+    }
+    turn_time_total = turn_time;
+    turn_time_start = millis();
+  }
+}
+
+void PEEP_check_motor(){
+  if(millis() - turn_time_start > turn_time_total){
+     // stop motor
+    analogWrite(44, LOW);
+    analogWrite(46, LOW);
+  }
+}
+#else
+
+void PEEP_motor_init(){}
+void PEEP_turn_motor(int turn_direction, int turn_time){}
+void PEEP_check_motor(){}
+
+#endif
+static inline int8_t sgn(int val) {
+ if (val < 0) return -1;
+ if (val==0) return 0;
+ return 1;
+}
+
+// valves
+
+
+// ---------- Valves
+unsigned long ValveTime = 0;
+unsigned long ValveStartTime = 0;
+
+bool initValve(){
+  pinMode(O2_valve, OUTPUT);
+  digitalWrite(O2_valve, LOW);
+  pinMode(O2_safety_valve, OUTPUT);
+  digitalWrite(O2_safety_valve, HIGH);
+}
+
+bool ValveOn(){
+  digitalWrite(O2_valve, HIGH);
+}
+
+bool safetyValveOn(){
+  digitalWrite(O2_safety_valve, HIGH);
+}
+
+bool ValveOn(unsigned long valvetime){
+  ValveTime = valvetime;
+  ValveStartTime = millis();
+  ValveOn();
+}
+
+bool ValveOff(){
+  digitalWrite(O2_valve, LOW);
+}
+
+bool safetyValveOff(){
+  digitalWrite(O2_safety_valve, LOW);
+}
+
+bool safetyValveState(){
+  return digitalRead(O2_safety_valve);
+}
+
+// check if we need to turn off
+// keep track of max volume to patient
+void ValveCheck(){
+  if (millis() - ValveStartTime > ValveTime){ 
+    ValveOff();
+  }
+}

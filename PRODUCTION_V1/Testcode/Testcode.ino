@@ -17,6 +17,11 @@ volatile float CurrentFlowPatient = 0;
 volatile float Volume2Patient = 0;
 volatile float CurrentVolumePatient = 0;
 
+volatile float CurrentFlowOxygen = 0;
+volatile float CurrentVolumeOxygen = 0;
+
+float target_fio2 = 0.2;
+
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
 
@@ -68,6 +73,8 @@ bool isPatientPressureCorrect = false;
 bool isAngleOK = false;
 bool isPythonOK = false;
 bool isAmbientPressureCorrect = false;
+bool oxygen_init_ok = false;
+bool isFlowOfOxygenRead = false;
 
 unsigned long starttime = millis();
 
@@ -102,33 +109,26 @@ void setup()
   DEBUGserial.print("  - Battery voltage input: ");
   DEBUGserial.print(batt_supply);
   DEBUGserial.println(" V");
-  
-  //-- set up hall sensor
-  delay(1000);
-  DEBUGserial.println("");
-  DEBUGserial.println("2) HALL SENSOR");
-  if (HALL_SENSOR_INIT()) {
-    hall_sens_init_ok = true;
-    HALL_SENSOR_calibrateHall();
-    DEBUGserial.println("  - HALL SENSOR OK");
-  }
-  else {
-    DEBUGserial.println("  - HALL SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
-  }
-  
+    
   //--- set up flow sensor
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("3) FLOW SENSOR");
+  DEBUGserial.println("2) FLOW SENSOR");
   if (FLOW_SENSOR_INIT()) {
     flow_sens_init_ok = true;
-    FLOW_SENSOR_setDeltaT(controllerTime);
     DEBUGserial.println("  - FLOW SENSOR OK");
-    DEBUGserial.println("  - MEASURING...");
+    DEBUGserial.println("  - MEASURING FLOW TUBE...");
     starttime = millis();
     while(millis() - starttime < 2000){
-      FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
+      FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);
+      DEBUGserial.print("     - ");
+      DEBUGserial.println(CurrentFlowPatient);
+      delay(100);
+    }
+    DEBUGserial.println("  - MEASURING FLOW OXYGEN...");
+    starttime = millis();
+    while(millis() - starttime < 2000){
+      FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);;
       DEBUGserial.print("     - ");
       DEBUGserial.println(CurrentFlowPatient);
       delay(100);
@@ -142,7 +142,7 @@ void setup()
   //-- set up pressure sensors
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("4) PRESSURE SENSOR");
+  DEBUGserial.println("3) PRESSURE SENSOR");
   if (PRESSURE_SENSOR_INIT()){
     pressure_sens_init_ok = true;
     DEBUGserial.println("  - PRESSURE SENSORS OK");
@@ -171,7 +171,7 @@ void setup()
   //-- set up motor
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("5) MOTOR & ENDSWITCHES");
+  DEBUGserial.println("4) MOTOR & ENDSWITCHES");
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
     motor_sens_init_ok = true;
     DEBUGserial.println("  - MOTOR & ENDSWITCHES OK");
@@ -180,6 +180,48 @@ void setup()
     DEBUGserial.println("  - MOTOR & ENDSWITCHES FAILED");
     if(HARDWARE)ALARM_init();
   }
+
+  // empty oxygen bag
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+  delay(500);
+
+  //-- set up oxygen supply
+  delay(1000);
+  DEBUGserial.println("");
+  DEBUGserial.println("5) OXYGEN SUPPLY");
+  
+  ValveOn();
+  unsigned long valvestarttime = millis();
+  unsigned int valveinittime = 100;
+  int mincalibrationvolume = 50;
+  int counter = 0;
+  while(millis() - valvestarttime < valveinittime){
+    FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
+    FLOW_SENSOR_updateVolumeO2init(CurrentFlowOxygen);
+    counter++;
+  }
+  ValveOff();
+  
+  // calculate K_O2
+  float sampletime = (float) valveinittime / counter;
+  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
+
+  FLOW_SENSOR_setK_O2(0.0); 
+  FLOW_SENSOR_resetVolumeO2();
+
+  if (calibrationvolume > mincalibrationvolume) {
+    oxygen_init_ok = true; 
+    DEBUGserial.println("  - OXYGEN SUPPLY OK");
+  }
+  else {
+    DEBUGserial.println("  - OXYGEN SUPPLY FAILED");
+    if(HARDWARE)ALARM_init();
+  }
+
+  // empty oxygen bag
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+  delay(500);
 
   //-- check alarms
   delay(1000);
@@ -269,8 +311,8 @@ void setup()
 while(1);
   
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  checkALARM_init(pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
-                  fan_OK, battery_powered, battery_SoC, temperature_OK);
+  //checkALARM_init(pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, hall_sens_init_ok, 
+//                  fan_OK, battery_powered, battery_SoC, temperature_OK);
     
   //-- set up communication with screen
   if(PYTHON) initCOMM();
@@ -303,7 +345,7 @@ void loop()
   // check fan
   fan_OK = FanPollingRoutine();
   // check buzzer
-  SpeakerTimingSupportRoutine();
+//  SpeakerTimingSupportRoutine();
   // delay loop to avoid full serial buffers
   delay(50); 
 }
@@ -318,7 +360,7 @@ void controller()
   
   // readout sensors
   interrupts();
-  isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
+  //isFlow2PatientRead = FLOW_SENSOR_Measure(&CurrentFlowPatient,maxflowinhale,minflowinhale);
   isPatientPressureCorrect = BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
   isAngleOK = HALL_SENSOR_getVolume(&Volume2Patient);
   noInterrupts();
@@ -342,8 +384,8 @@ void controller()
   min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect);
   
   // check alarm
-  checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
-             isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
+//  checkALARM(CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
+//             isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine
   switch (controller_state) {
@@ -369,7 +411,7 @@ void controller()
       Speed = BREATHE_CONTROL_Regulate_With_Volume(END_SWITCH_VALUE_STOP,min_degraded_mode_ON);
       MOTOR_CONTROL_setValue(Speed);
       // check if we need to change state based on time or endswitch
-      controller_state = BREATHE_setToEXHALE();  
+//      controller_state = BREATHE_setToEXHALE();  
 
       //safety  pressure & flow sensor check
       if (maxpressure<CurrentPressurePatient)
@@ -443,6 +485,6 @@ void controller()
     default: controller_state = wait;
   }
       
-  ALARM_debounceAlarm(); // take current alarms into account for debounce
+//  ALARM_debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
 }

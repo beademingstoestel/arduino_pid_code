@@ -11,7 +11,8 @@ void checkSupply(float *main_supply, float *batt_supply, float *battery_SoC,
   // battery voltage
   *batt_supply = PSUSupplyVoltage()/1000;
   // battery status percentage
-  *battery_SoC = *batt_supply/25;
+  // 1 battery: 13V = 100%, 10V = 0%
+  *battery_SoC = (*batt_supply/2 - 10)*(0.333);
   // check if powered from battery only or if main supply is connected
   if(*main_supply > 23) *battery_powered = false;
   else *battery_powered = true;

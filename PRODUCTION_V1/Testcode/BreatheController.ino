@@ -3,16 +3,22 @@
 
 float PRESSURE_INHALE_SETPOINT = 0;
 float current_inhale_pressure = 0;
-float offset = 250;
+float offset = 50;
 float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
+float flow_at_switching = 0;
+float peep_at_switching = 0;
 
 //---------------------------------
 // this is used in degraded mode with a linear scaling on the pressure setpoint
 float min_degraded_mode_speed = -35;     
 
 bool volumeTriggered = false;
+//----------------------------------
+bool endswitchFlag = false;
+float preloadspeed0 = -5;
+float preloadspeed1 = -20;
 //----------------------------------
 float Kp = 10;
 float Ki = 0.1;
@@ -36,7 +42,7 @@ void BREATHE_CONTROL_setPointInhalePressure(float setting, float risetime, bool 
 {
   delta_time = millis() - inhale_start_time; // time since INTAKE state has started
   if (delta_time < risetime) {
-    PRESSURE_INHALE_SETPOINT = setting * delta_time / risetime;
+    PRESSURE_INHALE_SETPOINT = comms_getPP() + (setting - comms_getPP()) * delta_time / risetime;
   } else {
     PRESSURE_INHALE_SETPOINT = setting;
   }
@@ -68,16 +74,43 @@ float BREATHE_getPID()
   return PID_value;
 }
 
+const int numReadingsAutoFlow = 10;
+float readingsAutoFlow[numReadingsAutoFlow];  // the readings from the analog input
+int readIndexAutoFlow = 0;                    // the index of the current reading
+float totalAutoFlow = 0;                      // the running total
+
+const int numReadingsPEEP = 10;
+float readingsPEEP[numReadingsPEEP];      // the readings from the analog input
+int readIndexPEEP = 0;                    // the index of the current reading
+float totalPEEP = 0;                      // the running total
 //------------------------------------------------------------------------------
-controller_state_t BREATHE_setToEXHALE()
+controller_state_t BREATHE_setToEXHALE(unsigned int target_pressure, bool min_degraded_mode_ON)
 {
-  if ((millis() - inhale_start_time) > target_inhale_time) //   || Hall_position>=Hall_position_ref
+  // keep running average of flow during inhale: for autoflow
+  totalAutoFlow = totalAutoFlow - readingsAutoFlow[readIndexAutoFlow];
+  readingsAutoFlow[readIndexAutoFlow] = CurrentFlowPatient;
+  totalAutoFlow = totalAutoFlow + readingsAutoFlow[readIndexAutoFlow];
+  readIndexAutoFlow = readIndexAutoFlow + 1;
+  if (readIndexAutoFlow >= numReadingsAutoFlow) readIndexAutoFlow = 0;
+  
+  // check if inhale time has passed 
+  if ((millis() - inhale_start_time) > target_inhale_time)
   {
+    flow_at_switching = totalAutoFlow / numReadingsAutoFlow;
+    
     PID_value_I = 0;
     PID_value_P = 0;
     exhale_start_time = millis();
     return exhale;
   }
+  //OR if patient coughs (overpressure trigger)
+  else if(CurrentPressurePatient > target_pressure + comms_getADPK() && !min_degraded_mode_ON){
+    PID_value_I = 0;
+    PID_value_P = 0;
+    exhale_start_time = millis();
+    return exhale;
+  }
+  // Otherwise, stay in inhale
   else {
     return inhale;
   }
@@ -86,10 +119,26 @@ controller_state_t BREATHE_setToEXHALE()
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToWAIT(int end_switch)
 {
-  if (((millis() - inhale_start_time) > 2 * target_inhale_time) && end_switch == 1)
+  // keep running average of pressure during exhale: for peep adjust
+  totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
+  readingsPEEP[readIndexPEEP] = CurrentPressurePatient;
+  totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
+  readIndexPEEP = readIndexPEEP + 1;
+  if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
+  
+  // exhale time should be at least equal to exhale time ...
+  if (((millis() - inhale_start_time) > 2 * target_inhale_time))
   {
+    //peep_at_switching = totalPEEP / numReadingsPEEP;
     return wait;
   }
+  // ... except if we are in APRV mode
+  else if(comms_getAPRV() && (millis() - exhale_start_time) > target_exhale_time)
+  {
+    //peep_at_switching = totalPEEP / numReadingsPEEP;
+    return wait;
+  }
+  // Otherwise, stay in exhale
   else {
     return exhale;
   }
@@ -98,16 +147,20 @@ controller_state_t BREATHE_setToWAIT(int end_switch)
 //------------------------------------------------------------------------------
 controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 {
-  bool timepassed = 0;
-  // check timer
-  if (millis() - exhale_start_time > target_exhale_time) {
-    timepassed = 1;
-  }
-
-  if (timepassed || inhale_detected)
+  // keep running average of pressure during wait: for peep adjust
+  totalPEEP = totalPEEP - readingsPEEP[readIndexPEEP];
+  readingsPEEP[readIndexPEEP] = CurrentPressurePatient;
+  totalPEEP = totalPEEP + readingsPEEP[readIndexPEEP];
+  readIndexPEEP = readIndexPEEP + 1;
+  if (readIndexPEEP >= numReadingsPEEP) readIndexPEEP = 0;
+  
+  // Check if time has passed, or patient triggered an inhale
+  if ((millis() - exhale_start_time) > target_exhale_time || inhale_detected)
   {
+    peep_at_switching = totalPEEP / numReadingsPEEP;
     return inhale;
   }
+  // Otherwise, stay in wait
   else {
     return wait;
   }
@@ -116,12 +169,12 @@ controller_state_t BREATHE_setToINHALE(bool inhale_detected)
 bool BREATHE_CONTROL_CheckInhale() {
   bool inhale_detected = 0;
   // check negative flow
-  if (CurrentFlowPatient > comms_getTS() && trigger_mode == 0) {
+  if (CurrentFlowPatient > comms_getTS() && trigger_mode == 1) {
     inhale_detected = 1;
     comms_setTRIG(1);
   }
   // check underpressure
-  if (CurrentPressurePatient < comms_getTP() && trigger_mode == 1) {
+  if (CurrentPressurePatient < comms_getTP() && trigger_mode == 0) {
     inhale_detected = 1;
     comms_setTRIG(1);
   }
@@ -132,17 +185,16 @@ bool BREATHE_CONTROL_CheckInhale() {
 //float BREATHE_CONTROL_Regulate()
 float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 {
-//  DEBUGserial.print(CurrentFlowPatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(CurrentVolumePatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(Volume2Patient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.print(CurrentPressurePatient);
-//  DEBUGserial.print(",");
-//  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
+  //  DEBUGserial.print(CurrentFlowPatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(CurrentVolumePatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(Volume2Patient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.print(CurrentPressurePatient);
+  //  DEBUGserial.print(",");
+  //  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
 
-//------------------------------------------------------------------------
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
   //DEBUGserial.println(diff);
   if (controller_state == inhale)
@@ -178,9 +230,10 @@ float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mode_ON) {
   float Dead_Time_Volume = 0.25; // td = (0.01^2*pi*1)/(100/60/1000)
   float Speed = BREATHE_CONTROL_Regulate(min_degraded_mode_ON);
-  
+  // Return PID speed, unless max volume reached or minimal degraded mode
   if (controller_state == inhale ) {
-    if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume)  && min_degraded_mode_ON == false) {
+    endswitchFlag = false;
+    if ((CurrentVolumePatient+CurrentFlowPatient*Dead_Time_Volume/60000) > abs(target_volume) && comms_getVolumeLimitControl() && min_degraded_mode_ON == false) {
       volumeTriggered = true;
       return hold_speed;
     }
@@ -198,16 +251,86 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
       return Speed;
     }
   }
-
-
+  // 1) Move arm upward until endswitch
+  // 2) Move down a bit to touch ambubag
   else if (controller_state == exhale) {
     volumeTriggered = false;
-    if (end_switch == 1) {
-      return hold_speed;
+    if (endswitchFlag == false){
+      if (end_switch == 1) {
+        endswitchFlag = true;
+        return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+      }
+      else{
+        return Speed;
+      }
     }
-    else {
-      return Speed;
+    else if (endswitchFlag == true){
+      return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
     }
   }
+  // Keep arm steady in wait
+  else if (controller_state == wait) {
+    return hold_speed;
+  }
 }
+
+//------------------------------------------------------------------------
+float updateAutoFlow(float risetime, unsigned long target_inhale_time){
+  // In autoflow: adjust risetime
+  if (comms_getAutoFlow()){
+    float delta = 50;
+    
+    // if the flow was zero too soon: slow down
+    if(flow_at_switching < 2){
+      risetime += delta;
+      if (risetime > target_inhale_time - 200) risetime = target_inhale_time - 200;
+    }
+    // if the flow is not yet sufficiently LOW: speed up
+    else if(flow_at_switching > 5){
+      risetime -= delta;
+      if (risetime < 200) risetime = 200;
+    }
+  }
+  else{
+    risetime = comms_getRP();
+  }
+
+  // Otherwise, don't change risetime
+  return risetime;
+}
+
+//------------------------------------------------------------------------
+float PEEP_error = 0;
+float PEEP_error_int = 0;
+float PEEP_Kp = 1;
+float PEEP_Ki = 0;
+
+void PEEP_update(){
+    PEEP_error = peep_at_switching - comms_getPP();
+    PEEP_error_int += PEEP_error;
+    int PEEP_turn_direction = sgn(PEEP_error);
+    float PEEP_turn_time = PEEP_Kp * PEEP_error + PEEP_Ki * PEEP_error_int;
+    PEEP_turn_motor(PEEP_turn_direction, abs(PEEP_turn_time*1000));
+
+//    Plot 
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+//    Serial.print(peep_at_switching);
+//    Serial.print(",");
+//    Serial.println(PEEP_error);
+}
+
+static inline int8_t sgn(float val) {
+ if (val < 0) return -1;
+ if (val==0) return 0;
+ return 1;
+}
+
 #endif

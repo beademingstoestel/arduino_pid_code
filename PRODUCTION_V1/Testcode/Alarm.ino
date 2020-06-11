@@ -4,7 +4,6 @@
 #include <Wire.h>
 
 unsigned int ALARM = 0;
-unsigned int ALARMMASK = 0x77FF; // give alarm for all states except watchdog and battery power
 
 unsigned long WatchdogTimeRX = 3000; // 3 seconds watchdog
 unsigned long WatchdogTimeTX = 1000; // 1 seconds watchdog
@@ -28,63 +27,23 @@ unsigned int debouncedAlarmOnOffState = ALARM_OFF;
 // ALARMS
 //---------------------------------------------------------------
 
-void ALARM_Short_Beep() {
-  debouncedAlarmOnOffState = ALARM_ON;
-  alarmDebounceCounter = 50;
-}
-
 void ALARM_init() {
   while (1);
 }
 
-// debounceAlarm is to be called every 10ms,
-// it treats all alarms set the last 10ms and feeds it to the debounce filter
-void ALARM_debounceAlarm()
+void ALARM_processAlarm()
 {
-  unsigned int alarmRequested =  (ALARM & ALARMMASK);
-  unsigned int alarmStatusFromPython = 0;
-  unsigned int buzzerStatusFromPython = 0;
-  if (debouncedAlarmOnOffState == ALARM_OFF)
-  {
-    if (alarmRequested > 0)
-    {
-      alarmDebounceCounter--;
-      if (alarmDebounceCounter == 0)
-      {
-        debouncedAlarmOnOffState = ALARM_ON;
-        alarmDebounceCounter = OFF_REQUEST_DEBOUNCE_CYCLES;
-      }
-    }
-    else // (alarmRequested == 0 )
-    {
-      if (alarmDebounceCounter < ON_REQUEST_DEBOUNCE_CYCLES)
-      {
-        alarmDebounceCounter++;
-      }
-    }
+  // buzzer should always sound if PC is not connected
+  if(!isPythonOK && comms_getActive()){
+    LightOn();
+    SpeakerOn();
+    return;
   }
-  else  // (ALARM_ON == debouncedAlarmOnOffState)
-  {
-    if (alarmRequested > 0)
-    {
-      alarmDebounceCounter = OFF_REQUEST_DEBOUNCE_CYCLES;
-    }
-    else // (alarmRequested == 0 )
-    {
-      alarmDebounceCounter--;
-      if (alarmDebounceCounter == 0)
-      {
-        debouncedAlarmOnOffState = ALARM_OFF;
-        alarmDebounceCounter = ON_REQUEST_DEBOUNCE_CYCLES;
-      }
-    }
-  }
-
-  // Get alarm status from python: alarms (bits) to be disabled are 1
-  alarmStatusFromPython = comms_getAlarmSatusFromPython();
-  resetAlarmStatePython(alarmStatusFromPython);
+  
+  // Get alarm status from python: 1 means we play the alarm, 0 we shut up
+  unsigned int alarmStatusFromPython = comms_getAlarmSatusFromPython();
   // Check if the buzzer should be triggered, based on bit 0 from python
-  buzzerStatusFromPython = alarmStatusFromPython << 15;
+  unsigned int buzzerStatusFromPython = alarmStatusFromPython << 15;
   
   // light purely determined by python
   if (buzzerStatusFromPython > 0){
@@ -109,24 +68,6 @@ void ALARM_debounceAlarm()
       SpeakerOff();
     }
   }
-
-// OLD CODE: back when arduino was boss over it's own buzzer, good times...    
-//  if ( (debouncedAlarmOnOffState == ALARM_ON) ||  (alarmStatusFromPython > 0 ) )
-//  {    
-//    if (!(comms_getMT() || transientMute)){
-//      SpeakerOn();
-//    }
-//    else{
-//      SpeakerOff();
-//    }
-//    LightOn();
-//    DEBUGserial.println(ALARM, BIN);
-//  }
-//  else
-//  {
-//    SpeakerOff();
-//    LightOff();
-//  }
 }
 
 //----------------------------------------------------------
@@ -141,39 +82,32 @@ void setAlarmState(unsigned int alarm) {
 //-----------------------------------------------------
 // reset alarm state
 //-----------------------------------------------------
-void resetAlarmState(unsigned int alarm) {
-  unsigned int alarmbyte = (0x0001 << alarm);
-  alarmbyte = 0xFFFF ^ alarmbyte;
-  // BITWISE AND current alarm with new to RESET
-  ALARM &= alarmbyte;
-}
-
-//-----------------------------------------------------
-// reset alarm state from python
-//-----------------------------------------------------
-void resetAlarmStatePython(unsigned int alarm) {
-  // BITWISE AND current ALARM with alarm from python
-  unsigned int alarmbyte = ALARM & alarm;
-  // BITWISE XOR current ALARM with new to RESET
-  ALARM ^= alarmbyte;
-  // ignore LSB
-  ALARM |= (alarmbyte & 0x0001);
+void resetAlarmState() {
+  ALARM = 0;
 }
 
 //-----------------------------------------------------
 // get alarm state
 //-----------------------------------------------------
 unsigned int ALARM_getAlarmState(void) {
-    return ALARM;
+    // return alarm value, ignore gui error
+    return (ALARM & 0x7FFF);
 }
 
 //-----------------------------------------------------
 // check alarm init
 //-----------------------------------------------------
-void checkALARM_init( bool pressure_sens_init_ok, 
-    bool flow_sens_init_ok, bool motor_sens_init_ok, bool hall_sens_init_ok, bool fan_OK, 
+void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool sensor_calibration_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
+
+  resetAlarmState();
+  
+  if (oxygen_init_ok==false){
+    // Oxygen supply not connected
+    setAlarmState(3);
+  }  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
@@ -190,8 +124,8 @@ void checkALARM_init( bool pressure_sens_init_ok,
     // Motor limit switches check failed
     setAlarmState(9);
   }
-   if (hall_sens_init_ok==false){
-    // hall sensor initialization failed
+   if (sensor_calibration_ok==false){
+    // flow and pressure sensors not calibrated
     setAlarmState(10);
   }
   if (battery_powered){
@@ -211,96 +145,62 @@ void checkALARM_init( bool pressure_sens_init_ok,
 //-----------------------------------------------------
 // check alarm loop
 //-----------------------------------------------------
-void checkALARM(float pressure, int volume, controller_state_t state,
+void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume, controller_state_t state,
     bool isPatientPressureCorrect, bool isFlow2PatientRead, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool isAmbientPressureCorrect, bool temperature_OK)
     {
+  resetAlarmState();
+
+  if ((fio2 > comms_getFIO2() + comms_getADFIO2()) || (fio2 < comms_getFIO2() - comms_getADFIO2())){
+    // fio2 out of bounds
+    setAlarmState(0);
+  }
   if (pressure > comms_getPK() + comms_getADPK()){
     // max pressure exceeded
     setAlarmState(1);
   }
-  else{
-    //resetAlarmState(1);
-  }
-
-  if (abs(volume) > comms_getVT() + comms_getADVT()){
+  if (abs(volume) > comms_getVT() + comms_getADVT() && comms_getVolumeLimitControl()){
     // max volume exceeded
     setAlarmState(2);
   }
-  else{
-    //resetAlarmState(2);
+  if (!isFlowOfOxygenRead){
+    // one of the valves failed
+    setAlarmState(3);
   }
-  
-  if (pressure < comms_getPP() - comms_getADPP() && state != ini){
-    // Peep deviation exceeded
-    //setAlarmState(3);
-  }
-  else{
-    //resetAlarmState(3);
-  }
-
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting
     setAlarmState(4);
   }
-  else{
-    //resetAlarmState(4);
-  }
-  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
   }
-  else{
-    //resetAlarmState(5);
-  }
-
   if (isFlow2PatientRead==false){
     // flow sensors sensor connected and reacting
     setAlarmState(6);
   }
-  else{
-    //resetAlarmState(6);
-  }   
+   
   // removed initialisation errors to function above
+  
   if (battery_powered){
     // switched to battery --> check if externally powered
     setAlarmState(11);
   }
-  else{
-    //resetAlarmState(11);
-  }
-
   if (battery_SoC<0.5){
     // SoC battery <50% -  low
     setAlarmState(12);
   }
-  else{
-    //resetAlarmState(12);
-  }
-
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
     setAlarmState(13);
   }
-  else{
-    //resetAlarmState(13);
-  }
-
   if (fan_OK==false){
     // Fan not operational
     setAlarmState(14);
   }
-  else{
-    //resetAlarmState(14);
-  }
-
   if (isPythonOK==false){
     // Python not operational
     setAlarmState(15);
-  }
-  else{
-    //resetAlarmState(15);
   }
 }
 
@@ -310,7 +210,7 @@ void checkALARM(float pressure, int volume, controller_state_t state,
 
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool isAmbientPressureCorrect){
   // if i2c sensors fail ==> disable i2c bus!
-  if (!FLOW_SENSOR_CHECK_I2C()){
+  if (!FLOW_SENSOR_CHECK_I2C() || !PRESSURE_SENSOR_CHECK_I2C()){
     DEBUGserial.println("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
     FLOW_SENSOR_DISABLE();
     BME280_DISABLE();
@@ -348,12 +248,12 @@ void doWatchdog(void) {
   }
 
   // if python communication is gone, send settings and check if OK
-  if (getSettings() && isPythonOK == false) {
+  else if (getSettings() && isPythonOK == false) {
     isPythonOK = true;   
   }
 
-  // TX alarms
-  if (millis() - lastWatchdogTimeTX > WatchdogTimeTX) {
+  // TX alarms if communication is OK
+  if (millis() - lastWatchdogTimeTX > WatchdogTimeTX && isPythonOK == true) {
     lastWatchdogTimeTX = millis();
     sendAlarmState();         
   }
@@ -385,7 +285,7 @@ void CPU_TIMER_stop(unsigned long stoptime) {
   }
 }
 
-unsigned long CPU_TIMER_get() {
+int CPU_TIMER_get() {
   return (100000 * maxinterrupttime / controllerTime);
 }
 

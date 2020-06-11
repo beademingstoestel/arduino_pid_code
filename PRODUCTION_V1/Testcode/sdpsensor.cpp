@@ -30,23 +30,32 @@
 #include "sdpsensor.h"
 #include "i2chelper.h"
 
+// THOMASVDD: RESET i2C
+int SDPSensor::resetI2C()
+{
+  // THOMASVDD: soft reset at start
+  const uint8_t CMD_LEN = 2;
+  uint8_t cmd[CMD_LEN] = { 0x06 };
+  
+  uint8_t ret = I2CHelper::i2c_write(0x00, cmd, 1);
+  if (ret != 0) {
+    Serial.println("reset failed");
+    return 5;
+  }
+  return 0;
+}
+
 int SDPSensor::init()
 {
   // try to read product id
   const uint8_t CMD_LEN = 2;
   uint8_t cmd0[CMD_LEN] = { 0x36, 0x7C };
   uint8_t cmd1[CMD_LEN] = { 0xE1, 0x02 };
-  uint8_t cmd4[CMD_LEN] = { 0x06 };
 
   const uint8_t DATA_LEN = 18;
   uint8_t data[DATA_LEN] = { 0 };
 
-  // THOMASVDD: soft reset at start
-  uint8_t ret = I2CHelper::i2c_write(0x00, cmd4, 1);
-  if (ret != 0) {
-    Serial.println("  - reset failed");
-    return 5;
-  }
+  uint8_t ret;
 
   delay(50); // sensor takes time to reset
 
