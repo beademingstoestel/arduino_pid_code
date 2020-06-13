@@ -284,7 +284,9 @@ bool safetyValveOn(){
 bool ValveOn(unsigned long valvetime){
   ValveTime = valvetime;
   ValveStartTime = millis();
-  ValveOn();
+  if (ValveTime > 1){
+    ValveOn();
+  }
 }
 
 bool ValveOff(){

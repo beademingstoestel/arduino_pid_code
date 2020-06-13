@@ -143,7 +143,7 @@ void setup()
 
   ValveOn();
   unsigned long valvestarttime = millis();
-  unsigned int valveinittime = 100;
+  unsigned int valveinittime = 500;
   int mincalibrationvolume = 50;
   int counter = 0;
   while(millis() - valvestarttime < valveinittime){
@@ -233,7 +233,7 @@ void loop()
   // Handle uart send to PC
   if (PYTHON && isPythonOK) sendDataToPython();
   // Handle uart receive from PC
-  recvWithEndMarkerSer0();
+  if (PYTHON) recvWithEndMarkerSer0();
   // Check alarm and watchdog
   if (PYTHON) doWatchdog();
   if (PYTHON && isPythonOK) doCPU_TIMER();
