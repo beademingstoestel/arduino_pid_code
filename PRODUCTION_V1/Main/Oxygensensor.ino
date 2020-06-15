@@ -132,6 +132,9 @@ bool OXYGEN_SENSOR_MEASURE(){
       OXYGEN_SENSOR_READ_EXHALE();
       OXYGEN_SWITCH = true;
     }
+
+    comms_setFIO2inhale(I_concentration);
+    comms_setFIO2exhale(E_concentration);
     DEBUGserial.print("02 Flow: ");
     DEBUGserial.println(FIO2);
   }
