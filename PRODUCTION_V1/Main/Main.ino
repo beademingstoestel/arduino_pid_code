@@ -2,8 +2,8 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 1
-#define DEBUGserial Serial3
+#define PYTHON 0
+#define DEBUGserial Serial
  
 //---------------------------------------------------------------
 // VARIABLES
@@ -166,26 +166,26 @@ void setup()
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
     
-    //if (comms_getActive() == -1 || !PYTHON) { 
-    if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
+    if (comms_getActive() == -3 || !PYTHON) { 
       comms_resetActive();
       numberofretries = 5;
     }
 
     if (numberofretries > 0){
-      numberofretries--;
-      
-      analogWrite(Speaker_PWM, 127);
-      delay(200);
-      analogWrite(Speaker_PWM, 0);
-  
+      numberofretries--; 
       flow_sens_init_ok = FLOW_SENSOR_CALIBRATE();
       pressure_sens_init_ok = PRESSURE_SENSOR_CALIBRATE();
+      if(numberofretries == 0){
+        comms_setActive(-4);
+        sendActiveState();
+        DEBUGserial.println("CALIBRATIONS FAILED");
+      }
     }
   }
+  comms_setActive(-2);
+  if (PYTHON) sendActiveState();
   DEBUGserial.println("CALIBRATION OK");
   sensor_calibration_ok = true;
-
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
 
@@ -194,13 +194,13 @@ void setup()
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
 
-    //if (comms_getActive() == -1 || !PYTHON) { 
-    if (true) {  // TODO: REMOVE - only temporary
+    if (comms_getActive() == 0 || !PYTHON) { 
       // don't use oxygen
       oxygen_init_ok = true;
     }
     
-    else if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
+    else if (comms_getActive() == -1 || !PYTHON) { 
+      comms_resetActive(); 
       DEBUGserial.println("Setting up Oxygen supply: ");
 
       ValveOn();
@@ -227,6 +227,8 @@ void setup()
         DEBUGserial.println("OXYGEN SUPPLY OK");
       }
       else {
+        comms_setActive(-2);
+        if (PYTHON) sendActiveState();
         DEBUGserial.println("OXYGEN SUPPLY Failed");
       }
     
@@ -235,7 +237,9 @@ void setup()
       MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
     }
   }
-  
+  comms_resetActive();
+  if (PYTHON) sendActiveState();
+  DEBUGserial.println("OXYGEN INIT OK");  
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
   
@@ -331,6 +335,8 @@ void controller()
         SpeakerBeep(500); // turn on BUZZER   
       }
       if (comms_getActive() == 2) {
+        comms_setActive(3);
+        reset_sendActiveState();
         transientMute = transientMuteCycles;
         controller_state = wait; // start controller
       }

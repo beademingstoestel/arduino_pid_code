@@ -175,7 +175,7 @@
   #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
 
-  #define automatic_peep
+  //#define automatic_peep
   #define oxygen_inhale_serial Serial2
   #define oxygen_exhale_serial Serial3
   

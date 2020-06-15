@@ -31,14 +31,14 @@ SETTING settingarray[22]= {
   {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
   {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
   {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
-  {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"ACTIVE", -4, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.50, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.51, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -61,7 +61,7 @@ unsigned int TRIG = 0;    // trigger
 float PRES = 40;          // pressure
 float FLOW = 50;          // flow
 float TPRES = 60;         // target pressure
-float FIO2 = 0.21;        // oxygen percentage
+float FIO2 = 0.31;        // oxygen percentage
 float FIO2i = 0.21;        // oxygen percentage
 float FIO2e = 0.21;        // oxygen percentage
 
@@ -383,6 +383,43 @@ int sendAlarmState(void) {
 }
 
 //---------------------------------------------------------------
+// FUNCTIONS ACTIVE STATE
+//---------------------------------------------------------------
+
+int sendActiveState(void) {
+  settingarray[14].settingok = false;
+  
+  while (!settingarray[14].settingok){
+    if((!settingarray[14].settingok) && (millis() - settingarray[14].messagetime > 1000)){
+          strcpy(message, "");
+          sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+          getCRC(message);
+          Serial.println(message);  
+          settingarray[14].messageid = counter;     
+          settingarray[14].messagetime = millis();
+    }
+    recvWithEndMarkerSer0();
+  }
+  return 1;
+}
+
+void reset_sendActiveState(void) {
+  settingarray[14].settingok = false;
+}
+
+int sendActiveStateNoCheck(void) {
+  if((!settingarray[14].settingok) && (millis() - settingarray[14].messagetime > 1000)){
+    strcpy(message, "");
+    sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+    getCRC(message);
+    Serial.println(message);
+    settingarray[14].messageid = counter;     
+    settingarray[14].messagetime = millis();
+  }
+  return 1;
+}
+
+//---------------------------------------------------------------
 // FUNCTIONS CPU
 //---------------------------------------------------------------
 
@@ -423,7 +460,6 @@ void recvWithEndMarkerSer0() {
     // check CRC
     if (!checkCRC(receivedChars0)) {
       processSerialPort(receivedChars0);
-      DEBUGserial.println(receivedChars0);
     } 
     else {
 //      DEBUGserial.print("Resend data: ");

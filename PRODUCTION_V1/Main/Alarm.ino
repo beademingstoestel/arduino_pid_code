@@ -253,7 +253,8 @@ void doWatchdog(void) {
   // TX alarms if communication is OK
   if (millis() - lastWatchdogTimeTX > WatchdogTimeTX && isPythonOK == true) {
     lastWatchdogTimeTX = millis();
-    sendAlarmState();         
+    sendAlarmState();     
+    sendActiveStateNoCheck();    
   }
 }
 
