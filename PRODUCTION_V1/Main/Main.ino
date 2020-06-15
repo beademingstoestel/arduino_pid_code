@@ -2,9 +2,9 @@
 #include "PINOUT.h"
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
-#define PYTHON 0
+#define PYTHON 1
 #define HARDWARE 0
-#define DEBUGserial Serial
+#define DEBUGserial Serial3
  
 //---------------------------------------------------------------
 // VARIABLES
@@ -138,41 +138,6 @@ void setup()
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
   delay(500);
 
-  //-- set up oxygen
-  DEBUGserial.println("Setting up Oxygen supply: ");
-
-  ValveOn();
-  unsigned long valvestarttime = millis();
-  unsigned int valveinittime = 500;
-  int mincalibrationvolume = 50;
-  int counter = 0;
-  while(millis() - valvestarttime < valveinittime){
-    FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
-    FLOW_SENSOR_updateVolumeO2init(CurrentFlowOxygen);
-    counter++;
-  }
-  ValveOff();
-  
-  // calculate K_O2
-  float sampletime = (float) valveinittime / counter;
-  float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
-
-  FLOW_SENSOR_setK_O2(0.0); 
-  FLOW_SENSOR_resetVolumeO2();
-
-  if (calibrationvolume > mincalibrationvolume) {
-    oxygen_init_ok = true; 
-    DEBUGserial.println("OXYGEN SUPPLY OK");
-  }
-  else {
-    DEBUGserial.println("OXYGEN SUPPLY Failed");
-    if(HARDWARE)ALARM_init();
-  }
-
-  // empty oxygen bag
-  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
-  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
-
   //-- setup done
   DEBUGserial.println("Setup done");
 
@@ -214,6 +179,58 @@ void setup()
   }
   DEBUGserial.println("CALIBRATION OK");
   sensor_calibration_ok = true;
+
+  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+
+  // wait for initialisation of oxygen supply
+  while(!oxygen_init_ok){
+    recvWithEndMarkerSer0();
+    if (PYTHON) doWatchdog();
+
+    //if (comms_getActive() == -1 || !PYTHON) { 
+    if (true) {  // TODO: REMOVE - only temporary
+      // don't use oxygen
+      oxygen_init_ok = true;
+    }
+    
+    else if (comms_getActive() == 1 || !PYTHON) {  // TODO: REMOVE - only temporary
+      DEBUGserial.println("Setting up Oxygen supply: ");
+
+      ValveOn();
+      unsigned long valvestarttime = millis();
+      unsigned int valveinittime = 500;
+      int mincalibrationvolume = 50;
+      int counter = 0;
+      while(millis() - valvestarttime < valveinittime){
+        FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
+        FLOW_SENSOR_updateVolumeO2init(CurrentFlowOxygen);
+        counter++;
+      }
+      ValveOff();
+      
+      // calculate K_O2
+      float sampletime = (float) valveinittime / counter;
+      float calibrationvolume = FLOW_SENSOR_getTotalVolumeIntO2() * sampletime;
+    
+      FLOW_SENSOR_setK_O2(0.0); 
+      FLOW_SENSOR_resetVolumeO2();
+    
+      if (calibrationvolume > mincalibrationvolume) {
+        oxygen_init_ok = true; 
+        DEBUGserial.println("OXYGEN SUPPLY OK");
+      }
+      else {
+        DEBUGserial.println("OXYGEN SUPPLY Failed");
+        if(HARDWARE)ALARM_init();
+      }
+    
+      // empty oxygen bag
+      MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+      MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
+    }
+  }
+  
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
   
