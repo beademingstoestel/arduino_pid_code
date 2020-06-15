@@ -210,6 +210,8 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
     DEBUGserial.println("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
     FLOW_SENSOR_DISABLE();
     BME280_DISABLE();
+    oxygen_inhale_serial.end();
+    oxygen_exhale_serial.end();
     #ifdef hall_sensor_i2c
       HALL_SENSOR_DISABLE();
     #endif

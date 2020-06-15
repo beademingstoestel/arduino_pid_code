@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.49, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.50, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -62,6 +62,8 @@ float PRES = 40;          // pressure
 float FLOW = 50;          // flow
 float TPRES = 60;         // target pressure
 float FIO2 = 0.21;        // oxygen percentage
+float FIO2i = 0.21;        // oxygen percentage
+float FIO2e = 0.21;        // oxygen percentage
 
 //---------------------------------------------------------------
 // EEPROM
@@ -168,6 +170,9 @@ int comms_getActive() {
 bool comms_resetActive() {
   settingarray[14].settingvalue = 0;
 }
+bool comms_setActive(int activestate) {
+  settingarray[14].settingvalue = activestate;
+}
 float comms_getMT() {
   return settingarray[15].settingvalue;
 }
@@ -206,13 +211,19 @@ void comms_setTPRES(float tpres) {
 void comms_setFIO2(float fio2) {
   FIO2 = fio2;
 }
+void comms_setFIO2inhale(float fio2) {
+  FIO2i = fio2;
+}
+void comms_setFIO2exhale(float fio2) {
+  FIO2e = fio2;
+}
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
 //---------------------------------------------------------------
 
 void sendDataToPython() {
-  int messagelength = 18;
+  int messagelength = 22;
   unsigned long currenttime = millis();
   strcpy(message, "");
   
@@ -232,15 +243,19 @@ void sendDataToPython() {
   message[13] = (char)((int)(FLOW*100) >> 8);
   message[14] = (char)((int)(FIO2*100));
   message[15] = (char)((int)(FIO2*100) >> 8);
-  message[16] = (char)(currenttime);
-  message[17] = (char)(currenttime >> 8);
-  message[18] = (char)(currenttime >> 16);
-  message[19] = (char)(currenttime >> 24);
-  message[20] = getCRCvalue(message, messagelength + 2);
-  message[21] = 0x0A;
+  message[16] = (char)((int)(FIO2i*100));
+  message[17] = (char)((int)(FIO2i*100) >> 8);
+  message[18] = (char)((int)(FIO2e*100));
+  message[19] = (char)((int)(FIO2e*100) >> 8);
+  message[20] = (char)(currenttime);
+  message[21] = (char)(currenttime >> 8);
+  message[22] = (char)(currenttime >> 16);
+  message[23] = (char)(currenttime >> 24);
+  message[24] = getCRCvalue(message, messagelength + 2);
+  message[25] = 0x0A;
 
   comms_setTRIG(0);
-  Serial.write(message, 22);
+  Serial.write(message, messagelength+4);
 }
 
 //---------------------------------------------------------------

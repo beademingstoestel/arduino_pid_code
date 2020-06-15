@@ -99,6 +99,16 @@ void setup()
 
   //--- check mains supply and battery voltage
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
+
+  //-- set up oxygen sensor
+  DEBUGserial.println("Setting up OXYGEN sensor: ");
+  if (OXYGEN_SENSOR_INIT()) {
+    //hall_sens_init_ok = true; //TODO: add 
+    DEBUGserial.println("OXYGEN SENSOR OK");
+  }
+  else {
+    DEBUGserial.println("OXYGEN SENSOR Failed");
+  }
    
   //--- set up flow sensor
   DEBUGserial.println("Setting up flow sensor: ");
@@ -257,6 +267,8 @@ void loop()
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   // check the motor to regulate PEEP
   PEEP_check_motor();
+  // Measure oxygen each second
+  OXYGEN_SENSOR_MEASURE();
   // delay loop to avoid full serial buffers
   delay(50);
 }
