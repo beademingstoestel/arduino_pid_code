@@ -3,7 +3,6 @@
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
-#define HARDWARE 0
 #define DEBUGserial Serial3
  
 //---------------------------------------------------------------
@@ -109,7 +108,6 @@ void setup()
   }
   else {
     DEBUGserial.println("FLOW SENSOR Failed");
-    if(HARDWARE)ALARM_init();
   }
 
   //-- set up pressure sensors
@@ -120,7 +118,6 @@ void setup()
   }
   else{
     DEBUGserial.println("PRESSURE SENSORS Failed");
-    if(HARDWARE)ALARM_init();
   }
 
   //-- set up motor
@@ -131,7 +128,6 @@ void setup()
   }
   else {
     DEBUGserial.println("MOTOR Failed");
-    if(HARDWARE)ALARM_init();
   }
 
   // empty oxygen bag
@@ -222,7 +218,6 @@ void setup()
       }
       else {
         DEBUGserial.println("OXYGEN SUPPLY Failed");
-        if(HARDWARE)ALARM_init();
       }
     
       // empty oxygen bag

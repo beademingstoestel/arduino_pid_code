@@ -27,10 +27,6 @@ unsigned int debouncedAlarmOnOffState = ALARM_OFF;
 // ALARMS
 //---------------------------------------------------------------
 
-void ALARM_init() {
-  while (1);
-}
-
 void ALARM_processAlarm()
 {
   // buzzer should always sound if PC is not connected
