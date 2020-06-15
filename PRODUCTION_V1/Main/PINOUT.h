@@ -157,10 +157,10 @@
   //  #define Speaker_PWM 5 // original pinout PCB
   //  #define Light_PWM 4   // original pinout PCB
   
-  #define Speaker_PWM 44 // ADJUSTED
+  #define Speaker_PWM 45 // ADJUSTED
   #define Light_PWM 13   // O2
-  #define O2_valve 4
-  #define O2_safety_valve 5
+  #define O2_valve 5
+  #define O2_safety_valve 4
   #define Fan_PWM 3
   #define fan_speed A4
   
