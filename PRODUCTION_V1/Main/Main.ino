@@ -365,6 +365,7 @@ void controller()
       
     }break;
     case exhale: {
+      ValveOff();
       // Call PID for exhale
       BREATHE_CONTROL_setPointInhalePressure(target_pressure, target_risetime, min_degraded_mode_ON);
       BREATHE_CONTROL_setInhalePressure(CurrentPressurePatient);
@@ -377,6 +378,7 @@ void controller()
       // Check alarm ==> setAlarm() in PID!
     }break;
     case wait: {
+      ValveOff();
       // Reset trigger for flow detection
       FLOW_SENSOR_resetVolume();
       // Call PID for wait

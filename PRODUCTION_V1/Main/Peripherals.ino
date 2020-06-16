@@ -266,7 +266,6 @@ static inline int8_t sgn(int val) {
 unsigned long ValveTime = 0;
 unsigned long ValveStartTime = 0;
 unsigned long minValveTime = 20; 
-unsigned long maxValveTime = 500;
 
 bool initValve(){
   pinMode(O2_valve, OUTPUT);
@@ -285,10 +284,6 @@ bool safetyValveOn(){
 
 bool ValveOn(unsigned long valvetime){
   ValveTime = valvetime;
-  // prevent overheating
-  if (ValveTime > maxValveTime){
-    ValveTime = maxValveTime;
-  }
   ValveStartTime = millis();
   // turn on valve only if necessary
   if (ValveTime > minValveTime){
