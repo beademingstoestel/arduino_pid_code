@@ -65,7 +65,7 @@ float OXYGEN_SENSOR_GET_INHALE(){
       sum_I = sum_I - I_inByte;
       if (I_inByte == 256 - sum_I){
         // end of correct message
-        I_concentration = (I_output[3]*256.0 + I_output[4])/1000.0; //vol%
+        I_concentration = (I_output[3]*256.0 + I_output[4])/10.0; //vol%
         I_temperature = (I_output[7]*256.0 + I_output[8])/10.0; //Deg C
         DEBUGserial.print("O2 in: ");
         DEBUGserial.println(I_concentration);
@@ -92,14 +92,14 @@ float OXYGEN_SENSOR_GET_EXHALE(){
     }
     // data
     if (j>=2 && j<11){
-      E_output[i] = E_inByte;
+      E_output[j] = E_inByte;
     }
     // checksum
     if (j==11){
       sum_E = sum_E - E_inByte;
       if (E_inByte == 256 - sum_E){
         // end of correct message
-        E_concentration = (E_output[3]*256.0 + E_output[4])/1000.0; //vol%
+        E_concentration = (E_output[3]*256.0 + E_output[4])/10.0; //vol%
         E_temperature = (E_output[7]*256.0 + E_output[8])/10.0; //Deg C
         DEBUGserial.print("O2 ex: ");
         DEBUGserial.println(E_concentration);
