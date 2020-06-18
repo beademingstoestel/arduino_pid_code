@@ -4,7 +4,7 @@
 float PRESSURE_INHALE_SETPOINT = 0;
 float current_inhale_pressure = 0;
 float offset = 50;
-float exhale_speed = 80;
+float exhale_speed = 150;
 float hold_speed = 0;
 float delta_time;
 float flow_at_switching = 0;
