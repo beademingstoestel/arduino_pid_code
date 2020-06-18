@@ -67,8 +67,8 @@ float OXYGEN_SENSOR_GET_INHALE(){
         // end of correct message
         I_concentration = (I_output[3]*256.0 + I_output[4])/10.0; //vol%
         I_temperature = (I_output[7]*256.0 + I_output[8])/10.0; //Deg C
-        DEBUGserial.print("O2 in: ");
-        DEBUGserial.println(I_concentration);
+        DEBUGserialprint("O2 in: ");
+        DEBUGserialprintln(I_concentration);
       }
     }   
     i++;
@@ -101,8 +101,8 @@ float OXYGEN_SENSOR_GET_EXHALE(){
         // end of correct message
         E_concentration = (E_output[3]*256.0 + E_output[4])/10.0; //vol%
         E_temperature = (E_output[7]*256.0 + E_output[8])/10.0; //Deg C
-        DEBUGserial.print("O2 ex: ");
-        DEBUGserial.println(E_concentration);
+        DEBUGserialprint("O2 ex: ");
+        DEBUGserialprintln(E_concentration);
       }
     }   
     j++;
@@ -135,8 +135,8 @@ bool OXYGEN_SENSOR_MEASURE(){
 
     comms_setFIO2inhale(I_concentration);
     comms_setFIO2exhale(E_concentration);
-    DEBUGserial.print("02 Flow: ");
-    DEBUGserial.println(FIO2);
+    DEBUGserialprint("02 Flow: ");
+    DEBUGserialprintln(FIO2);
   }
   
 }

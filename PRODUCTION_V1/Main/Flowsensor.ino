@@ -234,8 +234,8 @@ bool FLOW_SENSOR_CALIBRATE()
     }    
     calibration_offset_tube =sum/100.0;
         
-    DEBUGserial.print("Flow sensor offset: ");
-    DEBUGserial.println(calibration_offset_tube);
+    DEBUGserialprint("Flow sensor offset: ");
+    DEBUGserialprintln(calibration_offset_tube);
 
     // calibrate O2 flow sensor
     sum = 0;
@@ -253,8 +253,8 @@ bool FLOW_SENSOR_CALIBRATE()
       }
     }    
     calibration_offset_O2 =sum/100.0;    
-    DEBUGserial.print("Oxygen Flow sensor offset: ");
-    DEBUGserial.println(calibration_offset_O2);
+    DEBUGserialprint("Oxygen Flow sensor offset: ");
+    DEBUGserialprintln(calibration_offset_O2);
  
     return flowcalOK; // init successfull or not;
 }
@@ -500,22 +500,22 @@ void FLOW_SENSOR_updateK_O2(){
     K_O2 = 0;
   }
   
-//  DEBUGserial.print("error: ");
-//  DEBUGserial.println(Vo2_error);
-//  DEBUGserial.print("cumulative error: ");
-//  DEBUGserial.println(Vo2_cum_error*wantedoxygenvolume);
-//  DEBUGserial.print("K: ");
-//  DEBUGserial.println(K_O2);
-//  DEBUGserial.print("valveTime: ");
-//  DEBUGserial.println(valvetime);
-//  DEBUGserial.print("Vpatient: ");
-//  DEBUGserial.println(maxvolumepatient);
-//  DEBUGserial.print("Voxygenwanted: ");
-//  DEBUGserial.println(wantedoxygenvolume);
-//  DEBUGserial.print("V02: ");
-//  DEBUGserial.println(maxvolumeoxygen);
-//  DEBUGserial.print("FIO2: ");
-//  DEBUGserial.println(FLOW_SENSOR_getFIO2());
+//  DEBUGserialprint("error: ");
+//  DEBUGserialprintln(Vo2_error);
+//  DEBUGserialprint("cumulative error: ");
+//  DEBUGserialprintln(Vo2_cum_error*wantedoxygenvolume);
+//  DEBUGserialprint("K: ");
+//  DEBUGserialprintln(K_O2);
+//  DEBUGserialprint("valveTime: ");
+//  DEBUGserialprintln(valvetime);
+//  DEBUGserialprint("Vpatient: ");
+//  DEBUGserialprintln(maxvolumepatient);
+//  DEBUGserialprint("Voxygenwanted: ");
+//  DEBUGserialprintln(wantedoxygenvolume);
+//  DEBUGserialprint("V02: ");
+//  DEBUGserialprintln(maxvolumeoxygen);
+//  DEBUGserialprint("FIO2: ");
+//  DEBUGserialprintln(FLOW_SENSOR_getFIO2());
 }
 
 float FLOW_SENSOR_getFIO2(){

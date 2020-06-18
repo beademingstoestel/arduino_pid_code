@@ -50,7 +50,7 @@ bool BME1_Setup()
 {
   if (!bme1.begin(0x77))
   {
-    DEBUGserial.println("BME280 sensor for tube pressure not found");
+    DEBUGserialprintln("BME280 sensor for tube pressure not found");
     return false;
   }
   else
@@ -74,8 +74,8 @@ bool BME1_Calibrate()
     sum += BME280_readpressure_cmH2O(); 
   }
   PRESSURE_INIT_VALUE_BME = sum / 50;
-  DEBUGserial.print("PRESSURE_INIT_VALUE_BME: ");
-  DEBUGserial.println(PRESSURE_INIT_VALUE_BME);
+  DEBUGserialprint("PRESSURE_INIT_VALUE_BME: ");
+  DEBUGserialprintln(PRESSURE_INIT_VALUE_BME);
   if (abs(BME280_readpressure_cmH2O()) > 1.5){
     return false;
   }
@@ -86,7 +86,7 @@ bool BME2_Setup()
 {
   if (!bme2.begin())
   {
-    DEBUGserial.println("BME280 sensor for ambient pressure not found");
+    DEBUGserialprintln("BME280 sensor for ambient pressure not found");
     return false;
   }
   else
@@ -109,8 +109,8 @@ bool BME2_Calibrate()
     total += readings[thisReading];
   }
   PRESSURE_INIT_VALUE_AMBIENT = total / numReadings;
-  DEBUGserial.print("PRESSURE_INIT_VALUE_AMBIENT: ");
-  DEBUGserial.println(PRESSURE_INIT_VALUE_AMBIENT);
+  DEBUGserialprint("PRESSURE_INIT_VALUE_AMBIENT: ");
+  DEBUGserialprintln(PRESSURE_INIT_VALUE_AMBIENT);
   return true;
 }
 
@@ -148,7 +148,7 @@ bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minp
   float sensor1 = BME280_readpressure_cmH2O();
   bool SensorHealthy = false;
 
-  //DEBUGserial.println(sensor1);
+  //DEBUGserialprintln(sensor1);
 
   *value = sensor1;
 

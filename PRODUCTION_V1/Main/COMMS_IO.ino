@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.56, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.57, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -264,11 +264,11 @@ void sendDataToPython() {
 
 // Init communication at startup: blocking
 bool initCOMM() {
-  DEBUGserial.println("SETUP START");
+  DEBUGserialprintln("SETUP START");
   while (!getSettings()) {
     recvWithEndMarkerSer0();
   }
-  DEBUGserial.println("SETUP DONE");
+  DEBUGserialprintln("SETUP DONE");
 }
 
 // Get settings from python
@@ -375,8 +375,8 @@ int sendAlarmState(void) {
   settingarray[0].messagetime = millis();
 
   if (ALARM != 0){
-    DEBUGserial.print(" ==> ALARM = ");
-    DEBUGserial.println(ALARM, BIN);
+    DEBUGserialprint(" ==> ALARM = ");
+    //DEBUGserialprintln(ALARM, BIN);
   }
   
   return 1;
@@ -462,8 +462,8 @@ void recvWithEndMarkerSer0() {
       processSerialPort(receivedChars0);
     } 
     else {
-//      DEBUGserial.print("Resend data: ");
-//      DEBUGserial.println(receivedChars0);
+//      DEBUGserialprint("Resend data: ");
+//      DEBUGserialprintln(receivedChars0);
     }
     newData0 = false;
   }
@@ -478,8 +478,8 @@ void recvWithEndMarkerSer1() {
   char endMarker = '\n';
   char rc;
 
-  while (DEBUGserial.available() > 0 && newData1 == false) {
-    rc = DEBUGserial.read();
+  while (Serial.available() > 0 && newData1 == false) {
+    rc = Serial.read();
 
     if (rc != endMarker) {
       receivedChars1[ndx] = rc;
@@ -499,7 +499,7 @@ void recvWithEndMarkerSer1() {
     // manual input: do not check CRC
     processSerialPort(receivedChars1);
     // confirm message
-    DEBUGserial.println(receivedChars1);
+    DEBUGserialprintln(receivedChars1);
     newData1 = false;
   }
 }

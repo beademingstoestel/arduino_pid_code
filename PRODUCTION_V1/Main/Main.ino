@@ -3,7 +3,6 @@
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
 #define PYTHON 0
-#define DEBUGserial Serial
  
 //---------------------------------------------------------------
 // VARIABLES
@@ -84,12 +83,9 @@ bool isFlowOfOxygenRead = false;
 void setup()
 {
   Serial.begin(115200);
-  DEBUGserial.begin(115200); 
   
   Serial.print("FW version: ");
   Serial.println(comms_getFW());
-  DEBUGserial.print("FW version: ");
-  DEBUGserial.println(comms_getFW());
 
   //-- set up timer3
   Timer3.initialize(controllerTime);   // initialize timer3 in us, set 10 ms timing
@@ -101,43 +97,43 @@ void setup()
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
 
   //-- set up oxygen sensor
-  DEBUGserial.println("Setting up OXYGEN sensor: ");
+  DEBUGserialprintln("Setting up OXYGEN sensor: ");
   if (OXYGEN_SENSOR_INIT()) {
     //hall_sens_init_ok = true; //TODO: add 
-    DEBUGserial.println("OXYGEN SENSOR OK");
+    DEBUGserialprintln("OXYGEN SENSOR OK");
   }
   else {
-    DEBUGserial.println("OXYGEN SENSOR Failed");
+    DEBUGserialprintln("OXYGEN SENSOR Failed");
   }
    
   //--- set up flow sensor
-  DEBUGserial.println("Setting up flow sensor: ");
+  DEBUGserialprintln("Setting up flow sensor: ");
   if (FLOW_SENSOR_INIT()) {
     flow_sens_init_ok = true;
-    DEBUGserial.println("FLOW SENSOR OK");
+    DEBUGserialprintln("FLOW SENSOR OK");
   }
   else {
-    DEBUGserial.println("FLOW SENSOR Failed");
+    DEBUGserialprintln("FLOW SENSOR Failed");
   }
 
   //-- set up pressure sensors
-  DEBUGserial.println("Setting up PRESSURE sensors: ");
+  DEBUGserialprintln("Setting up PRESSURE sensors: ");
   if (PRESSURE_SENSOR_INIT()){
     pressure_sens_init_ok = true;
-    DEBUGserial.println("PRESSURE SENSORS OK");
+    DEBUGserialprintln("PRESSURE SENSORS OK");
   }
   else{
-    DEBUGserial.println("PRESSURE SENSORS Failed");
+    DEBUGserialprintln("PRESSURE SENSORS Failed");
   }
 
   //-- set up motor
-  DEBUGserial.println("Setting up MOTOR: ");
+  DEBUGserialprintln("Setting up MOTOR: ");
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
     motor_sens_init_ok = true;
-    DEBUGserial.println("MOTOR OK");
+    DEBUGserialprintln("MOTOR OK");
   }
   else {
-    DEBUGserial.println("MOTOR Failed");
+    DEBUGserialprintln("MOTOR Failed");
   }
 
   // empty oxygen bag
@@ -145,7 +141,7 @@ void setup()
   delay(500);
 
   //-- setup done
-  DEBUGserial.println("Setup done");
+  DEBUGserialprintln("Setup done");
 
   //-- check alarms
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
@@ -161,7 +157,7 @@ void setup()
   //-- wait for calibration of flow and pressure sensors
   flow_sens_init_ok = false;
   pressure_sens_init_ok = false;
-  DEBUGserial.println("WAIT FOR CALIBRATION");
+  DEBUGserialprintln("WAIT FOR CALIBRATION");
   while(!pressure_sens_init_ok || !flow_sens_init_ok){
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
@@ -178,13 +174,13 @@ void setup()
       if(numberofretries == 0){
         comms_setActive(-4);
         sendActiveState();
-        DEBUGserial.println("CALIBRATIONS FAILED");
+        DEBUGserialprintln("CALIBRATIONS FAILED");
       }
     }
   }
   comms_setActive(-2);
   if (PYTHON) sendActiveState();
-  DEBUGserial.println("CALIBRATION OK");
+  DEBUGserialprintln("CALIBRATION OK");
   sensor_calibration_ok = true;
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
@@ -201,7 +197,7 @@ void setup()
     
     else if (comms_getActive() == -1 || !PYTHON) { 
       comms_resetActive(); 
-      DEBUGserial.println("Setting up Oxygen supply: ");
+      DEBUGserialprintln("Setting up Oxygen supply: ");
 
       ValveOn();
       unsigned long valvestarttime = millis();
@@ -224,12 +220,12 @@ void setup()
     
       if (calibrationvolume > mincalibrationvolume) {
         oxygen_init_ok = true; 
-        DEBUGserial.println("OXYGEN SUPPLY OK");
+        DEBUGserialprintln("OXYGEN SUPPLY OK");
       }
       else {
         comms_setActive(-2);
         if (PYTHON) sendActiveState();
-        DEBUGserial.println("OXYGEN SUPPLY Failed");
+        DEBUGserialprintln("OXYGEN SUPPLY Failed");
       }
     
       // empty oxygen bag
@@ -239,7 +235,7 @@ void setup()
   }
   comms_resetActive();
   if (PYTHON) sendActiveState();
-  DEBUGserial.println("OXYGEN INIT OK");  
+  DEBUGserialprintln("OXYGEN INIT OK");  
   checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
                   sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
   
@@ -461,7 +457,7 @@ void configure_wdt(void){
 }
 
 ISR(WDT_vect){
-  DEBUGserial.println("WDT");
+  DEBUGserialprintln("WDT");
   // Disable motor, enable speaker
   SpeakerOn();
   digitalWrite(Motor_PWM_PIN, LOW);
@@ -475,5 +471,27 @@ ISR(WDT_vect){
       delayMicroseconds(100);  
     }
     digitalWrite(Light_PWM, LOW); 
+  }
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// DEBUGGING
+// ---------------------------------------------------------------------------------------------------------
+
+void DEBUGserialprintln(String text){
+  if (!PYTHON){
+    Serial.println(text);
+  }
+}
+
+void DEBUGserialprintln(float text){
+  if (!PYTHON){
+    Serial.println(text);
+  }
+}
+
+void DEBUGserialprint(String text){
+  if (!PYTHON){
+    Serial.print(text);
   }
 }

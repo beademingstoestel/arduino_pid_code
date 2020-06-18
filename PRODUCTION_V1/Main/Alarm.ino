@@ -44,7 +44,7 @@ void ALARM_processAlarm()
   // light purely determined by python
   if (buzzerStatusFromPython > 0){
     LightOn();
-    DEBUGserial.println(ALARM, BIN);
+    //DEBUGserialprintln(ALARM, BIN);
   }
   else{
     LightOff();
@@ -207,7 +207,7 @@ void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume,
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool isAmbientPressureCorrect){
   // if i2c sensors fail ==> disable i2c bus!
   if (!FLOW_SENSOR_CHECK_I2C() || !PRESSURE_SENSOR_CHECK_I2C()){
-    DEBUGserial.println("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
+    DEBUGserialprintln("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
     FLOW_SENSOR_DISABLE();
     BME280_DISABLE();
     oxygen_inhale_serial.end();
@@ -226,7 +226,7 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
     return 1;
   }
   else if(!(isFlow2PatientRead && isPatientPressureCorrect && isAmbientPressureCorrect)){
-    DEBUGserial.println("=== GO TO SAFE MODE ===");
+    DEBUGserialprintln("=== GO TO SAFE MODE ===");
     return 1;
   }
   else{
