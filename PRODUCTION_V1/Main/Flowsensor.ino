@@ -16,7 +16,7 @@ float Ci_O2 = 0.0/25;
 float o2air = 0.20;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
-float fio2max = 0.98;
+float fio2max = 1.02;
 float valvetime;
 float Vo2_error = 0;
 float Vo2_cum_error = 0;
