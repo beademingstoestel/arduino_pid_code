@@ -187,6 +187,9 @@
   #define BEEPLENGTH 2000
 
   //#define automatic_peep
+  #define Motor_PEEP_CW 44
+  #define Motot_PEEP_CCW 46
+  
   #define oxygen_inhale_serial Serial2
   #define oxygen_exhale_serial Serial3
 
