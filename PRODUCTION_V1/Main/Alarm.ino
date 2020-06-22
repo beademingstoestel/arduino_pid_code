@@ -207,26 +207,29 @@ void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume,
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool isAmbientPressureCorrect){
   // if i2c sensors fail ==> disable i2c bus!
   if (!FLOW_SENSOR_CHECK_I2C() || !PRESSURE_SENSOR_CHECK_I2C()){
-    DEBUGserialprintln("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
-    FLOW_SENSOR_DISABLE();
-    BME280_DISABLE();
-    oxygen_inhale_serial.end();
-    oxygen_exhale_serial.end();
-    #ifdef hall_sensor_i2c
-      HALL_SENSOR_DISABLE();
-    #endif
-    // flush i2c
-    while(Wire.available()){
-      Wire.read();
+    if(!min_degraded_mode_ON){
+      DEBUGserialprintln("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
+      FLOW_SENSOR_DISABLE();
+      BME280_DISABLE();
+      oxygen_inhale_serial.end();
+      oxygen_exhale_serial.end();
+      #ifdef hall_sensor_i2c
+        HALL_SENSOR_DISABLE();
+      #endif
+      // flush i2c
+      while(Wire.available()){
+        Wire.read();
+      }
+      // disable i2c
+      pinMode(SCL, INPUT);
+      pinMode(SDA, INPUT);
     }
-    // disable i2c
-    pinMode(SCL, INPUT);
-    pinMode(SDA, INPUT);
-
     return 1;
   }
   else if(!(isFlow2PatientRead && isPatientPressureCorrect && isAmbientPressureCorrect)){
-    DEBUGserialprintln("=== GO TO SAFE MODE ===");
+    if (!min_degraded_mode_ON){
+      DEBUGserialprintln("=== GO TO SAFE MODE ===");
+    }
     return 1;
   }
   else{
