@@ -147,9 +147,16 @@ void setup()
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
-  
+  checkALARM_init(1, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  1, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  if(!ALARM_getAlarmState()){
+    comms_setActive(-4);
+    DEBUGserialprintln("INIT OK");
+  }
+  else{
+    comms_setActive(-5);
+    DEBUGserialprintln("INIT OK");
+  }
   //-- set up communication with screen
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;

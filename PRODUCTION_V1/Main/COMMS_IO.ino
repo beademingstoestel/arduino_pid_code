@@ -31,14 +31,14 @@ SETTING settingarray[22]= {
   {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
   {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
   {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
-  {"ACTIVE", -4, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"ACTIVE", -10, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.58, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.59, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
