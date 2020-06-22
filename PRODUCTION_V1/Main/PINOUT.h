@@ -159,8 +159,8 @@
   
   #define Speaker_PWM 45 // ADJUSTED
   #define Light_PWM 13   // O2
-  #define O2_valve 4
-  #define O2_safety_valve 5
+  #define O2_valve 5
+  #define O2_safety_valve 4
   #define Fan_PWM 3
   #define fan_speed A4
   
@@ -176,7 +176,9 @@
   #define BEEPLENGTH 2000
 
   //#define automatic_peep
-  #define oxygen_inhale_serial Serial3
-  #define oxygen_exhale_serial Serial2
+  #define oxygen_inhale_serial Serial2
+  #define oxygen_exhale_serial Serial3
+
+  #define OXYGENCONTROL 1
 
 #endif

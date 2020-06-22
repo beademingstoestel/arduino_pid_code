@@ -11,9 +11,10 @@ unsigned long deltaT;
 bool resetAllowed = true;
 float K_O2;
 
-float Cp_O2 = 5.0/25;
+float Cp_O2 = 2.0/25;
 float Ci_O2 = 0.0/25;
 float o2air = 0.20;
+float o2oxy = 1.00;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
 float fio2max = 1.02;
@@ -471,7 +472,7 @@ unsigned long FLOW_SENSOR_getTime(float fio2){
     fio2 = fio2max;
   }
   // calculate wanted oxygen volume
-  wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(1-o2air);
+  wantedoxygenvolume = maxvolumepatient * (fio2-o2air)/(o2oxy-o2air);
   // calulate corresponding time to open valve
   valvetime = K_O2 * wantedoxygenvolume;
   
@@ -520,7 +521,7 @@ void FLOW_SENSOR_updateK_O2(){
 
 float FLOW_SENSOR_getFIO2(){
   if (maxvolumepatient == 0) maxvolumepatient = 10; // avoid divide by zero
-  float fio2measured = ((1.0-o2air)*maxvolumeoxygenaveraged/maxvolumepatient)+o2air;
+  float fio2measured = ((o2oxy-o2air)*maxvolumeoxygenaveraged/maxvolumepatient)+o2air;
 
   if(fio2measured>1){
     fio2measured = 1;

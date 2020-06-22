@@ -12,10 +12,10 @@ int len_E = 0;
 byte sum_I = 0;
 byte sum_E = 0;
 
-float I_concentration;
+float I_concentration = 0;
 float I_temperature;
 
-float E_concentration;
+float E_concentration = 0;
 float E_temperature;
 
 bool OXYGEN_SENSOR_INIT(){
@@ -24,7 +24,9 @@ bool OXYGEN_SENSOR_INIT(){
 
   OXYGEN_SENSOR_READ_INHALE();
   OXYGEN_SENSOR_READ_EXHALE();
-  delay(1000);
+  while(OXYGEN_SENSOR_GET_INHALE() == 0 || OXYGEN_SENSOR_GET_EXHALE() == 0){
+    delay(100);
+  }
   float init_inhale = OXYGEN_SENSOR_GET_INHALE();
   float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
 

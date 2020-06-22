@@ -265,7 +265,7 @@ static inline int8_t sgn(int val) {
 // ---------- Valves
 unsigned long ValveTime = 0;
 unsigned long ValveStartTime = 0;
-unsigned long minValveTime = 20; 
+unsigned long minValveTime = 5; 
 
 bool initValve(){
   pinMode(O2_valve, OUTPUT);

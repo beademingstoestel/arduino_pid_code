@@ -190,12 +190,12 @@ void setup()
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
 
-    if (comms_getActive() == 0 || !PYTHON) { 
+    if (comms_getActive() == 0 || (!PYTHON && !OXYGENCONTROL)) { 
       // don't use oxygen
       oxygen_init_ok = true;
     }
     
-    else if (comms_getActive() == -1 || !PYTHON) { 
+    else if (comms_getActive() == -1 || (!PYTHON && OXYGENCONTROL)) { 
       comms_resetActive(); 
       DEBUGserialprintln("Setting up Oxygen supply: ");
 
