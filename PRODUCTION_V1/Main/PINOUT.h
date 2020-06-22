@@ -167,7 +167,7 @@
   #define Light_PWM 13   // O2
   #define O2_valve 5
   #define O2_safety_valve 4
-  #define Fan_PWM 3
+//  #define Fan_PWM 3
   #define fan_speed A4
   
   #define main_supply_voltage A3 // ~batt voltage if no PSU [ANALOG]
