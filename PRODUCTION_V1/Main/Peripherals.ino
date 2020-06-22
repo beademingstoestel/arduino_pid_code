@@ -267,22 +267,24 @@ unsigned long ValveTime = 0;
 unsigned long ValveStartTime = 0;
 unsigned long minValveTime = 5; 
 
-bool initValve(){
+#ifdef O2_valve
+
+void initValve(){
   pinMode(O2_valve, OUTPUT);
   digitalWrite(O2_valve, LOW);
   pinMode(O2_safety_valve, OUTPUT);
   digitalWrite(O2_safety_valve, HIGH);
 }
 
-bool ValveOn(){
+void ValveOn(){
   digitalWrite(O2_valve, HIGH);
 }
 
-bool safetyValveOn(){
+void safetyValveOn(){
   digitalWrite(O2_safety_valve, HIGH);
 }
 
-bool ValveOn(unsigned long valvetime){
+void ValveOn(unsigned long valvetime){
   ValveTime = valvetime;
   ValveStartTime = millis();
   // turn on valve only if necessary
@@ -291,11 +293,11 @@ bool ValveOn(unsigned long valvetime){
   }
 }
 
-bool ValveOff(){
+void ValveOff(){
   digitalWrite(O2_valve, LOW);
 }
 
-bool safetyValveOff(){
+void safetyValveOff(){
   digitalWrite(O2_safety_valve, LOW);
 }
 
@@ -310,3 +312,14 @@ void ValveCheck(){
     ValveOff();
   }
 }
+
+#else
+void initValve(){};
+void ValveOn(){};
+void safetyValveOn(){};
+void ValveOn(unsigned long valvetime){};
+void ValveOff(){};
+void safetyValveOff(){};
+bool safetyValveState(){return false;};
+void ValveCheck(){};
+#endif

@@ -1,3 +1,5 @@
+bool OXYGEN_SENSORS_INITIALIZED = false;
+
 char read_oxygen[4] = {0x11, 0x01, 0x01, 0xED};
 
 int I_output[] = {0,0,0,0,0,0,0,0,0,0,0,0}; //initialize output
@@ -19,21 +21,28 @@ float E_concentration = 0;
 float E_temperature;
 
 bool OXYGEN_SENSOR_INIT(){
-  oxygen_inhale_serial.begin(9600);
-  oxygen_exhale_serial.begin(9600);
+  if(OXYGENSENSORS){
+    oxygen_inhale_serial.begin(9600);
+    oxygen_exhale_serial.begin(9600);
+  
+    OXYGEN_SENSOR_READ_INHALE();
+    OXYGEN_SENSOR_READ_EXHALE();
+    while(OXYGEN_SENSOR_GET_INHALE() == 0 || OXYGEN_SENSOR_GET_EXHALE() == 0){
+      delay(100);
+    }
+    float init_inhale = OXYGEN_SENSOR_GET_INHALE();
+    float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
+  
+    if(init_inhale<19 || init_inhale>25) return false;
+    if(init_exhale<19 || init_exhale>25) return false;
 
-  OXYGEN_SENSOR_READ_INHALE();
-  OXYGEN_SENSOR_READ_EXHALE();
-  while(OXYGEN_SENSOR_GET_INHALE() == 0 || OXYGEN_SENSOR_GET_EXHALE() == 0){
-    delay(100);
+    OXYGEN_SENSORS_INITIALIZED = true;
+    return true;
   }
-  float init_inhale = OXYGEN_SENSOR_GET_INHALE();
-  float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
-
-  if(init_inhale<19 || init_inhale>25) return false;
-  if(init_exhale<19 || init_exhale>25) return false;
-
-  return true;
+  else{
+    OXYGEN_SENSORS_INITIALIZED = false;
+    return true;
+  }
 }
 
 void OXYGEN_SENSOR_READ_INHALE(){
@@ -121,24 +130,25 @@ unsigned long OXYGEN_TIMER = 1000; // 1 second
 bool OXYGEN_SWITCH = true;
 
 bool OXYGEN_SENSOR_MEASURE(){
-  OXYGEN_SENSOR_GET_INHALE();
-  OXYGEN_SENSOR_GET_EXHALE();
-  if (millis() - lastOxygenTime > OXYGEN_TIMER) {
-    lastOxygenTime = millis();
-    // get oxygen levels
-    if(OXYGEN_SWITCH==true){
-      OXYGEN_SENSOR_READ_INHALE();
-      OXYGEN_SWITCH = false;
-    }
-    else{
-      OXYGEN_SENSOR_READ_EXHALE();
-      OXYGEN_SWITCH = true;
-    }
-
-    comms_setFIO2inhale(I_concentration);
-    comms_setFIO2exhale(E_concentration);
-    DEBUGserialprint("02 Flow: ");
-    DEBUGserialprintln(FIO2);
-  }
+  if(OXYGEN_SENSORS_INITIALIZED){
+    OXYGEN_SENSOR_GET_INHALE();
+    OXYGEN_SENSOR_GET_EXHALE();
+    if (millis() - lastOxygenTime > OXYGEN_TIMER) {
+      lastOxygenTime = millis();
+      // get oxygen levels
+      if(OXYGEN_SWITCH==true){
+        OXYGEN_SENSOR_READ_INHALE();
+        OXYGEN_SWITCH = false;
+      }
+      else{
+        OXYGEN_SENSOR_READ_EXHALE();
+        OXYGEN_SWITCH = true;
+      }
   
+      comms_setFIO2inhale(I_concentration);
+      comms_setFIO2exhale(E_concentration);
+      DEBUGserialprint("O2 Flow: ");
+      DEBUGserialprintln(FIO2*100);
+    }
+  }
 }

@@ -252,14 +252,14 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
     if (endswitchFlag == false){
       if (end_switch == 1) {
         endswitchFlag = true;
-        return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+        return (float)preloadspeed0 + (float)preloadspeed1/comms_getInhaleTime()*1000;
       }
       else{
         return Speed;
       }
     }
     else if (endswitchFlag == true){
-      return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+      return (float)preloadspeed0 + (float)preloadspeed1/comms_getInhaleTime()*1000;
     }
   }
   // Keep arm steady in wait

@@ -127,10 +127,15 @@
   #define FANPWMSETTING 100
   #define BEEPLENGTH 2000
 
-  #define automatic_peep
+  #define OXYGENCONTROL 0
+  #define OXYGENSENSORS 0
 
-  #define preloadspeed0 0
-  #define preloadspeed1 0
+  //#define automatic_peep
+  #define oxygen_inhale_serial Serial2
+  #define oxygen_exhale_serial Serial3
+
+  #define preloadspeed0 -5
+  #define preloadspeed1 -20
   #define exhale_speed 80
   #define min_degraded_mode_speed -35
   
@@ -186,6 +191,7 @@
   #define oxygen_exhale_serial Serial3
 
   #define OXYGENCONTROL 1
+  #define OXYGENSENSORS 1
 
   #define preloadspeed0 0
   #define preloadspeed1 0
