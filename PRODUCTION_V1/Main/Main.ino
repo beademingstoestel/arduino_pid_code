@@ -51,15 +51,19 @@ float maxpressure=-99999.9;         // initialize low negative--> no error on st
 float minpressure=99999.9;          // initialize high positive --> no error on start-up
 float maxflowinhale=-99999.9;       // initialize low negative--> no error on start-up
 float minflowinhale=99999.9;        // initialize high positive --> no error on start-up
+float maxflowoxygen=-99999.9;       // initialize low negative--> no error on start-up
+float minflowoxygen=99999.9;        // initialize high positive --> no error on start-up
 float maxflow=-99999.9;             // initialize low negative--> no error on start-up
 float minflow=99999.9;              // initialize high positive --> no error on start-up
+float maxflowO2=-99999.9;             // initialize low negative--> no error on start-up
+float minflowO2=99999.9;              // initialize high positive --> no error on start-up
 
 float battery_SoC = 1.0;   
 float main_supply = 0.0;
 float batt_supply = 0.0;
    
 // safety minimum degraded mode
-bool min_degraded_mode_ON = true;
+bool min_degraded_mode_ON = false;
 bool temperature_OK = false;
 bool battery_above_25 = false;
 bool fan_OK = true;   
@@ -291,7 +295,7 @@ void controller()
   // Enable interrupts, because this ISR takes approx 5ms and we need millis() to update
   interrupts(); 
   // readout sensors
-  isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);
+  isFlowOfOxygenRead = FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen,maxflowoxygen,minflowoxygen);
   fan_OK = FanPollingRoutine();
   ValveCheck();
   isFlow2PatientRead = FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);
@@ -365,6 +369,10 @@ void controller()
       { maxflow=CurrentFlowPatient;}
       if (minflow>CurrentFlowPatient)
       { minflow=CurrentFlowPatient;}
+      if (maxflowO2<CurrentFlowOxygen)
+      { maxflowO2=CurrentFlowOxygen;}
+      if (minflowO2>CurrentFlowOxygen)
+      { minflowO2=CurrentFlowOxygen;}
       
     }break;
     case exhale: {
@@ -428,8 +436,12 @@ void controller()
                 
         maxflowinhale=maxflow;   // initialize low negative--> no error on start-up
         minflowinhale=minflow;    // initialize high positive --> no error on start-up
+        maxflowoxygen=maxflowO2;   // initialize low negative--> no error on start-up
+        minflowoxygen=minflowO2;    // initialize high positive --> no error on start-up
         maxflow=-99999.9;   // initialize low negative--> no error on start-up
         minflow=99999.9;    // initialize high positive --> no error on start-up
+        maxflowO2=-99999.9;   // initialize low negative--> no error on start-up
+        minflowO2=99999.9;    // initialize high positive --> no error on start-up
       }
       // Check user input to stop controller
       if (comms_getActive() == 0) { 

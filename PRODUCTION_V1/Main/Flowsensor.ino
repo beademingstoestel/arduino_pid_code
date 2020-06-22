@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include "sdpsensor.h"
-bool IS_FLOW_SENSOR_INITIALIZED = false;
+bool IS_FLOW_SENSOR_TUBE_INITIALIZED = false;
+bool IS_FLOW_SENSOR_O2_INITIALIZED = false;
 float Volume_l;
 int Volume_ml;
 float totalFlow = 0;
@@ -35,6 +36,7 @@ int flowsensordirection_O2 = -1;
 float calibration_offset_tube = 0;
 float calibration_offset_O2 = 0;
 int sensorHealthyCounter = 0;
+int sensorHealthyCounterO2 = 0;
 int maxsensorHealthyCounter = 3;
 //----------------------------------------------------------------------------------------------------------------
 // SDP3x on the default I2C address of 0x21:
@@ -195,10 +197,18 @@ bool FLOW_SENSOR_INIT()
   int returnCode_reset = sdp_tube.resetI2C();
   // initialize sensors
   int returnCode = sdp_tube.init();
-  int returnCode_O2 = sdp_O2.init();
-  if (returnCode == 0 && returnCode_O2 == 0) 
+  if(returnCode == 0){
+    IS_FLOW_SENSOR_TUBE_INITIALIZED=true;
+  }
+  if (OXYGENSENSORS){
+    int returnCode_O2 = sdp_O2.init();
+    if(returnCode_O2 == 0){
+      IS_FLOW_SENSOR_O2_INITIALIZED=true;
+    }
+  }
+
+  if (IS_FLOW_SENSOR_TUBE_INITIALIZED && (IS_FLOW_SENSOR_O2_INITIALIZED || !OXYGENSENSORS)) 
   {
-    IS_FLOW_SENSOR_INITIALIZED=true;
     return true;
   } 
   else 
@@ -216,46 +226,50 @@ bool FLOW_SENSOR_CALIBRATE()
     float difference = 0;
     float thresholdcalOK = 0.3;
     float diff_error = 0;
-    
-    // calibrate tube flow sensor
-    sum = 0;
-    for(int i=0;i<100;i++)
-    {
-      FLOW_SENSOR_Measure(0, &currentVal);
-      sum+=currentVal;
-      delay(50);
-      // additional check based on differences
-      difference = currentVal-(sum/(i+1));
-      // returns false value if current flow sensor readout deviates from average by set threshold
-      if (abs(difference)>thresholdcalOK && i>10) 
-      {
-         diff_error = difference;
-         flowcalOK=false;
-      }
-    }    
-    calibration_offset_tube =sum/100.0;
-        
-    DEBUGserialprint("Flow sensor offset: ");
-    DEBUGserialprintln(calibration_offset_tube);
 
-    // calibrate O2 flow sensor
-    sum = 0;
-    for(int i=0;i<100;i++)
-    {
-      FLOW_SENSOR_Measure(1, &currentVal);
-      sum+=currentVal;
-      delay(50);
-      // additional check based on differences
-      difference = currentVal-(sum/(i+1));
-      if (abs(difference)>thresholdcalOK) // returns false value if current flow sensor readout deviates from average by set threshold
+    if(IS_FLOW_SENSOR_TUBE_INITIALIZED){
+      // calibrate tube flow sensor
+      sum = 0;
+      for(int i=0;i<100;i++)
       {
-         diff_error = difference;
-         flowcalOK=false;
-      }
-    }    
-    calibration_offset_O2 =sum/100.0;    
-    DEBUGserialprint("Oxygen Flow sensor offset: ");
-    DEBUGserialprintln(calibration_offset_O2);
+        FLOW_SENSOR_Measure(0, &currentVal);
+        sum+=currentVal;
+        delay(50);
+        // additional check based on differences
+        difference = currentVal-(sum/(i+1));
+        // returns false value if current flow sensor readout deviates from average by set threshold
+        if (abs(difference)>thresholdcalOK && i>10) 
+        {
+           diff_error = difference;
+           flowcalOK=false;
+        }
+      }    
+      calibration_offset_tube =sum/100.0;
+          
+      DEBUGserialprint("Flow sensor offset: ");
+      DEBUGserialprintln(calibration_offset_tube);
+    }
+
+    if (IS_FLOW_SENSOR_O2_INITIALIZED){
+      // calibrate O2 flow sensor
+      sum = 0;
+      for(int i=0;i<100;i++)
+      {
+        FLOW_SENSOR_Measure(1, &currentVal);
+        sum+=currentVal;
+        delay(50);
+        // additional check based on differences
+        difference = currentVal-(sum/(i+1));
+        if (abs(difference)>thresholdcalOK) // returns false value if current flow sensor readout deviates from average by set threshold
+        {
+           diff_error = difference;
+           flowcalOK=false;
+        }
+      }    
+      calibration_offset_O2 =sum/100.0;    
+      DEBUGserialprint("Oxygen Flow sensor offset: ");
+      DEBUGserialprintln(calibration_offset_O2);
+    }
  
     return flowcalOK; // init successfull or not;
 }
@@ -264,28 +278,40 @@ bool FLOW_SENSOR_CALIBRATE()
 //----------------------------------------------------------------------------------------------------------------
 bool FLOW_SENSOR_Measure(bool sensortype, float* value)
 {
-  bool SensorHealthy = false; //
-  if (IS_FLOW_SENSOR_INITIALIZED)
+  if ((IS_FLOW_SENSOR_TUBE_INITIALIZED && !sensortype) || (IS_FLOW_SENSOR_O2_INITIALIZED && sensortype))
   {
     int ret;
     float DP; 
-    
-    if(!sensortype){ret = sdp_tube.readcont();}
-    if(sensortype){ret = sdp_O2.readcont();}
-    
-    if (ret == 0){    
-      if(!sensortype){DP = sdp_tube.getDifferentialPressure();}
-      if(sensortype){DP = sdp_O2.getDifferentialPressure();}
-      
-      sensorHealthyCounter--;
-      if (sensorHealthyCounter < 0){
-        sensorHealthyCounter = 0;
+
+    if(!sensortype){
+      ret = sdp_tube.readcont();
+      if (ret == 0){    
+        DP = sdp_tube.getDifferentialPressure();
+        sensorHealthyCounter--;
+        if (sensorHealthyCounter < 0){
+          sensorHealthyCounter = 0;
+        }
       }
-    } 
-    else{
-      sensorHealthyCounter++;
-      return true;
+      else{
+        sensorHealthyCounter++;
+        return true;
+      }
     }
+    else{
+      ret = sdp_O2.readcont();
+      if (ret == 0){    
+        DP = sdp_O2.getDifferentialPressure();
+        sensorHealthyCounterO2--;
+        if (sensorHealthyCounterO2 < 0){
+          sensorHealthyCounterO2 = 0;
+        }
+      }
+      else{
+        sensorHealthyCounterO2++;
+        return true;
+      }
+    }
+
     bool neg = (DP<0?true:false);
     double x = abs(DP);
     double y, x0, x1, y0, y1;
@@ -308,14 +334,31 @@ bool FLOW_SENSOR_Measure(bool sensortype, float* value)
     if(!sensortype){*value = (y*flowsensordirection_tube) - calibration_offset_tube;}
     if(sensortype){*value = (y*flowsensordirection_O2) - calibration_offset_O2;}
   } 
-  return SensorHealthy;
+  return true;
 }
 
 bool FLOW_SENSOR_MeasurePatient(float *value, float maxflowinhale, float minflowinhale){
   bool SensorHealthy = FLOW_SENSOR_Measure(0, value);
   // Check if min-max is healthy:
-  if (abs(maxflowinhale-minflowinhale)>0.01){
-     SensorHealthy = true;
+  if (abs(maxflowinhale-minflowinhale)<0.5){
+     SensorHealthy = false;
+  }
+  return SensorHealthy;
+}
+
+bool FLOW_SENSOR_MeasureO2(float *value, float maxflowinhale, float minflowinhale){
+  bool SensorHealthy = FLOW_SENSOR_Measure(1, value);
+  // Check if valve hasn't failed
+  if (maxvolumeoxygenaveraged > 1000){
+    safetyValveOff();
+  }
+  // Check if min-max is healthy:
+  if (abs(maxflowinhale-minflowinhale)<0.5){
+     SensorHealthy = false;
+  }
+  // check safety valve state
+  if(!safetyValveState()){
+     SensorHealthy = false;
   }
   return SensorHealthy;
 }
@@ -326,7 +369,9 @@ bool FLOW_SENSOR_MeasureO2(float *value){
   if (maxvolumeoxygenaveraged > 1000){
     safetyValveOff();
   }
-  SensorHealthy &= safetyValveState();
+  if(!safetyValveState()){
+     SensorHealthy = false;
+  }
   return SensorHealthy;
 }
 
@@ -369,7 +414,7 @@ int FLOW_SENSOR_getTotalVolumeInt(){ // Volume = ml
 }
 
 bool FLOW_SENSOR_getVolume(float *value){
-  if (IS_FLOW_SENSOR_INITIALIZED){
+  if (IS_FLOW_SENSOR_TUBE_INITIALIZED){
     *value = Volume_ml;
     return true;
   }
@@ -412,7 +457,7 @@ int FLOW_SENSOR_getTotalVolumeIntO2(){ // Volume = ml
 }
 
 bool FLOW_SENSOR_getVolumeO2(float *value){
-  if (IS_FLOW_SENSOR_INITIALIZED){
+  if (IS_FLOW_SENSOR_O2_INITIALIZED){
     *value = Volume_ml_O2;
     return true;
   }
@@ -433,12 +478,13 @@ void FLOW_SENSOR_setDeltaT(unsigned long deltat){
 }
 
 void FLOW_SENSOR_DISABLE(){
-  IS_FLOW_SENSOR_INITIALIZED = 0;
+  IS_FLOW_SENSOR_TUBE_INITIALIZED = 0;
+  IS_FLOW_SENSOR_O2_INITIALIZED = 0;
 }
 
 bool FLOW_SENSOR_CHECK_I2C(){
   // check consecutive failures
-  if (sensorHealthyCounter >= maxsensorHealthyCounter){
+  if ((sensorHealthyCounter >= maxsensorHealthyCounter) || (sensorHealthyCounterO2 >= maxsensorHealthyCounter)){
     return false;
   }else{
     return true;

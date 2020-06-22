@@ -233,6 +233,9 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
     return 1;
   }
   else{
+    if (min_degraded_mode_ON){
+      DEBUGserialprintln("=== EXIT SAFE MODE ===");
+    }
     return 0;
   }
 }

@@ -157,8 +157,8 @@ bool BME280_readPressurePatient(float *value,float maxpressureinhale, float minp
     PRESSURE_SENSOR1_INITIALIZED = 0;
   }
 
-  if (abs(maxpressureinhale-minpressureinhale)>0.01){
-      SensorHealthy= true;
+  if (abs(maxpressureinhale-minpressureinhale)>0.5){
+      SensorHealthy = true;
   }
   return SensorHealthy;
 }

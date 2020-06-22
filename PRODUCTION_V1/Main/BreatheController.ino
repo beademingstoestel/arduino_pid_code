@@ -239,7 +239,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
       return hold_speed;
     }
     else if (min_degraded_mode_ON){
-      return -30+min_degraded_mode_speed/comms_getInhaleTime()*1000;
+      return -30+(float)min_degraded_mode_speed/comms_getInhaleTime()*1000;
     }
     else {
       return Speed;
