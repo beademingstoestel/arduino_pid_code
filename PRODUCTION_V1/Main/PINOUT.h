@@ -128,6 +128,12 @@
   #define BEEPLENGTH 2000
 
   #define automatic_peep
+
+  #define preloadspeed0 0
+  #define preloadspeed1 0
+  #define exhale_speed 80
+  #define min_degraded_mode_speed -35
+  
 #endif
 
 #ifdef AUDI_V2
@@ -180,5 +186,10 @@
   #define oxygen_exhale_serial Serial3
 
   #define OXYGENCONTROL 1
+
+  #define preloadspeed0 0
+  #define preloadspeed1 0
+  #define exhale_speed 150
+  #define min_degraded_mode_speed -35
 
 #endif

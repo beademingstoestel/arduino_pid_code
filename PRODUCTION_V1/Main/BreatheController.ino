@@ -4,21 +4,15 @@
 float PRESSURE_INHALE_SETPOINT = 0;
 float current_inhale_pressure = 0;
 float offset = 50;
-float exhale_speed = 150;
 float hold_speed = 0;
 float delta_time;
 float flow_at_switching = 0;
 float peep_at_switching = 0;
 
 //---------------------------------
-// this is used in degraded mode with a linear scaling on the pressure setpoint
-float min_degraded_mode_speed = -35;     
-
 bool volumeTriggered = false;
 //----------------------------------
 bool endswitchFlag = false;
-float preloadspeed0 = -5;
-float preloadspeed1 = -20;
 //----------------------------------
 float Kp = 10;
 float Ki = 0.1;
