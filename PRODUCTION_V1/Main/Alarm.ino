@@ -94,16 +94,12 @@ unsigned int ALARM_getAlarmState(void) {
 // check alarm init
 //-----------------------------------------------------
 void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok, 
-    bool flow_sens_init_ok, bool motor_sens_init_ok, bool sensor_calibration_ok, bool fan_OK, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
 
   resetAlarmState();
   
-  if (oxygen_init_ok==false){
-    // Oxygen supply not connected
-    setAlarmState(3);
-  }  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
@@ -120,8 +116,8 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
     // Motor limit switches check failed
     setAlarmState(9);
   }
-   if (sensor_calibration_ok==false){
-    // flow and pressure sensors not calibrated
+   if (oxygen_init_ok==false){
+    // Oxygen supply not connected
     setAlarmState(10);
   }
   if (battery_powered){
@@ -135,6 +131,28 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
     setAlarmState(13);
+  }
+}
+
+//-----------------------------------------------------
+// check alarm calibration
+//-----------------------------------------------------
+void checkALARM_calib(bool isPatientPressureCorrect, bool isFlow2PatientRead, bool isFlowOfOxygenRead)
+    {
+
+  resetAlarmState();
+  
+  if (!isFlowOfOxygenRead){
+    // one of the valves failed
+    setAlarmState(3);
+  }
+   if (isPatientPressureCorrect==false){
+    // check pressure sensor connected and reacting
+    setAlarmState(4);
+  }
+  if (isFlow2PatientRead==false){
+    // flow sensors sensor connected and reacting
+    setAlarmState(6);
   }
 }
 

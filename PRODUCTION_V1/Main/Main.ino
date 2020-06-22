@@ -100,14 +100,18 @@ void setup()
   //--- check mains supply and battery voltage
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
 
+  //---------------------------------------------------------------
+  // INIT PERIPHERALS
+  //---------------------------------------------------------------
+
   //-- set up oxygen sensor
-  DEBUGserialprintln("Setting up OXYGEN sensor: ");
+  DEBUGserialprintln("Setting up OXYGEN sensors: ");
   if (OXYGEN_SENSOR_INIT()) {
-    //hall_sens_init_ok = true; //TODO: add 
-    DEBUGserialprintln("OXYGEN SENSOR OK");
+    oxygen_init_ok = true; 
+    DEBUGserialprintln("OXYGEN SENSORS OK");
   }
   else {
-    DEBUGserialprintln("OXYGEN SENSOR Failed");
+    DEBUGserialprintln("OXYGEN SENSORS Failed");
   }
    
   //--- set up flow sensor
@@ -139,20 +143,18 @@ void setup()
   else {
     DEBUGserialprintln("MOTOR Failed");
   }
-
-  // empty oxygen bag
-  MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
-  delay(500);
-
-  //-- setup done
-  DEBUGserialprintln("Setup done");
-
+  
   //-- check alarms
   isAmbientPressureCorrect = BME_280_UPDATE_AMBIENT();
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   checkSupply(&main_supply, &batt_supply, &battery_SoC, &battery_powered, &battery_above_25);
-  checkALARM_init(1, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  1, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
+                  fan_OK, battery_powered, battery_SoC, temperature_OK);
+
+  //---------------------------------------------------------------
+  // INIT COMMUNICATION
+  //---------------------------------------------------------------  
+                 
   if(!ALARM_getAlarmState()){
     comms_setActive(-4);
     DEBUGserialprintln("INIT OK");
@@ -165,11 +167,15 @@ void setup()
   if(PYTHON) initCOMM();
   if (!PYTHON) isPythonOK = true;
 
+  //---------------------------------------------------------------
+  // CALIBRATE
+  //---------------------------------------------------------------
+
   //-- wait for calibration of flow and pressure sensors
-  flow_sens_init_ok = false;
-  pressure_sens_init_ok = false;
+  isFlow2PatientRead = false;
+  isPatientPressureCorrect = false;
   DEBUGserialprintln("WAIT FOR CALIBRATION");
-  while(!pressure_sens_init_ok || !flow_sens_init_ok){
+  while(!isPatientPressureCorrect || !isFlow2PatientRead){
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
     
@@ -180,8 +186,8 @@ void setup()
 
     if (numberofretries > 0){
       numberofretries--; 
-      flow_sens_init_ok = FLOW_SENSOR_CALIBRATE();
-      pressure_sens_init_ok = PRESSURE_SENSOR_CALIBRATE();
+      isFlow2PatientRead = FLOW_SENSOR_CALIBRATE();
+      isPatientPressureCorrect = PRESSURE_SENSOR_CALIBRATE();
       if(numberofretries == 0){
         comms_setActive(-4);
         sendActiveState();
@@ -192,20 +198,22 @@ void setup()
   comms_setActive(-2);
   if (PYTHON) sendActiveState();
   DEBUGserialprintln("CALIBRATION OK");
-  sensor_calibration_ok = true;
-  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  checkALARM_calib(isPatientPressureCorrect, isFlow2PatientRead, isFlowOfOxygenRead);
+
+  //---------------------------------------------------------------
+  // OXYGEN
+  //---------------------------------------------------------------
 
   // wait for initialisation of oxygen supply
-  while(!oxygen_init_ok){
+  isFlowOfOxygenRead = false;
+  DEBUGserialprintln("WAIT FOR OXYGEN");
+  while(!isFlowOfOxygenRead){
     recvWithEndMarkerSer0();
     if (PYTHON) doWatchdog();
 
     if (comms_getActive() == 0 || (!PYTHON && !OXYGENCONTROL)) { 
-      // don't use oxygen
-      oxygen_init_ok = true;
+      isFlowOfOxygenRead = true;
     }
-    
     else if (comms_getActive() == -1 || (!PYTHON && OXYGENCONTROL)) { 
       comms_resetActive(); 
       DEBUGserialprintln("Setting up Oxygen supply: ");
@@ -230,7 +238,7 @@ void setup()
       FLOW_SENSOR_resetVolumeO2();
     
       if (calibrationvolume > mincalibrationvolume) {
-        oxygen_init_ok = true; 
+        isFlowOfOxygenRead = true; 
         DEBUGserialprintln("OXYGEN SUPPLY OK");
       }
       else {
@@ -247,8 +255,11 @@ void setup()
   comms_resetActive();
   if (PYTHON) sendActiveState();
   DEBUGserialprintln("OXYGEN INIT OK");  
-  checkALARM_init(oxygen_init_ok, pressure_sens_init_ok, flow_sens_init_ok, motor_sens_init_ok, 
-                  sensor_calibration_ok, fan_OK, battery_powered, battery_SoC, temperature_OK);
+  checkALARM_calib(isPatientPressureCorrect, isFlow2PatientRead, isFlowOfOxygenRead);
+
+  //---------------------------------------------------------------
+  // START LOOP
+  //---------------------------------------------------------------
   
   //-- set up interrupt and watchdog if no alarms during initialisation
   if(!ALARM_getAlarmState()){

@@ -30,7 +30,7 @@ SETTING settingarray[22]= {
   {"ADPK", 10, false, 36, 0, 0},    // 10 Peak pressure deviation
   {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
   {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
-  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
+  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: BIT 0=trigger type, 1=trigger enable, 2=vol limit, 3=aprv, 4=autoflow, 5=oxygen control
   {"ACTIVE", -10, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.21, false, 60, 0, 0},  // 16 Oxygen level
@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.63, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.64, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -139,7 +139,7 @@ unsigned int comms_getADVT() {
 unsigned int comms_getADPP() {
   return settingarray[12].settingvalue;
 }
-int comms_getMode() {
+int comms_getMode() { // 0=pressure triggered, 1=flow triggered, 2=no triggers
   if (comms_getTrigger()){
     return (((int) settingarray[13].settingvalue) & 0x01);
   }
@@ -147,17 +147,20 @@ int comms_getMode() {
     return 2;
   }
 }
-bool comms_getTrigger() {
+bool comms_getTrigger() { // 0=no triggers, 1=triggers
   return (((int) settingarray[13].settingvalue) >> 1 & 0x01);
 }
-bool comms_getVolumeLimitControl() {
+bool comms_getVolumeLimitControl() { //0=no vol limit, 1=vol limit
   return (((int) settingarray[13].settingvalue) >> 2 & 0x01);
 }
-bool comms_getAPRV() {
+bool comms_getAPRV() { //0=no APRV, 1=APRV
   return (((int) settingarray[13].settingvalue) >> 3 & 0x01);
 }
-bool comms_getAutoFlow() {
+bool comms_getAutoFlow() { //0=no autoflow, 1=autoflow
   return (((int) settingarray[13].settingvalue) >> 4 & 0x01);
+}
+bool comms_getOxygenControl() { //0=no oxygen control, 1=oxygen control
+  return (((int) settingarray[13].settingvalue) >> 5 & 0x01);
 }
 int comms_getActive() {
   if (PYTHON){
