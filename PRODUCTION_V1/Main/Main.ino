@@ -3,7 +3,7 @@
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
 #define PYTHON 0
- 
+// set #define OXYGENCONTROL 1 in PINOUT.h for use with PYTHON 0
 //---------------------------------------------------------------
 // VARIABLES
 //---------------------------------------------------------------
