@@ -147,7 +147,7 @@ void setup()
     DEBUGserial.println("  - TUBE FLOW SENSOR OK");
     DEBUGserial.println("  - MEASURING FLOW TUBE...");
     starttime = millis();
-    while(millis() - starttime < 2000){
+    while(millis() - starttime < 1000){
       FLOW_SENSOR_MeasurePatient(&CurrentFlowPatient,maxflowinhale,minflowinhale);
       DEBUGserial.print("     - ");
       DEBUGserial.println(CurrentFlowPatient);
@@ -164,7 +164,7 @@ void setup()
     DEBUGserial.println("  - OXYGEN FLOW SENSOR OK");
     DEBUGserial.println("  - MEASURING FLOW OXYGEN...");
     starttime = millis();
-    while(millis() - starttime < 2000){
+    while(millis() - starttime < 1000){
       FLOW_SENSOR_MeasureO2(&CurrentFlowOxygen);;
       DEBUGserial.print("     - ");
       DEBUGserial.println(CurrentFlowPatient);
@@ -188,7 +188,7 @@ void setup()
     DEBUGserial.println("  - TUBE PRESSURE SENSOR OK");
     DEBUGserial.println("  - MEASURING TUBE SENSOR...");
     starttime = millis();
-    while(millis() - starttime < 2000){
+    while(millis() - starttime < 1000){
       BME280_readPressurePatient(&CurrentPressurePatient,maxpressureinhale,minpressureinhale);
       DEBUGserial.print("     - ");
       DEBUGserial.println(CurrentPressurePatient);
@@ -205,7 +205,7 @@ void setup()
     DEBUGserial.println("  - AMBIENT PRESSURE SENSOR OK");
     DEBUGserial.println("  - MEASURING AMBIENT SENSOR...");
     starttime = millis();
-    while(millis() - starttime < 2000){
+    while(millis() - starttime < 1000){
       float ambientpressure = BME280_readPressureAmbient();
       DEBUGserial.print("     - ");
       DEBUGserial.println(ambientpressure);
@@ -287,7 +287,7 @@ void setup()
     DEBUGserial.println("  - TEMPERATURE OK");
     DEBUGserial.println("  - MEASURING...");
     starttime = millis();
-    while(millis() - starttime < 2000){
+    while(millis() - starttime < 1000){
       DEBUGserial.print("     - ");
       DEBUGserial.println(BME_280_GET_TEMPERATURE());
       delay(100);
