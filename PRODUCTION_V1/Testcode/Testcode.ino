@@ -109,14 +109,42 @@ void setup()
   DEBUGserial.print("  - Battery voltage input: ");
   DEBUGserial.print(batt_supply);
   DEBUGserial.println(" V");
+
+  REQUEST_INPUT();
+
+  //-- set up oxygen sensor
+  delay(1000);
+  DEBUGserial.println("");
+  DEBUGserial.println("2) OXYGEN SENSORS");
+  int oxygen_sensor_init_value = OXYGEN_SENSOR_INIT();
+  if (oxygen_sensor_init_value & 0x01) {
+    flow_sens_init_ok = true;
+    DEBUGserial.println("  - OXYGEN INHALE SENSOR OK");
+  }
+  else {
+    DEBUGserial.println("  - OXYGEN INHALE SENSOR FAILED");
+    if(HARDWARE)ALARM_init();
+  }
+
+  if (oxygen_sensor_init_value & 0x02) {
+    flow_sens_init_ok = true;
+    DEBUGserial.println("  - OXYGEN EXHALE SENSOR OK");
+  }
+  else {
+    DEBUGserial.println("  - OXYGEN EXHALE SENSOR FAILED");
+    if(HARDWARE)ALARM_init();
+  }
+
+  REQUEST_INPUT();
     
   //--- set up flow sensor
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("2) FLOW SENSOR");
-  if (FLOW_SENSOR_INIT()) {
+  DEBUGserial.println("3) FLOW SENSOR");
+  int flow_sensor_init_value = FLOW_SENSOR_INIT();
+  if (flow_sensor_init_value & 0x01) {
     flow_sens_init_ok = true;
-    DEBUGserial.println("  - FLOW SENSOR OK");
+    DEBUGserial.println("  - TUBE FLOW SENSOR OK");
     DEBUGserial.println("  - MEASURING FLOW TUBE...");
     starttime = millis();
     while(millis() - starttime < 2000){
@@ -125,6 +153,15 @@ void setup()
       DEBUGserial.println(CurrentFlowPatient);
       delay(100);
     }
+  }
+  else {
+    DEBUGserial.println("  - TUBE FLOW SENSOR FAILED");
+    if(HARDWARE)ALARM_init();
+  }
+
+  if (flow_sensor_init_value & 0x02) {
+    flow_sens_init_ok = true;
+    DEBUGserial.println("  - OXYGEN FLOW SENSOR OK");
     DEBUGserial.println("  - MEASURING FLOW OXYGEN...");
     starttime = millis();
     while(millis() - starttime < 2000){
@@ -135,17 +172,20 @@ void setup()
     }
   }
   else {
-    DEBUGserial.println("  - FLOW SENSOR FAILED");
+    DEBUGserial.println("  - OXYGEN FLOW SENSOR FAILED");
     if(HARDWARE)ALARM_init();
   }
+
+  REQUEST_INPUT();
 
   //-- set up pressure sensors
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("3) PRESSURE SENSOR");
-  if (PRESSURE_SENSOR_INIT()){
+  DEBUGserial.println("4) PRESSURE SENSOR");
+  int pressure_sensor_init_value = PRESSURE_SENSOR_INIT();
+  if (pressure_sensor_init_value & 0x01){
     pressure_sens_init_ok = true;
-    DEBUGserial.println("  - PRESSURE SENSORS OK");
+    DEBUGserial.println("  - TUBE PRESSURE SENSOR OK");
     DEBUGserial.println("  - MEASURING TUBE SENSOR...");
     starttime = millis();
     while(millis() - starttime < 2000){
@@ -154,6 +194,15 @@ void setup()
       DEBUGserial.println(CurrentPressurePatient);
       delay(100);
     }
+  }
+  else{
+    DEBUGserial.println("  - TUBE PRESSURE SENSOR FAILED");
+    if(HARDWARE)ALARM_init();
+  }
+
+  if (pressure_sensor_init_value & 0x02){
+    pressure_sens_init_ok = true;
+    DEBUGserial.println("  - AMBIENT PRESSURE SENSOR OK");
     DEBUGserial.println("  - MEASURING AMBIENT SENSOR...");
     starttime = millis();
     while(millis() - starttime < 2000){
@@ -164,14 +213,16 @@ void setup()
     }
   }
   else{
-    DEBUGserial.println("  - PRESSURE SENSORS FAILED");
+    DEBUGserial.println("  - AMBIENT PRESSURE SENSOR FAILED");
     if(HARDWARE)ALARM_init();
   }
+
+  REQUEST_INPUT();
 
   //-- set up motor
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("4) MOTOR & ENDSWITCHES");
+  DEBUGserial.println("5) MOTOR & ENDSWITCHES");
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
     motor_sens_init_ok = true;
     DEBUGserial.println("  - MOTOR & ENDSWITCHES OK");
@@ -185,14 +236,16 @@ void setup()
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
   delay(500);
 
+  REQUEST_INPUT();
+
   //-- set up oxygen supply
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("5) OXYGEN SUPPLY");
+  DEBUGserial.println("6) OXYGEN SUPPLY");
   
   ValveOn();
   unsigned long valvestarttime = millis();
-  unsigned int valveinittime = 100;
+  unsigned int valveinittime = 500;
   int mincalibrationvolume = 50;
   int counter = 0;
   while(millis() - valvestarttime < valveinittime){
@@ -223,10 +276,12 @@ void setup()
   MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN);
   delay(500);
 
+  REQUEST_INPUT();
+
   //-- check alarms
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("6) TEMPERATURE");
+  DEBUGserial.println("7) TEMPERATURE");
   temperature_OK = BME_280_CHECK_TEMPERATURE();
   if(temperature_OK){
     DEBUGserial.println("  - TEMPERATURE OK");
@@ -243,10 +298,12 @@ void setup()
     if(HARDWARE)ALARM_init();
   }
 
+  REQUEST_INPUT();  
+
   //-- check FAN
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("7) FAN");
+  DEBUGserial.println("8) FAN");
   // fan off!
   DEBUGserial.println("  - MEASURING SPEED 0...");
   starttime = millis();
@@ -291,10 +348,12 @@ void setup()
   }
   FanOnPWM(100);
 
+  REQUEST_INPUT();
+
   //-- check LIGHT & BUZZER
   delay(1000);
   DEBUGserial.println("");
-  DEBUGserial.println("8) LIGHT & BUZZER");
+  DEBUGserial.println("9) LIGHT & BUZZER");
   DEBUGserial.println("  - BLINKING LIGHT");
   LightOn();
   delay(1000);
@@ -487,4 +546,15 @@ void controller()
       
 //  ALARM_debounceAlarm(); // take current alarms into account for debounce
   CPU_TIMER_stop(millis());
+}
+
+void serialFlush(){
+  while(Serial.available() > 0) {
+    char t = Serial.read();
+  }
+}  
+
+void REQUEST_INPUT(){
+  DEBUGserial.println("\n PRESS ENTER TO CONTINUE");
+  serialFlush(); while(!Serial.available() ){} 
 }
