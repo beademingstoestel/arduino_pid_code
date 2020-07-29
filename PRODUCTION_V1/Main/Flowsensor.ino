@@ -540,7 +540,14 @@ void FLOW_SENSOR_updateK_O2(){
   if(wantedoxygenvolume == 0) wantedoxygenvolume = 1;
   Vo2_cum_error += Vo2_error;
   Vo2_error = (wantedoxygenvolume - maxvolumeoxygenaveraged)/wantedoxygenvolume;
-  K_O2 = K_O2 + Cp_O2 * Vo2_error + Ci_O2 * Vo2_cum_error;
+  float K_O2_new = K_O2 + Cp_O2 * Vo2_error + Ci_O2 * Vo2_cum_error;
+  // check if we are not delivering too much oxygen
+  if((maxvolumeoxygenaveraged > 1.25*wantedoxygenvolume) && (K_O2_new > K_O2)){
+    // don't increase K_02
+  }
+  else{
+    K_O2 = K_O2_new;
+  }
   if(K_O2 < 0){
     K_O2 = 0;
   }
