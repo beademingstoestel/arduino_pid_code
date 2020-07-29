@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.69, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.70, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -246,10 +246,10 @@ void sendDataToPython() {
   message[13] = (char)((int)(FLOW*100) >> 8);
   message[14] = (char)((int)(FIO2*100));
   message[15] = (char)((int)(FIO2*100) >> 8);
-  message[16] = (char)((int)(FIO2i));
-  message[17] = (char)((int)(FIO2i) >> 8);
-  message[18] = (char)((int)(FIO2e));
-  message[19] = (char)((int)(FIO2e) >> 8);
+  message[16] = (char)((int)(FIO2e));
+  message[17] = (char)((int)(FIO2e) >> 8);
+  message[18] = (char)((int)(FIO2i));
+  message[19] = (char)((int)(FIO2i) >> 8);
   message[20] = (char)(currenttime);
   message[21] = (char)(currenttime >> 8);
   message[22] = (char)(currenttime >> 16);
