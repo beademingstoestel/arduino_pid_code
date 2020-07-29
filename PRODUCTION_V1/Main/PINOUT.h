@@ -197,6 +197,9 @@
   #define OXYGENSENSOREXHALE 0
   #define OXYGENFLOWSENSOR 1
 
+  // correction factor for oxygen sensors: add 8%
+  #define OXYGEN_CORRECTION 1.08
+
   #define preloadspeed0 0
   #define preloadspeed1 0
   #define exhale_speed 150

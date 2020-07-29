@@ -90,6 +90,7 @@ float OXYGEN_SENSOR_GET_INHALE(){
       if (I_inByte == 256 - sum_I){
         // end of correct message
         I_concentration = (I_output[3]*256.0 + I_output[4])/10.0; //vol%
+        I_concentration = I_concentration * OXYGEN_CORRECTION; 
         I_temperature = (I_output[7]*256.0 + I_output[8])/10.0; //Deg C
         DEBUGserialprint("O2 in: ");
         DEBUGserialprintln(I_concentration);
@@ -124,6 +125,7 @@ float OXYGEN_SENSOR_GET_EXHALE(){
       if (E_inByte == 256 - sum_E){
         // end of correct message
         E_concentration = (E_output[3]*256.0 + E_output[4])/10.0; //vol%
+        E_concentration = E_concentration * OXYGEN_CORRECTION; 
         E_temperature = (E_output[7]*256.0 + E_output[8])/10.0; //Deg C
         DEBUGserialprint("O2 ex: ");
         DEBUGserialprintln(E_concentration);
