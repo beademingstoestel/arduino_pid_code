@@ -19,6 +19,7 @@ float o2oxy = 1.00;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
 float fio2max = 1.02;
+float fio2min = 0.25;
 float valvetime;
 float Vo2_error = 0;
 float Vo2_cum_error = 0;
@@ -506,6 +507,10 @@ void FLOW_SENSOR_setK_O2(float k_O2){
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
+  // don't add oxygen below 25% requested
+  if (fio2 < fio2min){
+    return 0;
+  }
   // prevent inflation of bag
   if(fio2 > fio2max){
     fio2 = fio2max;
