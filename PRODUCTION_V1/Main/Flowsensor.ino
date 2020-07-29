@@ -350,14 +350,10 @@ bool FLOW_SENSOR_MeasureO2(float *value, float maxflowinhale, float minflowinhal
   bool SensorHealthy = FLOW_SENSOR_Measure(1, value);
   // Check if valve hasn't failed
   if (maxvolumeoxygenaveraged > 1000){
-    safetyValveOff();
+    SensorHealthy = false;
   }
   // Check if min-max is healthy:
   if (abs(maxflowinhale-minflowinhale)<0.5){
-     SensorHealthy = false;
-  }
-  // check safety valve state
-  if(!safetyValveState()){
      SensorHealthy = false;
   }
   return SensorHealthy;
@@ -367,10 +363,7 @@ bool FLOW_SENSOR_MeasureO2(float *value){
   bool SensorHealthy = FLOW_SENSOR_Measure(1, value);
   // Check if valve hasn't failed
   if (maxvolumeoxygenaveraged > 1000){
-    safetyValveOff();
-  }
-  if(!safetyValveState()){
-     SensorHealthy = false;
+    SensorHealthy = false;
   }
   return SensorHealthy;
 }
