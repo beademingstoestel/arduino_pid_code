@@ -61,6 +61,8 @@ float minflowO2=99999.9;              // initialize high positive --> no error o
 float battery_SoC = 1.0;   
 float main_supply = 0.0;
 float batt_supply = 0.0;
+
+bool OXYGENCONTROL_PYTHON = 0;
    
 // safety minimum degraded mode
 bool min_degraded_mode_ON = false;
@@ -212,9 +214,11 @@ void setup()
     if (PYTHON) doWatchdog();
 
     if (comms_getActive() == 0 || (!PYTHON && !OXYGENCONTROL)) { 
+      OXYGENCONTROL_PYTHON = 0;
       isFlowOfOxygenRead = true;
     }
     else if (comms_getActive() == -1 || (!PYTHON && OXYGENCONTROL)) { 
+      OXYGENCONTROL_PYTHON = 1;
       comms_resetActive(); 
       DEBUGserialprintln("Setting up Oxygen supply: ");
 
@@ -340,7 +344,7 @@ void controller()
   min_degraded_mode_ON = checkDegradedMode(isFlow2PatientRead, isPatientPressureCorrect, isAmbientPressureCorrect);
   
   // check alarm
-  checkALARM(target_fio2, isFlowOfOxygenRead, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
+  checkALARM(FLOW_SENSOR_getFIO2(), isFlowOfOxygenRead, CurrentPressurePatient, CurrentVolumePatient, controller_state, isPatientPressureCorrect,
              isFlow2PatientRead, fan_OK, battery_powered, battery_SoC, isAmbientPressureCorrect, temperature_OK);
     
   // State machine

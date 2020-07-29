@@ -179,7 +179,9 @@ void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume,
   }
   if (!isFlowOfOxygenRead){
     // one of the valves failed
-    setAlarmState(3);
+    if (OXYGENCONTROL_PYTHON){
+      setAlarmState(3);
+    }
   }
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting
