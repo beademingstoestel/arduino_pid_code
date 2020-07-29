@@ -200,14 +200,14 @@ bool FLOW_SENSOR_INIT()
   if(returnCode == 0){
     IS_FLOW_SENSOR_TUBE_INITIALIZED=true;
   }
-  if (OXYGENSENSORS){
+  if (OXYGENFLOWSENSOR){
     int returnCode_O2 = sdp_O2.init();
     if(returnCode_O2 == 0){
       IS_FLOW_SENSOR_O2_INITIALIZED=true;
     }
   }
 
-  if (IS_FLOW_SENSOR_TUBE_INITIALIZED && (IS_FLOW_SENSOR_O2_INITIALIZED || !OXYGENSENSORS)) 
+  if (IS_FLOW_SENSOR_TUBE_INITIALIZED && (IS_FLOW_SENSOR_O2_INITIALIZED || !OXYGENFLOWSENSOR)) 
   {
     return true;
   } 

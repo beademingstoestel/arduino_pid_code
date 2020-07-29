@@ -192,8 +192,10 @@
   #define oxygen_inhale_serial Serial3
   #define oxygen_exhale_serial Serial2
 
-  #define OXYGENCONTROL 1
-  #define OXYGENSENSORS 1
+  #define OXYGENCONTROL 0
+  #define OXYGENSENSORINHALE 1
+  #define OXYGENSENSOREXHALE 0
+  #define OXYGENFLOWSENSOR 1
 
   #define preloadspeed0 0
   #define preloadspeed1 0

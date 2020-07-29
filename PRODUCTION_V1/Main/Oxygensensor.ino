@@ -21,28 +21,41 @@ float E_concentration = 0;
 float E_temperature;
 
 bool OXYGEN_SENSOR_INIT(){
-  if(OXYGENSENSORS){
-    oxygen_inhale_serial.begin(9600);
+  if(OXYGENSENSOREXHALE){
     oxygen_exhale_serial.begin(9600);
-  
-    OXYGEN_SENSOR_READ_INHALE();
     OXYGEN_SENSOR_READ_EXHALE();
-    while(OXYGEN_SENSOR_GET_INHALE() == 0 || OXYGEN_SENSOR_GET_EXHALE() == 0){
+
+    unsigned long timeouttimer = millis();
+    while(OXYGEN_SENSOR_GET_EXHALE() == 0){
+      if(millis() - timeouttimer > 10000){
+        return false;
+      }
+      delay(100);
+    }
+    float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
+    if(init_exhale<19 || init_exhale>90) return false;
+  }
+  
+  if(OXYGENSENSORINHALE){
+    oxygen_inhale_serial.begin(9600);
+    OXYGEN_SENSOR_READ_INHALE();
+
+    unsigned long timeouttimer = millis();
+    while(OXYGEN_SENSOR_GET_INHALE() == 0){
+      if(millis() - timeouttimer > 10000){
+        Serial.println("IN NOK");
+        return false;
+      }
       delay(100);
     }
     float init_inhale = OXYGEN_SENSOR_GET_INHALE();
-    float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
-  
-    if(init_inhale<19 || init_inhale>25) return false;
-    if(init_exhale<19 || init_exhale>25) return false;
+    if(init_inhale<19 || init_inhale>90) return false;
+    Serial.println("IN OK");
+  }
+    
 
-    OXYGEN_SENSORS_INITIALIZED = true;
-    return true;
-  }
-  else{
-    OXYGEN_SENSORS_INITIALIZED = false;
-    return true;
-  }
+  OXYGEN_SENSORS_INITIALIZED = true;
+  return true;
 }
 
 void OXYGEN_SENSOR_READ_INHALE(){
