@@ -128,7 +128,12 @@
   #define BEEPLENGTH 2000
 
   #define OXYGENCONTROL 0
-  #define OXYGENSENSORS 0
+  #define OXYGENSENSORINHALE 0
+  #define OXYGENSENSOREXHALE 0
+  #define OXYGENFLOWSENSOR 0
+
+  // correction factor for oxygen sensors: add 8%
+  #define OXYGEN_CORRECTION 1.08
 
   //#define automatic_peep
   #define oxygen_inhale_serial Serial2
