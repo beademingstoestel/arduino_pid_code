@@ -6,7 +6,11 @@
 
 //-----------------------------------------------------------------------------------------------
 Adafruit_BME280 bme1;//(0x77: Tube sensor);
-Adafruit_BME280 bme2(BME_SPI_CS);  //(Ambient sensor over SPI);
+#ifdef AUDI_V3 
+  Adafruit_BME280 bme2(BME_SPI_CS, BME_SPI_MOSI, BME_SPI_MISO, BME_SPI_SCK);  //(Ambient sensor over software SPI);
+#else
+  Adafruit_BME280 bme2(BME_SPI_CS);  //(Ambient sensor over SPI);
+#endif
 Adafruit_Sensor *bme_pressure_patient1 = bme1.getPressureSensor();
 Adafruit_Sensor *bme_pressure_ambient = bme2.getPressureSensor();
 Adafruit_Sensor *bme_humidity_patient = bme1.getHumiditySensor();

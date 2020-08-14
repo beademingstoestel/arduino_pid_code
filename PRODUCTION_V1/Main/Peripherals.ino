@@ -17,6 +17,9 @@ bool isSpeakerOn = false;
 
 void initSpeaker(){
   pinMode(Speaker_PWM, OUTPUT);
+  analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  delay(250);
+  analogWrite(Speaker_PWM, 0); //Turn off
 }
 
 void SpeakerOn() {
@@ -67,6 +70,9 @@ void SpeakerBeep(int lengthInMillis){}
 #ifdef Light_PWM
 void initLight(){
   pinMode(Light_PWM, OUTPUT);
+  LightOn();
+  delay(500);
+  LightOff() ;
 }
 
 void LightOn() {
@@ -130,6 +136,7 @@ bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of t
       FanState = true;
     }else{
       FanState = false;
+      DEBUGserialprintln("FAN FAILED");
     }
     FanCounterLow = 0; //reset counter
     FanCounterHigh = 0;
