@@ -6,7 +6,7 @@
 
 //-----------------------------------------------------------------------------------------------
 Adafruit_BME280 bme1;//(0x77: Tube sensor);
-#ifdef AUDI_V3 
+#ifdef SHIELD_V3 
   Adafruit_BME280 bme2(BME_SPI_CS, BME_SPI_MOSI, BME_SPI_MISO, BME_SPI_SCK);  //(Ambient sensor over software SPI);
 #else
   Adafruit_BME280 bme2(BME_SPI_CS);  //(Ambient sensor over SPI);

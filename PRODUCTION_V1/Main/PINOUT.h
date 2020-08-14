@@ -3,7 +3,7 @@
 //#define FINAL_PROTOTYPE
 //#define AUDI_V1
 //#define AUDI_V2
-#define AUDI_V3
+#define SHIELD_V3
 
 #ifdef plexi
   #define ENDSWITCH_FULL_PIN 3 // inhale: lower switch
@@ -91,6 +91,9 @@
   #define BME_tube 1
   #define BME_ambient 1
   #define MPL_tube 1
+
+  #define flowsensordirection_tube -1
+  #define flowsensordirection_O2 -1
   
   #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
@@ -153,6 +156,9 @@
   #define BME_tube 1
   #define BME_ambient 1
   #define MPL_tube 1
+
+  #define flowsensordirection_tube -1
+  #define flowsensordirection_O2 -1
   
   #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN 7 // inhale: lower switch
@@ -213,12 +219,15 @@
 
 #endif
 
-#ifdef AUDI_V3
+#ifdef SHIELD_V3
   #define hall_sensor_i2c
 
   #define BME_tube 1
   #define BME_ambient 1
   #define MPL_tube 1
+
+  #define flowsensordirection_tube 1
+  #define flowsensordirection_O2 1
   
   #define endswitches_inverted
   #define ENDSWITCH_FULL_PIN A9 // inhale: lower switch

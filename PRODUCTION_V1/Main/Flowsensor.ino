@@ -32,8 +32,6 @@ float totalO2 = 0;
 float density_air = 1.225; //kg/m3
 float density_o2 = 1.429; //kg/m3
 
-int flowsensordirection_tube = -1;
-int flowsensordirection_O2 = -1;
 float calibration_offset_tube = 0;
 float calibration_offset_O2 = 0;
 int sensorHealthyCounter = 0;
