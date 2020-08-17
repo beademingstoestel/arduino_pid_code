@@ -16,7 +16,7 @@ typedef struct{
    unsigned long messagetime;
 } SETTING;  
 
-SETTING settingarray[22]= {
+SETTING settingarray[24]= {
   {"ALARM", 0, false, 64, 0, 0},    // 0  alarm state
   {"RR", 20, false, 0, 0, 0},       // 1  respiratory rate
   {"VT", 400, false, 4, 0, 0},      // 2  tidal volume
@@ -35,10 +35,12 @@ SETTING settingarray[22]= {
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
   {"FIO2", 0.2, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
-  {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
-  {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
-  {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.81, false, 68, 0, 0}     // 21 Firmware version
+  {"LPK", 20, false, 68, 0, 0},     // 18 Lower limit PK
+  {"HPK", 40, false, 72, 0, 0},     // 19 Upper limit PK
+  {"LRR", 19, false, 76, 0, 0},     // 20 Lower limit RR
+  {"HRR", 35, false, 80, 0, 0},     // 21 Upper limit RR
+  {"RVOL", 69, false, 84, 0, 0},    // 22 Residual Volume
+  {"FW", 3.82, false, 88, 0, 0}     // 23 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
