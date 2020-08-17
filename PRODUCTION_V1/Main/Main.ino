@@ -119,7 +119,7 @@ void setup()
    
   //--- set up flow sensor
   DEBUGserialprintln("Setting up flow sensor: ");
-  if (FLOW_SENSOR_INIT()) {
+  if (FLOW_SENSOR_INIT() == 3) {
     flow_sens_init_ok = true;
     DEBUGserialprintln("FLOW SENSOR OK");
   }
@@ -129,7 +129,7 @@ void setup()
 
   //-- set up pressure sensors
   DEBUGserialprintln("Setting up PRESSURE sensors: ");
-  if (PRESSURE_SENSOR_INIT()){
+  if (PRESSURE_SENSOR_INIT() == 3){
     pressure_sens_init_ok = true;
     DEBUGserialprintln("PRESSURE SENSORS OK");
   }
@@ -157,7 +157,12 @@ void setup()
   //---------------------------------------------------------------
   // INIT COMMUNICATION
   //---------------------------------------------------------------  
-                 
+                
+  //-- set up communication with screen
+  if(PYTHON) initCOMM();
+  if (!PYTHON) isPythonOK = true;
+
+  //-- send active state
   if(!ALARM_getAlarmState()){
     comms_setActive(-4);
     DEBUGserialprintln("INIT OK");
@@ -166,9 +171,7 @@ void setup()
     comms_setActive(-5);
     DEBUGserialprintln("INIT OK");
   }
-  //-- set up communication with screen
-  if(PYTHON) initCOMM();
-  if (!PYTHON) isPythonOK = true;
+  sendActiveState();
 
   //---------------------------------------------------------------
   // CALIBRATE
