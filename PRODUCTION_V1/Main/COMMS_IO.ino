@@ -38,7 +38,7 @@ SETTING settingarray[22]= {
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.78, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.79, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -333,16 +333,20 @@ void processSerialPort(String input) {
   value1.toCharArray(value3, 10);
   char id_ack = value2[0];
   char id_msg = value3[0];
-  
+
+  // Send ack for all messages, except acks
+  if (!input.startsWith("ACK")) {
+    strcpy(message, "");
+    sprintf(message, "ACK=%c=", id_msg);
+    getCRC(message);
+    Serial.println(message);       
+  }
+
+  // Parse message
   for (int i=0; i<arr_size; i++){
     if (input.startsWith(settingarray[i].settingname)) {
       settingarray[i].settingvalue = value0.toFloat();
       EEPROM.put(settingarray[i].eepromloc, settingarray[i].settingvalue);
-      // send ack
-      strcpy(message, "");
-      sprintf(message, "ACK=%c=", id_msg);
-      getCRC(message);
-      Serial.println(message);       
       settingarray[i].messagetime = millis();
     }
   }
@@ -354,7 +358,6 @@ void processSerialPort(String input) {
   if (input.startsWith("FIO2")) {
     FLOW_SENSOR_setK_O2(0.0); 
     DEBUGserialprintln("CHANGING FIO2");
-    
   }
   
   if (input.startsWith("ACK")) {
