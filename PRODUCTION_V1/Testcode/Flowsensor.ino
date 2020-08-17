@@ -19,6 +19,7 @@ float o2oxy = 1.00;
 float wantedoxygenvolume = 0;
 float maxvolumeoxygenaveraged = 0;
 float fio2max = 1.02;
+float fio2min = 0.25;
 float valvetime;
 float Vo2_error = 0;
 float Vo2_cum_error = 0;
@@ -31,8 +32,6 @@ float totalO2 = 0;
 float density_air = 1.225; //kg/m3
 float density_o2 = 1.429; //kg/m3
 
-int flowsensordirection_tube = -1;
-int flowsensordirection_O2 = -1;
 float calibration_offset_tube = 0;
 float calibration_offset_O2 = 0;
 int sensorHealthyCounter = 0;
@@ -200,15 +199,13 @@ int FLOW_SENSOR_INIT()
   if(returnCode == 0){
     IS_FLOW_SENSOR_TUBE_INITIALIZED=true;
   }
-  if (OXYGENSENSORS){
+  if (OXYGENFLOWSENSOR){
     int returnCode_O2 = sdp_O2.init();
     if(returnCode_O2 == 0){
       IS_FLOW_SENSOR_O2_INITIALIZED=true;
     }
   }
-
   return (int)IS_FLOW_SENSOR_TUBE_INITIALIZED | (int)IS_FLOW_SENSOR_O2_INITIALIZED << 1;
-
 }
 
 //----------------------------------------------------------------------------------------------------------------
@@ -240,8 +237,8 @@ bool FLOW_SENSOR_CALIBRATE()
       }    
       calibration_offset_tube =sum/100.0;
           
-      DEBUGserial.print("Flow sensor offset: ");
-      DEBUGserial.println(calibration_offset_tube);
+      DEBUGserialprint("Flow sensor offset: ");
+      DEBUGserialprintln(calibration_offset_tube);
     }
 
     if (IS_FLOW_SENSOR_O2_INITIALIZED){
@@ -261,8 +258,8 @@ bool FLOW_SENSOR_CALIBRATE()
         }
       }    
       calibration_offset_O2 =sum/100.0;    
-      DEBUGserial.print("Oxygen Flow sensor offset: ");
-      DEBUGserial.println(calibration_offset_O2);
+      DEBUGserialprint("Oxygen Flow sensor offset: ");
+      DEBUGserialprintln(calibration_offset_O2);
     }
  
     return flowcalOK; // init successfull or not;
@@ -344,14 +341,10 @@ bool FLOW_SENSOR_MeasureO2(float *value, float maxflowinhale, float minflowinhal
   bool SensorHealthy = FLOW_SENSOR_Measure(1, value);
   // Check if valve hasn't failed
   if (maxvolumeoxygenaveraged > 1000){
-    safetyValveOff();
+    SensorHealthy = false;
   }
   // Check if min-max is healthy:
   if (abs(maxflowinhale-minflowinhale)<0.5){
-     SensorHealthy = false;
-  }
-  // check safety valve state
-  if(!safetyValveState()){
      SensorHealthy = false;
   }
   return SensorHealthy;
@@ -361,10 +354,7 @@ bool FLOW_SENSOR_MeasureO2(float *value){
   bool SensorHealthy = FLOW_SENSOR_Measure(1, value);
   // Check if valve hasn't failed
   if (maxvolumeoxygenaveraged > 1000){
-    safetyValveOff();
-  }
-  if(!safetyValveState()){
-     SensorHealthy = false;
+    SensorHealthy = false;
   }
   return SensorHealthy;
 }
@@ -507,6 +497,10 @@ void FLOW_SENSOR_setK_O2(float k_O2){
 }
 
 unsigned long FLOW_SENSOR_getTime(float fio2){
+  // don't add oxygen below 25% requested
+  if (fio2 < fio2min){
+    return 0;
+  }
   // prevent inflation of bag
   if(fio2 > fio2max){
     fio2 = fio2max;
@@ -536,27 +530,34 @@ void FLOW_SENSOR_updateK_O2(){
   if(wantedoxygenvolume == 0) wantedoxygenvolume = 1;
   Vo2_cum_error += Vo2_error;
   Vo2_error = (wantedoxygenvolume - maxvolumeoxygenaveraged)/wantedoxygenvolume;
-  K_O2 = K_O2 + Cp_O2 * Vo2_error + Ci_O2 * Vo2_cum_error;
+  float K_O2_new = K_O2 + Cp_O2 * Vo2_error + Ci_O2 * Vo2_cum_error;
+  // check if we are not delivering too much oxygen
+  if((maxvolumeoxygenaveraged > 1.25*wantedoxygenvolume) && (K_O2_new > K_O2)){
+    // don't increase K_02
+  }
+  else{
+    K_O2 = K_O2_new;
+  }
   if(K_O2 < 0){
     K_O2 = 0;
   }
   
-//  DEBUGserial.print("error: ");
-//  DEBUGserial.println(Vo2_error);
-//  DEBUGserial.print("cumulative error: ");
-//  DEBUGserial.println(Vo2_cum_error*wantedoxygenvolume);
-//  DEBUGserial.print("K: ");
-//  DEBUGserial.println(K_O2);
-//  DEBUGserial.print("valveTime: ");
-//  DEBUGserial.println(valvetime);
-//  DEBUGserial.print("Vpatient: ");
-//  DEBUGserial.println(maxvolumepatient);
-//  DEBUGserial.print("Voxygenwanted: ");
-//  DEBUGserial.println(wantedoxygenvolume);
-//  DEBUGserial.print("V02: ");
-//  DEBUGserial.println(maxvolumeoxygen);
-//  DEBUGserial.print("FIO2: ");
-//  DEBUGserial.println(FLOW_SENSOR_getFIO2());
+//  DEBUGserialprint("error: ");
+//  DEBUGserialprintln(Vo2_error);
+//  DEBUGserialprint("cumulative error: ");
+//  DEBUGserialprintln(Vo2_cum_error*wantedoxygenvolume);
+//  DEBUGserialprint("K: ");
+//  DEBUGserialprintln(K_O2);
+//  DEBUGserialprint("valveTime: ");
+//  DEBUGserialprintln(valvetime);
+//  DEBUGserialprint("Vpatient: ");
+//  DEBUGserialprintln(maxvolumepatient);
+//  DEBUGserialprint("Voxygenwanted: ");
+//  DEBUGserialprintln(wantedoxygenvolume);
+//  DEBUGserialprint("V02: ");
+//  DEBUGserialprintln(maxvolumeoxygen);
+//  DEBUGserialprint("FIO2: ");
+//  DEBUGserialprintln(FLOW_SENSOR_getFIO2());
 }
 
 float FLOW_SENSOR_getFIO2(){

@@ -8,10 +8,10 @@ int startangle = 0;
 //-----------------------------------------------------------------------------------------------------------
 bool HALL_SENSOR_INIT()
 {
-  //DEBUGserial.println("Setting up encoder");
+  //DEBUGserialprintln("Setting up encoder");
   if (!hall_encoder.magnetDetected())
   {
-    DEBUGserial.println("Error setting up AS5601 Hall sensor encoder, check magnet or encoder position.");
+    DEBUGserialprintln("Error setting up AS5601 Hall sensor encoder, check magnet or encoder position.");
     return false;
   }
   HALL_SENSOR_INITIALIZED = true;
@@ -89,10 +89,10 @@ int startangle = 0;
 //-----------------------------------------------------------------------------------------------------------
 bool HALL_SENSOR_INIT()
 {
-  //DEBUGserial.println("Setting up encoder");
+  //DEBUGserialprintln("Setting up encoder");
   if (!hall_encoder.begin())
   {
-    DEBUGserial.println("Error setting up AS5040 Hall sensor encoder");
+    DEBUGserialprintln("Error setting up AS5040 Hall sensor encoder");
     return false;
   }
   HALL_SENSOR_INITIALIZED = true;

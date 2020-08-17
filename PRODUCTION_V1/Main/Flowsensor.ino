@@ -187,7 +187,7 @@ const double DP_vs_SLM[][2] =
 //----------------------------------------------------------------------------------------------------------------
 char SLM[10];
 //----------------------------------------------------------------------------------------------------------------
-bool FLOW_SENSOR_INIT()
+int FLOW_SENSOR_INIT()
 {
   FLOW_SENSOR_setDeltaT(controllerTime);
   Wire.begin();  
@@ -205,15 +205,7 @@ bool FLOW_SENSOR_INIT()
       IS_FLOW_SENSOR_O2_INITIALIZED=true;
     }
   }
-
-  if (IS_FLOW_SENSOR_TUBE_INITIALIZED && (IS_FLOW_SENSOR_O2_INITIALIZED || !OXYGENFLOWSENSOR)) 
-  {
-    return true;
-  } 
-  else 
-  {
-    return false;
-  }  
+  return (int)IS_FLOW_SENSOR_TUBE_INITIALIZED | (int)IS_FLOW_SENSOR_O2_INITIALIZED << 1;
 }
 
 //----------------------------------------------------------------------------------------------------------------

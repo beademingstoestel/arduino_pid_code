@@ -17,6 +17,9 @@ bool isSpeakerOn = false;
 
 void initSpeaker(){
   pinMode(Speaker_PWM, OUTPUT);
+  analogWrite(Speaker_PWM, 127); //Turn on PWM @50% duty
+  delay(250);
+  analogWrite(Speaker_PWM, 0); //Turn off
 }
 
 void SpeakerOn() {
@@ -67,6 +70,9 @@ void SpeakerBeep(int lengthInMillis){}
 #ifdef Light_PWM
 void initLight(){
   pinMode(Light_PWM, OUTPUT);
+  LightOn();
+  delay(500);
+  LightOff() ;
 }
 
 void LightOn() {
@@ -130,6 +136,7 @@ bool FanPollingRoutine(){  // Run in LOOP, polls RPM pin, and returns state of t
       FanState = true;
     }else{
       FanState = false;
+      DEBUGserialprintln("FAN FAILED");
     }
     FanCounterLow = 0; //reset counter
     FanCounterHigh = 0;
@@ -207,32 +214,30 @@ unsigned long turn_time_start = 0;
 
 #ifdef automatic_peep
 void PEEP_motor_init(){
-  pinMode(44, OUTPUT);
-  pinMode(46, OUTPUT);
+  pinMode(Motor_PEEP_CW, OUTPUT);
+  pinMode(Motor_PEEP_CCW, OUTPUT);
   
-  analogWrite(46, LOW);
-  analogWrite(44, 50); 
+  analogWrite(Motor_PEEP_CCW, LOW);
+  analogWrite(Motor_PEEP_CW, 50); 
   delay(500);
-  analogWrite(44, LOW);
-  analogWrite(46, 50); 
+  analogWrite(Motor_PEEP_CW, LOW);
+  analogWrite(Motor_PEEP_CCW, 50); 
   delay(500);
-  analogWrite(46, LOW);
-  analogWrite(44, LOW); 
-  
-  // TODO: place in pinout.h
+  analogWrite(Motor_PEEP_CCW, LOW);
+  analogWrite(Motor_PEEP_CW, LOW); 
 }
 
 void PEEP_turn_motor(int turn_direction, int turn_time){
   if(turn_time > 100){
     if(turn_direction == 1){
       // start motor cw
-      analogWrite(44, LOW);
-      analogWrite(46, 50);       
+      analogWrite(Motor_PEEP_CW, LOW);
+      analogWrite(Motor_PEEP_CCW, 50);       
     }
     else{
       // start motor ccw
-      analogWrite(46, LOW);
-      analogWrite(44, 50);
+      analogWrite(Motor_PEEP_CCW, LOW);
+      analogWrite(Motor_PEEP_CW, 50);
     }
     turn_time_total = turn_time;
     turn_time_start = millis();
@@ -242,8 +247,8 @@ void PEEP_turn_motor(int turn_direction, int turn_time){
 void PEEP_check_motor(){
   if(millis() - turn_time_start > turn_time_total){
      // stop motor
-    analogWrite(44, LOW);
-    analogWrite(46, LOW);
+    analogWrite(Motor_PEEP_CW, LOW);
+    analogWrite(Motor_PEEP_CCW, LOW);
   }
 }
 #else
@@ -265,38 +270,30 @@ static inline int8_t sgn(int val) {
 // ---------- Valves
 unsigned long ValveTime = 0;
 unsigned long ValveStartTime = 0;
+unsigned long minValveTime = 5; 
 
-bool initValve(){
+#ifdef O2_valve
+
+void initValve(){
   pinMode(O2_valve, OUTPUT);
   digitalWrite(O2_valve, LOW);
-  pinMode(O2_safety_valve, OUTPUT);
-  digitalWrite(O2_safety_valve, HIGH);
 }
 
-bool ValveOn(){
+void ValveOn(){
   digitalWrite(O2_valve, HIGH);
 }
 
-bool safetyValveOn(){
-  digitalWrite(O2_safety_valve, HIGH);
-}
-
-bool ValveOn(unsigned long valvetime){
+void ValveOn(unsigned long valvetime){
   ValveTime = valvetime;
   ValveStartTime = millis();
-  ValveOn();
+  // turn on valve only if necessary
+  if (ValveTime > minValveTime){
+    ValveOn();
+  }
 }
 
-bool ValveOff(){
+void ValveOff(){
   digitalWrite(O2_valve, LOW);
-}
-
-bool safetyValveOff(){
-  digitalWrite(O2_safety_valve, LOW);
-}
-
-bool safetyValveState(){
-  return digitalRead(O2_safety_valve);
 }
 
 // check if we need to turn off
@@ -306,3 +303,14 @@ void ValveCheck(){
     ValveOff();
   }
 }
+
+#else
+void initValve(){};
+void ValveOn(){};
+void safetyValveOn(){};
+void ValveOn(unsigned long valvetime){};
+void ValveOff(){};
+void safetyValveOff(){};
+bool safetyValveState(){return false;};
+void ValveCheck(){};
+#endif

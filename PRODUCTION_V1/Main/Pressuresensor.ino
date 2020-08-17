@@ -43,11 +43,11 @@ bool PRESSURE_SENSOR_CALIBRATE(){
   return ((bme1ok || !BME_tube));
 }
 
-bool PRESSURE_SENSOR_INIT(){
+int PRESSURE_SENSOR_INIT(){
   // initialise both sensors + calibrate ambient sensor
   bool bme1ok = BME1_Setup();
   bool bme2ok = BME2_Setup() && BME2_Calibrate();
-  return ((bme1ok || !BME_tube) && (bme2ok || !BME_ambient));
+  return (int)bme1ok | (int)bme2ok << 1;
 }
 //-----------------------------------------------------------------------------------------------
 bool BME1_Setup()
@@ -221,6 +221,15 @@ bool BME_280_CHECK_TEMPERATURE(){
       }
   }
   return false;
+}
+
+float BME_280_GET_TEMPERATURE(){
+  if(PRESSURE_SENSOR2_INITIALIZED){
+    return bme2.getTemperature();
+  }
+  else{
+    return 0;
+  }
 }
 
 float BME_280_GET_HUMIDTY_PATIENT(){

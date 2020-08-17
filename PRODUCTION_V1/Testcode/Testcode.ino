@@ -4,7 +4,8 @@
 #define PYTHON 1
 #define HARDWARE 0
 #define DEBUGserial Serial
- 
+
+ bool OXYGENCONTROL_PYTHON = 0;
 //---------------------------------------------------------------
 // VARIABLES
 //---------------------------------------------------------------
@@ -123,7 +124,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - OXYGEN INHALE SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   if (oxygen_sensor_init_value & 0x02) {
@@ -132,7 +133,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - OXYGEN EXHALE SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   REQUEST_INPUT();
@@ -156,7 +157,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - TUBE FLOW SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+    
   }
 
   if (flow_sensor_init_value & 0x02) {
@@ -173,7 +174,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - OXYGEN FLOW SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   REQUEST_INPUT();
@@ -197,7 +198,7 @@ void setup()
   }
   else{
     DEBUGserial.println("  - TUBE PRESSURE SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   if (pressure_sensor_init_value & 0x02){
@@ -214,7 +215,7 @@ void setup()
   }
   else{
     DEBUGserial.println("  - AMBIENT PRESSURE SENSOR FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   REQUEST_INPUT();
@@ -229,7 +230,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - MOTOR & ENDSWITCHES FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   // empty oxygen bag
@@ -268,7 +269,7 @@ void setup()
   }
   else {
     DEBUGserial.println("  - OXYGEN SUPPLY FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   // empty oxygen bag
@@ -295,7 +296,7 @@ void setup()
   }
   else{
     DEBUGserial.println("  - TEMPERATURE FAILED");
-    if(HARDWARE)ALARM_init();
+     
   }
 
   REQUEST_INPUT();  
@@ -307,7 +308,7 @@ void setup()
   // fan off!
   DEBUGserial.println("  - MEASURING SPEED 0...");
   starttime = millis();
-  while(millis() - starttime < 2000){
+  while(millis() - starttime < 4000){
       fan_OK = FanPollingRoutine();
       delay(1);
   }
@@ -322,7 +323,7 @@ void setup()
   
   DEBUGserial.println("  - MEASURING SPEED 1...");
   starttime = millis();
-  while(millis() - starttime < 2000){
+  while(millis() - starttime < 4000){
       fan_OK = FanPollingRoutine();
       delay(1);
   }
@@ -336,7 +337,7 @@ void setup()
   FanOnPWM(200);
   DEBUGserial.println("  - MEASURING SPEED 2...");
   starttime = millis();
-  while(millis() - starttime < 2000){
+  while(millis() - starttime < 4000){
       fan_OK = FanPollingRoutine();
       delay(1);
   }
@@ -359,9 +360,7 @@ void setup()
   delay(1000);
   LightOff();
   DEBUGserial.println("  - BUZZING BUZZER");
-  SpeakerOn();
-  delay(1000);
-  SpeakerOff();
+  initSpeaker();
   
   delay(1000);
   DEBUGserial.println("");
@@ -557,4 +556,26 @@ void serialFlush(){
 void REQUEST_INPUT(){
   DEBUGserial.println("\n PRESS ENTER TO CONTINUE");
   serialFlush(); while(!Serial.available() ){} 
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// DEBUGGING
+// ---------------------------------------------------------------------------------------------------------
+
+void DEBUGserialprintln(String text){
+  if (!PYTHON){
+    Serial.println(text);
+  }
+}
+
+void DEBUGserialprintln(float text){
+  if (!PYTHON){
+    Serial.println(text);
+  }
+}
+
+void DEBUGserialprint(String text){
+  if (!PYTHON){
+    Serial.print(text);
+  }
 }

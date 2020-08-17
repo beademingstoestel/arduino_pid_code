@@ -27,10 +27,6 @@ unsigned int debouncedAlarmOnOffState = ALARM_OFF;
 // ALARMS
 //---------------------------------------------------------------
 
-void ALARM_init() {
-  while (1);
-}
-
 void ALARM_processAlarm()
 {
   // buzzer should always sound if PC is not connected
@@ -48,7 +44,7 @@ void ALARM_processAlarm()
   // light purely determined by python
   if (buzzerStatusFromPython > 0){
     LightOn();
-    DEBUGserial.println(ALARM, BIN);
+    //DEBUGserialprintln(ALARM, BIN);
   }
   else{
     LightOff();
@@ -98,16 +94,12 @@ unsigned int ALARM_getAlarmState(void) {
 // check alarm init
 //-----------------------------------------------------
 void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok, 
-    bool flow_sens_init_ok, bool motor_sens_init_ok, bool sensor_calibration_ok, bool fan_OK, 
+    bool flow_sens_init_ok, bool motor_sens_init_ok, bool fan_OK, 
     bool battery_powered, float battery_SOC, bool temperature_OK)
     {
 
   resetAlarmState();
   
-  if (oxygen_init_ok==false){
-    // Oxygen supply not connected
-    setAlarmState(3);
-  }  
   if (temperature_OK == false){
     // check flow sensor temperature measurement
     setAlarmState(5);
@@ -124,8 +116,8 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
     // Motor limit switches check failed
     setAlarmState(9);
   }
-   if (sensor_calibration_ok==false){
-    // flow and pressure sensors not calibrated
+   if (oxygen_init_ok==false){
+    // Oxygen supply not connected
     setAlarmState(10);
   }
   if (battery_powered){
@@ -139,6 +131,28 @@ void checkALARM_init(bool oxygen_init_ok, bool pressure_sens_init_ok,
   if (battery_SoC<0.25){
     // SoC battery <25% - critical
     setAlarmState(13);
+  }
+}
+
+//-----------------------------------------------------
+// check alarm calibration
+//-----------------------------------------------------
+void checkALARM_calib(bool isPatientPressureCorrect, bool isFlow2PatientRead, bool isFlowOfOxygenRead)
+    {
+
+  resetAlarmState();
+  
+  if (!isFlowOfOxygenRead){
+    // one of the valves failed
+    setAlarmState(3);
+  }
+   if (isPatientPressureCorrect==false){
+    // check pressure sensor connected and reacting
+    setAlarmState(4);
+  }
+  if (isFlow2PatientRead==false){
+    // flow sensors sensor connected and reacting
+    setAlarmState(6);
   }
 }
 
@@ -165,7 +179,9 @@ void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume,
   }
   if (!isFlowOfOxygenRead){
     // one of the valves failed
-    setAlarmState(3);
+    if (OXYGENCONTROL_PYTHON){
+      setAlarmState(3);
+    }
   }
    if (isPatientPressureCorrect==false || isAmbientPressureCorrect == false){
     // check pressure sensor connected and reacting
@@ -211,27 +227,35 @@ void checkALARM(float fio2, bool isFlowOfOxygenRead, float pressure, int volume,
 bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, bool isAmbientPressureCorrect){
   // if i2c sensors fail ==> disable i2c bus!
   if (!FLOW_SENSOR_CHECK_I2C() || !PRESSURE_SENSOR_CHECK_I2C()){
-    DEBUGserial.println("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
-    FLOW_SENSOR_DISABLE();
-    BME280_DISABLE();
-    #ifdef hall_sensor_i2c
-      HALL_SENSOR_DISABLE();
-    #endif
-    // flush i2c
-    while(Wire.available()){
-      Wire.read();
+    if(!min_degraded_mode_ON){
+      DEBUGserialprintln("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
+      FLOW_SENSOR_DISABLE();
+      BME280_DISABLE();
+      oxygen_inhale_serial.end();
+      oxygen_exhale_serial.end();
+      #ifdef hall_sensor_i2c
+        HALL_SENSOR_DISABLE();
+      #endif
+      // flush i2c
+      while(Wire.available()){
+        Wire.read();
+      }
+      // disable i2c
+      pinMode(SCL, INPUT);
+      pinMode(SDA, INPUT);
     }
-    // disable i2c
-    pinMode(SCL, INPUT);
-    pinMode(SDA, INPUT);
-
     return 1;
   }
   else if(!(isFlow2PatientRead && isPatientPressureCorrect && isAmbientPressureCorrect)){
-    DEBUGserial.println("=== GO TO SAFE MODE ===");
+    if (!min_degraded_mode_ON){
+      DEBUGserialprintln("=== GO TO SAFE MODE ===");
+    }
     return 1;
   }
   else{
+    if (min_degraded_mode_ON){
+      DEBUGserialprintln("=== EXIT SAFE MODE ===");
+    }
     return 0;
   }
 }
@@ -255,7 +279,8 @@ void doWatchdog(void) {
   // TX alarms if communication is OK
   if (millis() - lastWatchdogTimeTX > WatchdogTimeTX && isPythonOK == true) {
     lastWatchdogTimeTX = millis();
-    sendAlarmState();         
+    sendAlarmState();     
+    sendActiveStateNoCheck();    
   }
 }
 

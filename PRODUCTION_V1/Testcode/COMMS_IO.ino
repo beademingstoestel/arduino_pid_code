@@ -30,15 +30,15 @@ SETTING settingarray[22]= {
   {"ADPK", 10, false, 36, 0, 0},    // 10 Peak pressure deviation
   {"ADVT", 50, false, 40, 0, 0},    // 11 Tidal volume deviation
   {"ADPP", 5, false, 44, 0, 0},     // 12 Peep pressure deviation
-  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: 0 = pressure triggered, 1 = flow triggered
-  {"ACTIVE", 0, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
+  {"MODE", 0, false, 48, 0, 0},     // 13 Mode: BIT 0=trigger type, 1=trigger enable, 2=vol limit, 3=aprv, 4=autoflow, 5=oxygen control
+  {"ACTIVE", -10, false, 52, 0, 0},   // 14 Active: 0 = disabled, 1 = startup peep, 2 = active
   {"MT", 0, false, 56, 0, 0},       // 15 Mute: 0 = no mute / sound, 1 = mute, no sound
-  {"FIO2", 0.51, false, 60, 0, 0},  // 16 Oxygen level
+  {"FIO2", 0.2, false, 60, 0, 0},  // 16 Oxygen level
   {"ADFIO2", 0.1, false, 64, 0, 0}, // 17 Oxygen level
   {"LPK", 20, false, 64, 0, 0},     // 18 Lower limit PK
   {"HPK", 40, false, 64, 0, 0},     // 19 Upper limit PK
   {"HRR", 35, false, 64, 0, 0},     // 20 Upper limit RR
-  {"FW", 3.46, false, 68, 0, 0}     // 21 Firmware version
+  {"FW", 3.77, false, 68, 0, 0}     // 21 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);
@@ -61,7 +61,9 @@ unsigned int TRIG = 0;    // trigger
 float PRES = 40;          // pressure
 float FLOW = 50;          // flow
 float TPRES = 60;         // target pressure
-float FIO2 = 0.21;        // oxygen percentage
+float FIO2 = 0.31;        // oxygen percentage
+float FIO2i = 0.21;        // oxygen percentage
+float FIO2e = 0.21;        // oxygen percentage
 
 //---------------------------------------------------------------
 // EEPROM
@@ -137,7 +139,7 @@ unsigned int comms_getADVT() {
 unsigned int comms_getADPP() {
   return settingarray[12].settingvalue;
 }
-int comms_getMode() {
+int comms_getMode() { // 0=pressure triggered, 1=flow triggered, 2=no triggers
   if (comms_getTrigger()){
     return (((int) settingarray[13].settingvalue) & 0x01);
   }
@@ -145,17 +147,20 @@ int comms_getMode() {
     return 2;
   }
 }
-bool comms_getTrigger() {
+bool comms_getTrigger() { // 0=no triggers, 1=triggers
   return (((int) settingarray[13].settingvalue) >> 1 & 0x01);
 }
-bool comms_getVolumeLimitControl() {
+bool comms_getVolumeLimitControl() { //0=no vol limit, 1=vol limit
   return (((int) settingarray[13].settingvalue) >> 2 & 0x01);
 }
-bool comms_getAPRV() {
+bool comms_getAPRV() { //0=no APRV, 1=APRV
   return (((int) settingarray[13].settingvalue) >> 3 & 0x01);
 }
-bool comms_getAutoFlow() {
+bool comms_getAutoFlow() { //0=no autoflow, 1=autoflow
   return (((int) settingarray[13].settingvalue) >> 4 & 0x01);
+}
+bool comms_getOxygenControl() { //0=no oxygen control, 1=oxygen control
+  return (((int) settingarray[13].settingvalue) >> 5 & 0x01);
 }
 int comms_getActive() {
   if (PYTHON){
@@ -167,6 +172,9 @@ int comms_getActive() {
 }
 bool comms_resetActive() {
   settingarray[14].settingvalue = 0;
+}
+bool comms_setActive(int activestate) {
+  settingarray[14].settingvalue = activestate;
 }
 float comms_getMT() {
   return settingarray[15].settingvalue;
@@ -206,13 +214,19 @@ void comms_setTPRES(float tpres) {
 void comms_setFIO2(float fio2) {
   FIO2 = fio2;
 }
+void comms_setFIO2inhale(float fio2) {
+  FIO2i = fio2;
+}
+void comms_setFIO2exhale(float fio2) {
+  FIO2e = fio2;
+}
 
 //---------------------------------------------------------------
 // FUNCTIONS TO PYTHON
 //---------------------------------------------------------------
 
 void sendDataToPython() {
-  int messagelength = 18;
+  int messagelength = 22;
   unsigned long currenttime = millis();
   strcpy(message, "");
   
@@ -232,15 +246,19 @@ void sendDataToPython() {
   message[13] = (char)((int)(FLOW*100) >> 8);
   message[14] = (char)((int)(FIO2*100));
   message[15] = (char)((int)(FIO2*100) >> 8);
-  message[16] = (char)(currenttime);
-  message[17] = (char)(currenttime >> 8);
-  message[18] = (char)(currenttime >> 16);
-  message[19] = (char)(currenttime >> 24);
-  message[20] = getCRCvalue(message, messagelength + 2);
-  message[21] = 0x0A;
+  message[16] = (char)((int)(FIO2e));
+  message[17] = (char)((int)(FIO2e) >> 8);
+  message[18] = (char)((int)(FIO2i));
+  message[19] = (char)((int)(FIO2i) >> 8);
+  message[20] = (char)(currenttime);
+  message[21] = (char)(currenttime >> 8);
+  message[22] = (char)(currenttime >> 16);
+  message[23] = (char)(currenttime >> 24);
+  message[24] = getCRCvalue(message, messagelength + 2);
+  message[25] = 0x0A;
 
   comms_setTRIG(0);
-  Serial.write(message, 22);
+  Serial.write(message, messagelength+4);
 }
 
 //---------------------------------------------------------------
@@ -249,11 +267,11 @@ void sendDataToPython() {
 
 // Init communication at startup: blocking
 bool initCOMM() {
-  DEBUGserial.println("SETUP START");
+  DEBUGserialprintln("SETUP START");
   while (!getSettings()) {
     recvWithEndMarkerSer0();
   }
-  DEBUGserial.println("SETUP DONE");
+  DEBUGserialprintln("SETUP DONE");
 }
 
 // Get settings from python
@@ -333,9 +351,10 @@ void processSerialPort(String input) {
     updateWatchdog(millis());
   }
 
-  // Get measured PEEP and update PEEP valve if necessary
-  if (input.startsWith("PEEP")) {
-    //PEEP_update(value0.toFloat());
+  if (input.startsWith("FIO2")) {
+    FLOW_SENSOR_setK_O2(0.0); 
+    DEBUGserialprintln("CHANGING FIO2");
+    
   }
   
   if (input.startsWith("ACK")) {
@@ -360,10 +379,47 @@ int sendAlarmState(void) {
   settingarray[0].messagetime = millis();
 
   if (ALARM != 0){
-    DEBUGserial.print(" ==> ALARM = ");
-    DEBUGserial.println(ALARM, BIN);
+    DEBUGserialprint(" ==> ALARM = ");
+    //DEBUGserialprintln(ALARM, BIN);
   }
   
+  return 1;
+}
+
+//---------------------------------------------------------------
+// FUNCTIONS ACTIVE STATE
+//---------------------------------------------------------------
+
+int sendActiveState(void) {
+  settingarray[14].settingok = false;
+  
+  while (!settingarray[14].settingok){
+    if((!settingarray[14].settingok) && (millis() - settingarray[14].messagetime > 1000)){
+          strcpy(message, "");
+          sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+          getCRC(message);
+          Serial.println(message);  
+          settingarray[14].messageid = counter;     
+          settingarray[14].messagetime = millis();
+    }
+    recvWithEndMarkerSer0();
+  }
+  return 1;
+}
+
+void reset_sendActiveState(void) {
+  settingarray[14].settingok = false;
+}
+
+int sendActiveStateNoCheck(void) {
+  if((!settingarray[14].settingok) && (millis() - settingarray[14].messagetime > 1000)){
+    strcpy(message, "");
+    sprintf(message, "%s=%d.%d=%c=", settingarray[14].settingname, int(settingarray[14].settingvalue), int(settingarray[14].settingvalue * 100) - int(settingarray[14].settingvalue) * 100, ++counter);
+    getCRC(message);
+    Serial.println(message);
+    settingarray[14].messageid = counter;     
+    settingarray[14].messagetime = millis();
+  }
   return 1;
 }
 
@@ -408,11 +464,10 @@ void recvWithEndMarkerSer0() {
     // check CRC
     if (!checkCRC(receivedChars0)) {
       processSerialPort(receivedChars0);
-      DEBUGserial.println(receivedChars0);
     } 
     else {
-//      DEBUGserial.print("Resend data: ");
-//      DEBUGserial.println(receivedChars0);
+//      DEBUGserialprint("Resend data: ");
+//      DEBUGserialprintln(receivedChars0);
     }
     newData0 = false;
   }
@@ -427,8 +482,8 @@ void recvWithEndMarkerSer1() {
   char endMarker = '\n';
   char rc;
 
-  while (DEBUGserial.available() > 0 && newData1 == false) {
-    rc = DEBUGserial.read();
+  while (Serial.available() > 0 && newData1 == false) {
+    rc = Serial.read();
 
     if (rc != endMarker) {
       receivedChars1[ndx] = rc;
@@ -448,7 +503,7 @@ void recvWithEndMarkerSer1() {
     // manual input: do not check CRC
     processSerialPort(receivedChars1);
     // confirm message
-    DEBUGserial.println(receivedChars1);
+    DEBUGserialprintln(receivedChars1);
     newData1 = false;
   }
 }

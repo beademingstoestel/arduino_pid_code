@@ -20,36 +20,42 @@ float I_temperature;
 float E_concentration = 0;
 float E_temperature;
 
-int OXYGEN_SENSOR_INIT(){
-  if(OXYGENSENSORS){
-    oxygen_inhale_serial.begin(9600);
+bool OXYGEN_SENSOR_INIT(){
+  if(OXYGENSENSOREXHALE){
     oxygen_exhale_serial.begin(9600);
-  
-    OXYGEN_SENSOR_READ_INHALE();
     OXYGEN_SENSOR_READ_EXHALE();
-    while(OXYGEN_SENSOR_GET_INHALE() == 0 || OXYGEN_SENSOR_GET_EXHALE() == 0){
+
+    unsigned long timeouttimer = millis();
+    while(OXYGEN_SENSOR_GET_EXHALE() == 0){
+      if(millis() - timeouttimer > 10000){
+        return false;
+      }
+      delay(100);
+    }
+    float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
+    if(init_exhale<19 || init_exhale>90) return false;
+  }
+  
+  if(OXYGENSENSORINHALE){
+    oxygen_inhale_serial.begin(9600);
+    OXYGEN_SENSOR_READ_INHALE();
+
+    unsigned long timeouttimer = millis();
+    while(OXYGEN_SENSOR_GET_INHALE() == 0){
+      if(millis() - timeouttimer > 10000){
+        Serial.println("IN NOK");
+        return false;
+      }
       delay(100);
     }
     float init_inhale = OXYGEN_SENSOR_GET_INHALE();
-    float init_exhale = OXYGEN_SENSOR_GET_EXHALE();
-
-    bool inhale_ok = true;
-    bool exhale_ok = true;
-  
-    if(init_inhale<19 || init_inhale>25){
-      inhale_ok = false;
-    }
-    if(init_exhale<19 || init_exhale>25){
-      exhale_ok = false;
-    }
-
-    OXYGEN_SENSORS_INITIALIZED = true;
-    return (int)inhale_ok | (int)exhale_ok << 1;
+    if(init_inhale<19 || init_inhale>90) return false;
+    Serial.println("IN OK");
   }
-  else{
-    OXYGEN_SENSORS_INITIALIZED = false;
-    return true;
-  }
+    
+
+  OXYGEN_SENSORS_INITIALIZED = true;
+  return true;
 }
 
 void OXYGEN_SENSOR_READ_INHALE(){
@@ -84,9 +90,10 @@ float OXYGEN_SENSOR_GET_INHALE(){
       if (I_inByte == 256 - sum_I){
         // end of correct message
         I_concentration = (I_output[3]*256.0 + I_output[4])/10.0; //vol%
+        I_concentration = I_concentration * OXYGEN_CORRECTION; 
         I_temperature = (I_output[7]*256.0 + I_output[8])/10.0; //Deg C
-        DEBUGserial.print("O2 in: ");
-        DEBUGserial.println(I_concentration);
+        DEBUGserialprint("O2 in: ");
+        DEBUGserialprintln(I_concentration);
       }
     }   
     i++;
@@ -118,9 +125,10 @@ float OXYGEN_SENSOR_GET_EXHALE(){
       if (E_inByte == 256 - sum_E){
         // end of correct message
         E_concentration = (E_output[3]*256.0 + E_output[4])/10.0; //vol%
+        E_concentration = E_concentration * OXYGEN_CORRECTION; 
         E_temperature = (E_output[7]*256.0 + E_output[8])/10.0; //Deg C
-        DEBUGserial.print("O2 ex: ");
-        DEBUGserial.println(E_concentration);
+        DEBUGserialprint("O2 ex: ");
+        DEBUGserialprintln(E_concentration);
       }
     }   
     j++;
@@ -152,8 +160,10 @@ bool OXYGEN_SENSOR_MEASURE(){
         OXYGEN_SWITCH = true;
       }
   
-      DEBUGserial.print("O2 Flow: ");
-      DEBUGserial.println(FIO2*100);
+      comms_setFIO2inhale(I_concentration);
+      comms_setFIO2exhale(E_concentration);
+      DEBUGserialprint("O2 Flow: ");
+      DEBUGserialprintln(FIO2*100);
     }
   }
 }

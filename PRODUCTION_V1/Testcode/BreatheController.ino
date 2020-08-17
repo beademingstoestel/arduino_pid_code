@@ -4,21 +4,15 @@
 float PRESSURE_INHALE_SETPOINT = 0;
 float current_inhale_pressure = 0;
 float offset = 50;
-float exhale_speed = 80;
 float hold_speed = 0;
 float delta_time;
 float flow_at_switching = 0;
 float peep_at_switching = 0;
 
 //---------------------------------
-// this is used in degraded mode with a linear scaling on the pressure setpoint
-float min_degraded_mode_speed = -35;     
-
 bool volumeTriggered = false;
 //----------------------------------
 bool endswitchFlag = false;
-float preloadspeed0 = -5;
-float preloadspeed1 = -20;
 //----------------------------------
 float Kp = 10;
 float Ki = 0.1;
@@ -185,18 +179,18 @@ bool BREATHE_CONTROL_CheckInhale() {
 //float BREATHE_CONTROL_Regulate()
 float BREATHE_CONTROL_Regulate(bool min_degraded_mode_ON)
 {
-  //  DEBUGserial.print(CurrentFlowPatient);
-  //  DEBUGserial.print(",");
-  //  DEBUGserial.print(CurrentVolumePatient);
-  //  DEBUGserial.print(",");
-  //  DEBUGserial.print(Volume2Patient);
-  //  DEBUGserial.print(",");
-  //  DEBUGserial.print(CurrentPressurePatient);
-  //  DEBUGserial.print(",");
-  //  DEBUGserial.println(PRESSURE_INHALE_SETPOINT);
+  //  DEBUGserialprint(CurrentFlowPatient);
+  //  DEBUGserialprint(",");
+  //  DEBUGserialprint(CurrentVolumePatient);
+  //  DEBUGserialprint(",");
+  //  DEBUGserialprint(Volume2Patient);
+  //  DEBUGserialprint(",");
+  //  DEBUGserialprint(CurrentPressurePatient);
+  //  DEBUGserialprint(",");
+  //  DEBUGserialprintln(PRESSURE_INHALE_SETPOINT);
 
   float error = current_inhale_pressure - PRESSURE_INHALE_SETPOINT; //Motor direction is flipped clckwise is negative
-  //DEBUGserial.println(diff);
+  //DEBUGserialprintln(diff);
   if (controller_state == inhale)
   {
     dError = r * dError_t_m_1 + 1000.0 * (1 - r) * (error - error_t_m_1) / time_diff;
@@ -245,7 +239,7 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
       return hold_speed;
     }
     else if (min_degraded_mode_ON){
-      return -30+min_degraded_mode_speed/comms_getInhaleTime()*1000;
+      return -30+(float)min_degraded_mode_speed/comms_getInhaleTime()*1000;
     }
     else {
       return Speed;
@@ -258,14 +252,14 @@ float BREATHE_CONTROL_Regulate_With_Volume(int end_switch, bool min_degraded_mod
     if (endswitchFlag == false){
       if (end_switch == 1) {
         endswitchFlag = true;
-        return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+        return (float)preloadspeed0 + (float)preloadspeed1/comms_getInhaleTime()*1000;
       }
       else{
         return Speed;
       }
     }
     else if (endswitchFlag == true){
-      return preloadspeed0 + preloadspeed1/comms_getInhaleTime()*1000;
+      return (float)preloadspeed0 + (float)preloadspeed1/comms_getInhaleTime()*1000;
     }
   }
   // Keep arm steady in wait
