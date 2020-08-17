@@ -23,6 +23,7 @@ float target_fio2 = 0.2;
 
 typedef enum {ini = 0x00, wait = 0x01, inhale = 0x02, exhale = 0x03} controller_state_t;
 controller_state_t controller_state = 0x00;
+bool Active_1_beep_played = false;
 
 volatile unsigned long exhale_start_time = millis();
 volatile unsigned long inhale_start_time = millis();
@@ -354,9 +355,16 @@ void controller()
       // Check user input to start controller
       if (comms_getActive() == 1) {
         comms_resetActive(); // reset state to 0 (avoid buzzer resetting)
-        SpeakerBeep(500); // turn on BUZZER   
+        SpeakerBeep(500); // turn on BUZZER 
+        Active_1_beep_played = true;  
       }
-      if (comms_getActive() == 2) {
+      // Only accept when Active=1 has been received first 
+      if(comms_getActive() == 2 && !Active_1_beep_played) {
+        comms_resetActive();
+        reset_sendActiveState();
+      }
+      if (comms_getActive() == 2 && Active_1_beep_played) {
+        Active_1_beep_played = false;
         comms_setActive(3);
         reset_sendActiveState();
         transientMute = transientMuteCycles;
