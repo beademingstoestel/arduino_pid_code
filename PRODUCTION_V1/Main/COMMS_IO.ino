@@ -40,7 +40,7 @@ SETTING settingarray[24]= {
   {"LRR", 19, false, 76, 0, 0},     // 20 Lower limit RR
   {"HRR", 35, false, 80, 0, 0},     // 21 Upper limit RR
   {"RVOL", 69, false, 84, 0, 0},    // 22 Residual Volume
-  {"FW", 3.82, false, 88, 0, 0}     // 23 Firmware version
+  {"FW", 3.83, false, 88, 0, 0}     // 23 Firmware version
 };
 
 int arr_size = sizeof(settingarray)/sizeof(settingarray[0]);

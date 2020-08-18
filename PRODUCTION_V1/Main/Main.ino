@@ -171,7 +171,7 @@ void setup()
     comms_setActive(-5);
     DEBUGserialprintln("INIT OK");
   }
-  sendActiveState();
+  if(PYTHON)sendActiveState();
 
   //---------------------------------------------------------------
   // CALIBRATE
