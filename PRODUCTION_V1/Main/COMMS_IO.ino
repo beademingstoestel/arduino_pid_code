@@ -214,7 +214,9 @@ void comms_setTPRES(float tpres) {
   TPRES = tpres;
 }
 void comms_setFIO2(float fio2) {
-  FIO2 = fio2;
+ // FIO2 = fio2;
+  
+  FIO2 =FLOW_SENSOR_getFIO2instant();
 }
 void comms_setFIO2inhale(float fio2) {
   FIO2i = fio2;

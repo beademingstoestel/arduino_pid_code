@@ -3,6 +3,24 @@
 #include <avr/wdt.h>
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
+
+//This is 3.8" with modifications on the oxygen control by Lieven
+
+/*
+ * 27/08/2020 -Lieven
+ * changes in Flowsensor_oxygencontrol
+The controller now uses an approximate vlaue for valvetime, for 10 cycles.
+ * This value is taken from float valvetime_presetvalues[11], which is a list of valvetimes for vt=800, then corrected for the actual Vt
+ * After 10 cycles the previous controller takes over.
+ * 
+ * FiO2 reported in de GUI has been changed to not be the average, but the last measured value - this makes it update faster and is more intuitive
+ * The FIO2 used in de controller is still the running average
+ * 
+ * Also: when changing desired Fio2 the cumulative error and K_02 now get reset - this makes the controller repeatable
+ * 
+ * 
+ * */
+ 
 // set #define OXYGENCONTROL 1 in PINOUT.h for use with PYTHON 0
 //---------------------------------------------------------------
 // VARIABLES
@@ -40,6 +58,19 @@ unsigned int target_volume = 700;
 unsigned int target_inhale_time = 0;
 unsigned int target_exhale_time = 0;
 unsigned int trigger_mode = 0;
+
+
+//OXYGEN CONTROL - SENSORVERSION
+//---------------------------------------------------------------
+float valvetime = 0;
+byte control_oxygen=0; // status to disable regulation if fio2 < fio2min
+float previousvalvetime = 0;
+float previous_I_concentration = 21;
+float previous_target_fio2 = 0.2;
+float valveControlIterations = 0;
+float valvetime_presetvalues[11] = {0, 0, 55, 70, 120, 200, 280, 350, 430, 510, 600}; //stored preset values for valve time per 10% for a VT=800ml, firdst value is for 20%, 30% does nothing, 40% is 40ms...
+//70 = 0.3
+
 
 //---------------------------------------------------------------
 // SAFETY FEATURE
@@ -139,6 +170,10 @@ void setup()
 
   //-- set up motor
   DEBUGserialprintln("Setting up MOTOR: ");
+    if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
+    motor_sens_init_ok = true;
+    DEBUGserialprintln("MOTOR OK");
+  }
   if (MOTOR_CONTROL_setup(ENDSWITCH_PUSH_PIN, ENDSWITCH_FULL_PIN)) {
     motor_sens_init_ok = true;
     DEBUGserialprintln("MOTOR OK");
@@ -171,7 +206,7 @@ void setup()
     comms_setActive(-5);
     DEBUGserialprintln("INIT OK");
   }
-  if(PYTHON)sendActiveState();
+ if (PYTHON) sendActiveState();
 
   //---------------------------------------------------------------
   // CALIBRATE
@@ -443,7 +478,7 @@ void controller()
         trigger_mode = comms_getMode();
         target_risetime = updateAutoFlow(target_risetime, target_inhale_time);
         target_pressure = comms_getPressure(inhale_detected);
-        target_fio2 = comms_getFIO2();
+        target_fio2 = comms_getFIO2(); //this reads 
 
         // oxygen control   
         comms_setFIO2(FLOW_SENSOR_getFIO2());
