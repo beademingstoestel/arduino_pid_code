@@ -4,7 +4,7 @@
 // for debuggin purposes: allows to turn off features
 #define PYTHON 1
 
-//This is 3.8" with modifications on the oxygen control by Lieven
+//This is 3.83 with modifications on the oxygen control by Lieven
 
 /*
  * 27/08/2020 -Lieven
