@@ -230,19 +230,19 @@ bool checkDegradedMode(bool isFlow2PatientRead, bool isPatientPressureCorrect, b
     if(!min_degraded_mode_ON){
       DEBUGserialprintln("=== RESET I2C SENSORS & GO TO SAFE MODE ===");
       FLOW_SENSOR_DISABLE();
-      BME280_DISABLE();
-      oxygen_inhale_serial.end();
-      oxygen_exhale_serial.end();
-      #ifdef hall_sensor_i2c
-        HALL_SENSOR_DISABLE();
-      #endif
-      // flush i2c
-      while(Wire.available()){
-        Wire.read();
-      }
-      // disable i2c
-      pinMode(SCL, INPUT);
-      pinMode(SDA, INPUT);
+      //BME280_DISABLE();
+//      oxygen_inhale_serial.end();
+//      oxygen_exhale_serial.end();
+//      #ifdef hall_sensor_i2c
+//        HALL_SENSOR_DISABLE();
+//      #endif
+//      // flush i2c
+//      while(Wire.available()){
+//        Wire.read();
+//      }
+//      // disable i2c
+//      pinMode(SCL, INPUT);
+//      pinMode(SDA, INPUT);
     }
     return 1;
   }
